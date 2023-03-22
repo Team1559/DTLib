@@ -74,7 +74,7 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/Team1559/DTLib")
             credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("Team1559")
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.key") ?: System.getenv("PACKAGE_SECRET")
             }
         }
