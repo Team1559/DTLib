@@ -124,7 +124,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/FairportRobotics/potential-octo-eureka")
+            url = uri("https://maven.pkg.github.com/Team1559/DTLib")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
