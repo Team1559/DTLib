@@ -7,165 +7,42 @@ import org.gradle.internal.os.OperatingSystem
 
 apply plugin: 'maven-publish'
 
-ext.licenseFile = files("$rootDir/LICENSE.txt")
-
-def pubVersion = '2023.4.2'
-
-def outputsFolder = file("$buildDir/allOutputs")
-
-def versionFile = file("$outputsFolder/version.txt")
-
-task outputVersions() {
-    description = 'Prints the versions of wpilib to a file for use by the downstream packaging project'
-    group = 'Build'
-    outputs.files(versionFile)
-
-    doFirst {
-        buildDir.mkdir()
-        outputsFolder.mkdir()
-    }
-
-    doLast {
-        versionFile.write pubVersion
-    }
-}
-
-task libraryBuild() {}
-
-task pubLocal(dependsOn: 'publishAllPublicationsToFrcHomeRepository') {}
-
-build.dependsOn outputVersions
-
-task copyAllOutputs(type: Copy) {
-    destinationDir outputsFolder
-}
-
-build.dependsOn copyAllOutputs
-copyAllOutputs.dependsOn outputVersions
-
-ext.addTaskToCopyAllOutputs = { task ->
-    copyAllOutputs.dependsOn task
-    copyAllOutputs.inputs.file task.archivePath
-    copyAllOutputs.from task.archivePath
-}
-
-def artifactGroupId = 'com.deviltech.dtlib'
-def baseArtifactId = 'dtlib-java'
-def zipBaseName = "_GROUP_com_deviltech_dtlib_ID_${baseArtifactId}-java_CLS"
-def javaBaseName = "_GROUP_com_deviltech_dtlib_ID_${baseArtifactId}-java_CLS"
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-task outputJar(type: Jar, dependsOn: classes) {
-    archiveBaseName = javaBaseName
-    destinationDirectory = outputsFolder
-    from sourceSets.main.output
-}
-
-task outputSourcesJar(type: Jar, dependsOn: classes) {
-    archiveBaseName = javaBaseName
-    destinationDirectory = outputsFolder
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task outputJavadocJar(type: Jar, dependsOn: javadoc) {
-    archiveBaseName = javaBaseName
-    destinationDirectory = outputsFolder
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-    archives outputJar
-    archives outputSourcesJar
-    archives outputJavadocJar
-}
-
-addTaskToCopyAllOutputs(outputSourcesJar)
-addTaskToCopyAllOutputs(outputJavadocJar)
-addTaskToCopyAllOutputs(outputJar)
-
-build.dependsOn outputSourcesJar
-build.dependsOn outputJavadocJar
-build.dependsOn outputJar
-
-libraryBuild.dependsOn build
-
-def releasesRepoUrl = "$buildDir/repos/releases"
-
-String frcYear = '2023'
-File frcHome
-if (OperatingSystem.current().isWindows()) {
-    String publicFolder = System.getenv('PUBLIC')
-    if (publicFolder == null) {
-        publicFolder = "C:\\Users\\Public"
-    }
-    def homeRoot = new File(publicFolder, "wpilib")
-    frcHome = new File(homeRoot, frcYear)
-} else {
-    def userFolder = System.getProperty("user.home")
-    def homeRoot = new File(userFolder, "wpilib")
-    frcHome = new File(homeRoot, frcYear)
-}
-def frcHomeMaven = new File(frcHome, 'maven')
-
 publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/Team1559/DTLib")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-            }
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.victorrobotics'
+            artifactId = 'dtlib'
+            version = '0.1'
+
+            from components.java
         }
 
-        maven {
-            name 'frcHome'
-            url frcHomeMaven
-        }
-    }
-}
-
-task cleanReleaseRepo(type: Delete) {
-    delete releasesRepoUrl
-}
-
-tasks.matching {it != cleanReleaseRepo}.all {it.dependsOn cleanReleaseRepo}
-
-model {
-    publishing {
-        publications {
-            java(MavenPublication) {
-                artifact jar
-                artifact sourcesJar
-                artifact javadocJar
-
-                artifactId = "${baseArtifactId}-java"
-                groupId artifactGroupId
-                version pubVersion
-            }
-        }
-
-        repositories {
-            maven {
-                name = "GithubPackages"
-                url = "https://maven.pkg.github.com/Team1559/DTLib"
-
-                credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'DTLib'
+                description = 'A concise description of my library'
+                url = 'https://github.com/Team1559/DTLib'
+                // properties = [
+                //     myProp: "value",
+                //     "prop.with.dots": "anotherValue"
+                // ]
+                licenses {
+                    license {
+                        name = 'GNU General Public License Version 3'
+                        url = 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+                    }
+                }
+                // developers {
+                //     developer {
+                //         id = 'johnd'
+                //         name = 'John Doe'
+                //         email = 'john.doe@example.com'
+                //     }
+                // }
+                scm {
+                    connection = 'scm:git:git://github.com/Team1559/DTLib'
+                    developerConnection = 'scm:git:ssh://github.com/Team1559/DTLib'
+                    url = 'https://github.com/Team1559/DTLib'
                 }
             }
         }
