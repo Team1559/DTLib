@@ -157,5 +157,17 @@ model {
                 version pubVersion
             }
         }
+
+        repositories {
+            maven {
+                name = "GithubPackages"
+                url = "https://maven.pkg.github.com/Team1559/DTLib"
+
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
     }
 }
