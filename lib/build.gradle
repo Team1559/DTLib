@@ -64,4 +64,24 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-apply from: 'publish.gradle'
+import org.gradle.internal.os.OperatingSystem
+
+apply plugin: 'maven-publish'
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Team1559/DTLib")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("Team1559")
+                password = project.findProperty("gpr.key") ?: System.getenv("PACKAGE_SECRET")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
