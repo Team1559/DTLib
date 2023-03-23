@@ -104,7 +104,7 @@ publishing {
             url = uri("https://maven.pkg.github.com/Team1559/DTLib")
             credentials {
                 username = project.findProperty("gpr.user") ?: "Team1559"
-                password = project.findProperty("gpr.key") ?: "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"
+                password = project.findProperty("gpr.key") ?: System.getenv("GHP_PUBLISH_TOKEN")
             }
         }
     }
