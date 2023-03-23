@@ -1,5 +1,5 @@
 package org.victorrobotics.frc.dtlib;
 
-public interface HardwareComponent {
+public interface DTHardwareComponent {
     void initializeHardware();
 }

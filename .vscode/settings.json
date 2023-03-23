@@ -1,4 +1,21 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic",
-    "java.format.settings.url": "./java-formatter.xml"
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.format.settings.url": "./java-formatter.xml",
+    "java.test.config": [
+        {
+            "env": {
+                "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
+                "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
+            },
+            "name": "WPIlibUnitTests",
+            "vmargs": [
+                "-Djava.library.path=${workspaceFolder}/build/jni/release"
+            ],
+            "workingDirectory": "${workspaceFolder}/build/jni/release"
+        }
+    ],
+    "java.test.defaultConfig": "WPIlibUnitTests"
 }
