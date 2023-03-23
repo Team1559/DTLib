@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'DTLib'
-include('lib')
+include('dtlib-java')
