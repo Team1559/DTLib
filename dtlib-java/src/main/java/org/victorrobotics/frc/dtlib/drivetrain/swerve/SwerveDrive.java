@@ -2,7 +2,7 @@ package org.victorrobotics.frc.dtlib.drivetrain.swerve;
 
 import java.util.Objects;
 
-import com.deviltech.frc.dtlib.HardwareComponent;
+import org.victorrobotics.frc.dtlib.HardwareComponent;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
