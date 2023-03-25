@@ -221,7 +221,7 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
     }
 
     @Override
-    public void customSendable(SendableBuilder builder) {
+    public void customizeSendable(SendableBuilder builder) {
         builder.addDoubleProperty("Current", this::getCurrentDraw, null);
     }
 

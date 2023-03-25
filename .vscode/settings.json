@@ -25,8 +25,9 @@
         "java",
         "edu.wpi.first",
         "com.ctre.phoenix",
+        "com.kauailabs.navx.frc",
         "com.revrobotics.frc",
         "org.photonvision",
-        ""
+        "",
     ]
 }

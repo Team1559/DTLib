@@ -31,10 +31,10 @@ public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends Sendable, AutoClos
         builder.addBooleanProperty("Fault", () -> getFaults().hasAnyFault(), null);
         builder.addStringProperty("Firmware", this::getFirmwareVersion, null);
 
-        customSendable(builder);
+        customizeSendable(builder);
     }
 
-    default void customSendable(SendableBuilder builder) {}
+    default void customizeSendable(SendableBuilder builder) {}
 
     MOTORTYPE internal();
 
@@ -106,6 +106,4 @@ public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends Sendable, AutoClos
     DTMotorFaults getFaults();
 
     String getFirmwareVersion();
-
-
 }
