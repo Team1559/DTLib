@@ -5,7 +5,6 @@ import java.util.TimerTask;
 
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class DTXboxController {
     public enum RumbleSide {
@@ -26,69 +25,92 @@ public class DTXboxController {
         @Override
         public void run() {
             long currentTime = System.currentTimeMillis();
-            if (currentTime >= leftTimeout) {
-                leftPower = 0;
+            if (currentTime >= leftRumbleTimeout) {
+                leftRumblePower = 0;
             }
-            if (currentTime >= rightTimeout) {
-                rightPower = 0;
+            if (currentTime >= rightRumbleTimeout) {
+                rightRumblePower = 0;
             }
-            controller.setRumble(RumbleType.kLeftRumble, leftPower);
-            controller.setRumble(RumbleType.kRightRumble, rightPower);
+            controller.setRumble(RumbleType.kLeftRumble, leftRumblePower);
+            controller.setRumble(RumbleType.kRightRumble, rightRumblePower);
         }
     }
 
     private static final Timer  RUMBLE_TIMER   = new Timer("Xbox_Rumble");
-    private static final double AXIS_THRESHOLD = 0.5;
-
-    private long   leftTimeout;
-    private long   rightTimeout;
-    private double leftPower;
-    private double rightPower;
-    private double deadBand;
-    private double axisThreshold;
-
-    public final Trigger aButton          = new Trigger(this::getAButton);
-    public final Trigger bButton          = new Trigger(this::getBButton);
-    public final Trigger xButton          = new Trigger(this::getXButton);
-    public final Trigger yButton          = new Trigger(this::getYButton);
-    public final Trigger startButton      = new Trigger(this::getStartButton);
-    public final Trigger backButton       = new Trigger(this::getBackButton);
-    public final Trigger leftStickButton  = new Trigger(this::getLeftStickButton);
-    public final Trigger rightStickButton = new Trigger(this::getRightStickButton);
-    public final Trigger leftBumper       = new Trigger(this::getLeftBumper);
-    public final Trigger rightBumper      = new Trigger(this::getRightBumper);
-
-    public final Trigger dpadUp = new Trigger(() -> getDpad() == 0);
-    public final Trigger dpadUpRight = new Trigger(() -> getDpad() == 45);
-    public final Trigger dpadRight = new Trigger(() -> getDpad() == 90);
-    public final Trigger dpadDownRight = new Trigger(() -> getDpad() == 135);
-    public final Trigger dpadDown = new Trigger(() -> getDpad() == 180);
-    public final Trigger dpadDownLeft = new Trigger(() -> getDpad() == 225);
-    public final Trigger dpadLeft = new Trigger(() -> getDpad() == 270);
-    public final Trigger dpadUpLeft = new Trigger(() -> getDpad() == 315);
-
-    public final Trigger leftTrigger    = new Trigger(() -> getLeftTrigger() >= axisThreshold);
-    public final Trigger rightTrigger   = new Trigger(() -> getRightTrigger() >= axisThreshold);
-    public final Trigger leftStickXPos  = new Trigger(() -> getLeftStickX() >= axisThreshold);
-    public final Trigger leftStickYPos  = new Trigger(() -> getLeftStickY() >= axisThreshold);
-    public final Trigger rightStickXPos = new Trigger(() -> getRightStickX() >= axisThreshold);
-    public final Trigger rightStickYPos = new Trigger(() -> getRightStickY() >= axisThreshold);
-    public final Trigger leftStickXNeg  = new Trigger(() -> getLeftStickX() <= -axisThreshold);
-    public final Trigger leftStickYNeg  = new Trigger(() -> getLeftStickY() <= -axisThreshold);
-    public final Trigger rightStickXNeg = new Trigger(() -> getRightStickX() <= -axisThreshold);
-    public final Trigger rightStickYNeg = new Trigger(() -> getRightStickY() <= -axisThreshold);
+    private static final double AXIS_DEADBAND  = 0.05;
 
     private final XboxController controller;
 
+    public final DTTrigger aButton;
+    public final DTTrigger bButton;
+    public final DTTrigger xButton;
+    public final DTTrigger yButton;
+    public final DTTrigger leftBumper;
+    public final DTTrigger rightBumper;
+    public final DTTrigger leftMenuButton;
+    public final DTTrigger rightMenuButton;
+    public final DTTrigger leftStickButton;
+    public final DTTrigger rightStickButton;
+
+    public final DTTrigger dpadNone;
+    public final DTTrigger dpadUp;
+    public final DTTrigger dpadUpRight;
+    public final DTTrigger dpadRight;
+    public final DTTrigger dpadDownRight;
+    public final DTTrigger dpadDown;
+    public final DTTrigger dpadDownLeft;
+    public final DTTrigger dpadLeft;
+    public final DTTrigger dpadUpLeft;
+
+    public final DTAxis leftStickX;
+    public final DTAxis leftStickY;
+    public final DTAxis rightStickX;
+    public final DTAxis rightStickY;
+    public final DTAxis leftTrigger;
+    public final DTAxis rightTrigger;
+
+    private double leftRumblePower;
+    private double rightRumblePower;
+    private long   leftRumbleTimeout;
+    private long   rightRumbleTimeout;
+    private double axisDeadBand;
+
     public DTXboxController(int port) {
-        this.controller = new XboxController(port);
-        this.deadBand = 0D;
-        this.axisThreshold = AXIS_THRESHOLD;
+        controller = new XboxController(port);
+        axisDeadBand = AXIS_DEADBAND;
         RUMBLE_TIMER.scheduleAtFixedRate(new RumbleTask(), 10, 20);
+
+        aButton = new DTTrigger(controller::getAButton);
+        bButton = new DTTrigger(controller::getBButton);
+        xButton = new DTTrigger(controller::getXButton);
+        yButton = new DTTrigger(controller::getYButton);
+        leftMenuButton = new DTTrigger(controller::getBackButton);
+        rightMenuButton = new DTTrigger(controller::getStartButton);
+        leftBumper = new DTTrigger(controller::getLeftBumper);
+        rightBumper = new DTTrigger(controller::getRightBumper);
+        leftStickButton = new DTTrigger(controller::getLeftStickButton);
+        rightStickButton = new DTTrigger(controller::getRightStickButton);
+
+        dpadNone = new DTTrigger(() -> controller.getPOV() == -1);
+        dpadUp = new DTTrigger(() -> controller.getPOV() == 0);
+        dpadUpRight = new DTTrigger(() -> controller.getPOV() == 45);
+        dpadRight = new DTTrigger(() -> controller.getPOV() == 90);
+        dpadDownRight = new DTTrigger(() -> controller.getPOV() == 135);
+        dpadDown = new DTTrigger(() -> controller.getPOV() == 180);
+        dpadDownLeft = new DTTrigger(() -> controller.getPOV() == 225);
+        dpadLeft = new DTTrigger(() -> controller.getPOV() == 270);
+        dpadUpLeft = new DTTrigger(() -> controller.getPOV() == 315);
+
+        leftStickX = new DTAxis(controller::getLeftX);
+        leftStickY = new DTAxis(controller::getLeftY);
+        rightStickX = new DTAxis(controller::getRightX);
+        rightStickY = new DTAxis(controller::getRightY);
+        leftTrigger = new DTAxis(controller::getLeftTriggerAxis);
+        rightTrigger = new DTAxis(controller::getRightTriggerAxis);
     }
 
     public int getDpad() {
-        return this.controller.getPOV();
+        return controller.getPOV();
     }
 
     /**
@@ -138,14 +160,14 @@ public class DTXboxController {
      *        <code>BOTH<code>
      */
     public void startRumble(double duration, double power, RumbleSide side) {
-        long timeout = (long) (1_000 * duration) + System.currentTimeMillis();
+        long timeout = (long) (1000 * duration) + System.currentTimeMillis();
         if (side.isLeft) {
-            this.leftPower = power;
-            this.leftTimeout = timeout;
+            leftRumblePower = power;
+            leftRumbleTimeout = timeout;
         }
         if (side.isRight) {
-            this.rightPower = power;
-            this.rightTimeout = timeout;
+            rightRumblePower = power;
+            rightRumbleTimeout = timeout;
         }
     }
 
@@ -165,155 +187,155 @@ public class DTXboxController {
      */
     public void stopRumble(RumbleSide side) {
         if (side.isLeft) {
-            this.leftTimeout = Long.MIN_VALUE;
+            leftRumbleTimeout = Long.MIN_VALUE;
         }
         if (side.isRight) {
-            this.rightTimeout = Long.MIN_VALUE;
+            rightRumbleTimeout = Long.MIN_VALUE;
         }
     }
 
     public boolean getAButton() {
-        return this.controller.getAButton();
+        return controller.getAButton();
     }
 
     public boolean getBButton() {
-        return this.controller.getBButton();
+        return controller.getBButton();
     }
 
     public boolean getXButton() {
-        return this.controller.getXButton();
+        return controller.getXButton();
     }
 
     public boolean getYButton() {
-        return this.controller.getYButton();
+        return controller.getYButton();
     }
 
     public boolean getStartButton() {
-        return this.controller.getStartButton();
+        return controller.getStartButton();
     }
 
     public boolean getBackButton() {
-        return this.controller.getBackButton();
+        return controller.getBackButton();
     }
 
     public boolean getLeftStickButton() {
-        return this.controller.getLeftStickButton();
+        return controller.getLeftStickButton();
     }
 
     public boolean getRightStickButton() {
-        return this.controller.getRightStickButton();
+        return controller.getRightStickButton();
     }
 
     public boolean getLeftBumper() {
-        return this.controller.getLeftBumper();
+        return controller.getLeftBumper();
     }
 
     public boolean getRightBumper() {
-        return this.controller.getRightBumper();
+        return controller.getRightBumper();
     }
 
     public boolean getAButtonPressed() {
-        return this.controller.getAButtonPressed();
+        return controller.getAButtonPressed();
     }
 
     public boolean getBButtonPressed() {
-        return this.controller.getBButtonPressed();
+        return controller.getBButtonPressed();
     }
 
     public boolean getXButtonPressed() {
-        return this.controller.getXButtonPressed();
+        return controller.getXButtonPressed();
     }
 
     public boolean getYButtonPressed() {
-        return this.controller.getYButtonPressed();
+        return controller.getYButtonPressed();
     }
 
     public boolean getStartButtonPressed() {
-        return this.controller.getStartButtonPressed();
+        return controller.getStartButtonPressed();
     }
 
     public boolean getBackButtonPressed() {
-        return this.controller.getBackButtonPressed();
+        return controller.getBackButtonPressed();
     }
 
     public boolean getLeftStickButtonPressed() {
-        return this.controller.getLeftStickButtonPressed();
+        return controller.getLeftStickButtonPressed();
     }
 
     public boolean getRightStickButtonPressed() {
-        return this.controller.getRightStickButtonPressed();
+        return controller.getRightStickButtonPressed();
     }
 
     public boolean getLeftBumperPressed() {
-        return this.controller.getLeftBumperPressed();
+        return controller.getLeftBumperPressed();
     }
 
     public boolean getRightBumperPressed() {
-        return this.controller.getRightBumperPressed();
+        return controller.getRightBumperPressed();
     }
 
     public boolean getAButtonReleased() {
-        return this.controller.getAButtonReleased();
+        return controller.getAButtonReleased();
     }
 
     public boolean getBButtonReleased() {
-        return this.controller.getBButtonReleased();
+        return controller.getBButtonReleased();
     }
 
     public boolean getXButtonReleased() {
-        return this.controller.getXButtonReleased();
+        return controller.getXButtonReleased();
     }
 
     public boolean getYButtonReleased() {
-        return this.controller.getYButtonReleased();
+        return controller.getYButtonReleased();
     }
 
     public boolean getStartButtonReleased() {
-        return this.controller.getStartButtonReleased();
+        return controller.getStartButtonReleased();
     }
 
     public boolean getBackButtonReleased() {
-        return this.controller.getBackButtonReleased();
+        return controller.getBackButtonReleased();
     }
 
     public boolean getLeftStickButtonReleased() {
-        return this.controller.getLeftStickButtonReleased();
+        return controller.getLeftStickButtonReleased();
     }
 
     public boolean getRightStickButtonReleased() {
-        return this.controller.getRightStickButtonReleased();
+        return controller.getRightStickButtonReleased();
     }
 
     public boolean getLeftBumperReleased() {
-        return this.controller.getLeftBumperReleased();
+        return controller.getLeftBumperReleased();
     }
 
     public boolean getRightBumperReleased() {
-        return this.controller.getRightBumperReleased();
+        return controller.getRightBumperReleased();
     }
 
     public double getLeftStickX() {
-        return deadBand(this.controller.getLeftX());
+        return deadband(controller.getLeftX());
     }
 
     public double getLeftStickY() {
-        return deadBand(-this.controller.getLeftY());
+        return deadband(-controller.getLeftY());
     }
 
     public double getRightStickX() {
-        return deadBand(this.controller.getRightX());
+        return deadband(controller.getRightX());
     }
 
     public double getRightStickY() {
-        return deadBand(-this.controller.getRightY());
+        return deadband(-controller.getRightY());
     }
 
     public double getLeftTrigger() {
-        return deadBand(this.controller.getLeftTriggerAxis());
+        return deadband(controller.getLeftTriggerAxis());
     }
 
     public double getRightTrigger() {
-        return deadBand(this.controller.getRightTriggerAxis());
+        return deadband(controller.getRightTriggerAxis());
     }
 
     public double getLeftStickXSquared() {
@@ -340,24 +362,26 @@ public class DTXboxController {
         return squareKeepSign(getRightTrigger());
     }
 
-    public void setDeadBand(double deadBand) {
-        this.deadBand = deadBand;
+    public void setAxisDeadBand(double deadBand) {
+        if (!Double.isFinite(deadBand) || axisDeadBand < 0 || axisDeadBand >= 1) {
+            throw new IllegalArgumentException("Deadband must satisfy 0 ≤ d < 1");
+        } else if (deadBand < 1e-6) {
+            axisDeadBand = Double.NaN;
+        } else {
+            axisDeadBand = deadBand;
+        }
     }
 
-    public void setAxisThreshold(double threshold) {
-        this.axisThreshold = threshold;
-    }
-
-    private double deadBand(double d) {
-        if (this.deadBand < 1e-6) {
+    private double deadband(double d) {
+        if (Double.isNaN(axisDeadBand)) {
             // Not set, "fast path"
             return d;
-        } else if (Math.abs(d) < this.deadBand) {
+        } else if (Math.abs(d) <= axisDeadBand) {
             return 0D;
         } else if (d < 0D) {
-            return (d + this.deadBand) / (1D - this.deadBand);
+            return (d + axisDeadBand) / (1D - axisDeadBand);
         } else {
-            return (d - this.deadBand) / (1D - this.deadBand);
+            return (d - axisDeadBand) / (1D - axisDeadBand);
         }
     }
 
