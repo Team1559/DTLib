@@ -1,11 +1,11 @@
 package org.victorrobotics.frc.dtlib.drivetrain.swerve;
 
-import java.util.Objects;
-
 import org.victorrobotics.frc.dtlib.DTHardwareComponent;
 import org.victorrobotics.frc.dtlib.drivetrain.DTAccelerationLimit;
 import org.victorrobotics.frc.dtlib.drivetrain.DTVelocityLimit;
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+
+import java.util.Objects;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -17,7 +17,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public abstract class DTSwerveDrive extends SubsystemBase implements DTHardwareComponent {

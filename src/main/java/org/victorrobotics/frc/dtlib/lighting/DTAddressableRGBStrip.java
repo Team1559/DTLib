@@ -5,12 +5,12 @@ import java.awt.Color;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 
-public class AddressableRGBStrip {
-    private final AddressableLED leds;
+public class DTAddressableRGBStrip {
+    private final AddressableLED       leds;
     private final AddressableLEDBuffer buffer;
     private final int                  length;
 
-    public AddressableRGBStrip(int port, int length) {
+    public DTAddressableRGBStrip(int port, int length) {
         this.length = length;
         buffer = new AddressableLEDBuffer(length);
         leds = new AddressableLED(port);

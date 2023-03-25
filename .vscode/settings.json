@@ -17,5 +17,16 @@
             "workingDirectory": "${workspaceFolder}/build/jni/release"
         }
     ],
-    "java.test.defaultConfig": "WPIlibUnitTests"
+    "java.test.defaultConfig": "WPIlibUnitTests",
+    "java.completion.importOrder": [
+        "#org.victorrobotics",
+        "org.victorrobotics",
+        "#",
+        "java",
+        "edu.wpi.first",
+        "com.ctre.phoenix",
+        "com.revrobotics.frc",
+        "org.photonvision",
+        ""
+    ]
 }
