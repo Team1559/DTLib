@@ -27,35 +27,15 @@ version = '0.1'
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
-    // mavenLocal()
-    // gradlePluginPortal()
 
-    // // Custom repo endpoints
+    // Custom repo endpoints
     maven { url "https://maven.ctr-electronics.com/release/" }
     maven { url "https://maven.photonvision.org/repository/internal" }
     maven { url "https://maven.photonvision.org/repository/snapshots" }
     maven { url "https://maven.revrobotics.com/" }
 
-    // Resolve WPILib installation
-    String frcYear = '2023'
-    File frcHome
-    if (OperatingSystem.current().isWindows()) {
-        String publicFolder = System.getenv('PUBLIC')
-        if (publicFolder == null) {
-            publicFolder = "C:\\Users\\Public"
-        }
-        def homeRoot = new File(publicFolder, "wpilib")
-        frcHome = new File(homeRoot, frcYear)
-    } else {
-        def userFolder = System.getProperty("user.home")
-        def homeRoot = new File(userFolder, "wpilib")
-        frcHome = new File(homeRoot, frcYear)
-    }
-    def frcHomeMaven = new File(frcHome, 'maven')
-    maven {
-        name 'frcHome'
-        url frcHomeMaven
-    }
+    // allwpilib
+    maven { url "https://frcmaven.wpi.edu/artifactory/release/" }
 }
 
 dependencies {
