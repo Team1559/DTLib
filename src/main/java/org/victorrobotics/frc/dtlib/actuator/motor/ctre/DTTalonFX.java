@@ -35,7 +35,7 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
 
     public DTTalonFX(int canID, String canBus) {
         internal = new WPI_TalonFX(canID, canBus);
-        this.deviceID = canID;
+        deviceID = canID;
     }
 
     @Override
@@ -236,7 +236,7 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
     }
 
     public static class DTTalonFXFaults implements DTMotorFaults<Faults> {
-        private static final int OTHER_FAULTS_MASK = 0b0;
+        private static final int OTHER_FAULTS_MASK = 0b00111111_10000000;
 
         private final Faults internal;
 
