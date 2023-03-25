@@ -221,29 +221,8 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
     }
 
     @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.setActuator(true);
-        builder.setSafeState(internal::neutralOutput);
-
-        builder.addIntegerProperty("CAN ID", () -> deviceID, null);
-
-        builder.addDoubleProperty("Output", this::getMotorOutputPercent, this::setPercentOutput);
-        builder.addDoubleProperty("Position", this::getEncoderPosition, this::setPosition);
-        builder.addDoubleProperty("Velocity", this::getEncoderVelocity, this::setVelocity);
-        builder.addBooleanProperty("Brake mode", this::isBrakeEnabled, this::configBrakeMode);
-        builder.addBooleanProperty("Inverted", this::isOutputInverted, this::configOutputInverted);
-
-        builder.addDoubleProperty("kP", this::getPIDproportional, this::configPIDproportional);
-        builder.addDoubleProperty("kI", this::getPIDintegral, this::configPIDintegral);
-        builder.addDoubleProperty("kD", this::getPIDderivative, this::configPIDderivative);
-        builder.addDoubleProperty("kF", this::getPIDfeedforward, this::configPIDfeedforward);
-        builder.addDoubleProperty("kIZ", this::getPIDintegralZone, this::configPIDintegralZone);
-
-        builder.addDoubleProperty("Voltage", this::getInputVoltage, null);
+    public void customSendable(SendableBuilder builder) {
         builder.addDoubleProperty("Current", this::getCurrentDraw, null);
-        builder.addDoubleProperty("Temperature", this::getTemperature, null);
-        builder.addBooleanProperty("Fault", () -> getFaults().hasAnyFault(), null);
-        builder.addStringProperty("Firmware", this::getFirmwareVersion, null);
     }
 
     @Override
