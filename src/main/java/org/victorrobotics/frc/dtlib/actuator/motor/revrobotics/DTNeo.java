@@ -4,12 +4,15 @@ import org.victorrobotics.frc.dtlib.actuator.motor.DTMotor;
 import org.victorrobotics.frc.dtlib.actuator.motor.DTMotorFaults;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxPIDController;
 
-public class DTNeo implements DTMotor<CANSparkMax, DTNeo.DTNeoCurrentLimit> {
+public class DTNeo implements DTMotor<CANSparkMax> {
+    private static final double MAX_VELOCITY_RPM = 5676;
+    private static final double STALL_TORQUE     = 2.6;
+
     private final CANSparkMax           internal;
     private final SparkMaxPIDController pidController;
     private final RelativeEncoder       encoder;
@@ -28,7 +31,7 @@ public class DTNeo implements DTMotor<CANSparkMax, DTNeo.DTNeoCurrentLimit> {
     }
 
     @Override
-    public CANSparkMax internal() {
+    public CANSparkMax getMotorImpl() {
         return internal;
     }
 
@@ -83,8 +86,8 @@ public class DTNeo implements DTMotor<CANSparkMax, DTNeo.DTNeoCurrentLimit> {
     }
 
     @Override
-    public void configCurrentLimit(DTNeoCurrentLimit limit) {
-        internal.setSmartCurrentLimit(limit.stallCurrent, limit.freeCurrent);
+    public void configCurrentLimit(int maxCurrentDraw) {
+        internal.setSmartCurrentLimit(maxCurrentDraw, maxCurrentDraw);
     }
 
     @Override
@@ -182,20 +185,6 @@ public class DTNeo implements DTMotor<CANSparkMax, DTNeo.DTNeoCurrentLimit> {
         return internal.getFirmwareString();
     }
 
-    public static class DTNeoCurrentLimit {
-        public int stallCurrent;
-        public int freeCurrent;
-
-        public DTNeoCurrentLimit() {
-            this(0, 0);
-        }
-
-        public DTNeoCurrentLimit(int stall, int free) {
-            stallCurrent = stall;
-            freeCurrent = free;
-        }
-    }
-
     public static class DTNeoFaults implements DTMotorFaults<Short> {
         private static final short OTHER_FAULTS_MASK = 0b00001101_11110110;
 
@@ -206,7 +195,7 @@ public class DTNeo implements DTMotor<CANSparkMax, DTNeo.DTNeoCurrentLimit> {
         }
 
         @Override
-        public Short internal() {
+        public Short getFaultsImpl() {
             return Short.valueOf(internal);
         }
 
@@ -254,6 +243,15 @@ public class DTNeo implements DTMotor<CANSparkMax, DTNeo.DTNeoCurrentLimit> {
         public boolean hardwareFailure() {
             return (internal & (1 << CANSparkMax.FaultID.kMotorFault.value)) != 0;
         }
+    }
 
+    @Override
+    public double getMaxVelocity() {
+        return MAX_VELOCITY_RPM;
+    }
+
+    @Override
+    public double getStallTorque() {
+        return STALL_TORQUE;
     }
 }
