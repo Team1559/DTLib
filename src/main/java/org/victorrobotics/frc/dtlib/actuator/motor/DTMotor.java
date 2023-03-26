@@ -1,9 +1,14 @@
 package org.victorrobotics.frc.dtlib.actuator.motor;
 
-import edu.wpi.first.util.sendable.Sendable;
+import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedBooleanSupplier;
+import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedDoubleSupplier;
+import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedLongSupplier;
+import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedSupplier;
+import org.victorrobotics.frc.dtlib.network.DTSendable;
+
 import edu.wpi.first.util.sendable.SendableBuilder;
 
-public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends Sendable, AutoCloseable {
+public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends DTSendable, AutoCloseable {
     @Override
     void close();
 
@@ -12,24 +17,45 @@ public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends Sendable, AutoClos
         builder.setActuator(true);
         builder.setSafeState(this::neutralOutput);
 
-        builder.addIntegerProperty("CAN ID", this::getCanID, null);
+        builder.addIntegerProperty("CAN ID",
+                new DTLimitedLongSupplier(this::getCanID, UPDATE_RATE_SLOW_HZ), null);
 
         builder.addDoubleProperty("Output", this::getMotorOutputPercent, this::setPercentOutput);
         builder.addDoubleProperty("Position", this::getEncoderPosition, this::setPosition);
         builder.addDoubleProperty("Velocity", this::getEncoderVelocity, this::setVelocity);
-        builder.addBooleanProperty("Brake mode", this::isBrakeEnabled, this::configBrakeMode);
-        builder.addBooleanProperty("Inverted", this::isOutputInverted, this::configOutputInverted);
 
-        builder.addDoubleProperty("kP", this::getPIDproportional, this::configPIDproportional);
-        builder.addDoubleProperty("kI", this::getPIDintegral, this::configPIDintegral);
-        builder.addDoubleProperty("kD", this::getPIDderivative, this::configPIDderivative);
-        builder.addDoubleProperty("kF", this::getPIDfeedforward, this::configPIDfeedforward);
-        builder.addDoubleProperty("kIZ", this::getPIDintegralZone, this::configPIDintegralZone);
+        builder.addBooleanProperty("Brake mode",
+                new DTLimitedBooleanSupplier(this::isBrakeEnabled, UPDATE_RATE_SLOW_HZ),
+                this::configBrakeMode);
+        builder.addBooleanProperty("Inverted",
+                new DTLimitedBooleanSupplier(this::isOutputInverted, UPDATE_RATE_SLOW_HZ),
+                this::configOutputInverted);
 
-        builder.addDoubleProperty("Voltage", this::getInputVoltage, null);
-        builder.addDoubleProperty("Temperature", this::getTemperature, null);
-        builder.addBooleanProperty("Fault", () -> getFaults().hasAnyFault(), null);
-        builder.addStringProperty("Firmware", this::getFirmwareVersion, null);
+        builder.addDoubleProperty("kP",
+                new DTLimitedDoubleSupplier(this::getPIDproportional, UPDATE_RATE_SLOW_HZ),
+                this::configPIDproportional);
+        builder.addDoubleProperty("kI",
+                new DTLimitedDoubleSupplier(this::getPIDintegral, UPDATE_RATE_SLOW_HZ),
+                this::configPIDintegral);
+        builder.addDoubleProperty("kD",
+                new DTLimitedDoubleSupplier(this::getPIDderivative, UPDATE_RATE_SLOW_HZ),
+                this::configPIDderivative);
+        builder.addDoubleProperty("kF",
+                new DTLimitedDoubleSupplier(this::getPIDfeedforward, UPDATE_RATE_SLOW_HZ),
+                this::configPIDfeedforward);
+        builder.addDoubleProperty("kIZ",
+                new DTLimitedDoubleSupplier(this::getPIDintegralZone, UPDATE_RATE_SLOW_HZ),
+                this::configPIDintegralZone);
+
+        builder.addDoubleProperty("Voltage",
+                new DTLimitedDoubleSupplier(this::getInputVoltage, UPDATE_RATE_STD_HZ), null);
+        builder.addDoubleProperty("Temperature",
+                new DTLimitedDoubleSupplier(this::getTemperature, UPDATE_RATE_SLOW_HZ), null);
+        builder.addBooleanProperty("Fault",
+                new DTLimitedBooleanSupplier(() -> getFaults().hasAnyFault(), UPDATE_RATE_STD_HZ),
+                null);
+        builder.addStringProperty("Firmware",
+                new DTLimitedSupplier<>(this::getFirmwareVersion, UPDATE_RATE_SLOW_HZ), null);
 
         customizeSendable(builder);
     }
