@@ -36,8 +36,8 @@ public class DTXboxController {
         }
     }
 
-    private static final Timer  RUMBLE_TIMER   = new Timer("Xbox_Rumble");
-    private static final double AXIS_DEADBAND  = 0.05;
+    private static final Timer  RUMBLE_TIMER  = new Timer("Xbox_Rumble");
+    private static final double AXIS_DEADBAND = 0.05;
 
     private final XboxController controller;
 
@@ -61,6 +61,9 @@ public class DTXboxController {
     public final DTTrigger dpadDownLeft;
     public final DTTrigger dpadLeft;
     public final DTTrigger dpadUpLeft;
+
+    public final DTAxis dpadX;
+    public final DTAxis dpadY;
 
     public final DTAxis leftStickX;
     public final DTAxis leftStickY;
@@ -100,6 +103,35 @@ public class DTXboxController {
         dpadDownLeft = new DTTrigger(() -> controller.getPOV() == 225);
         dpadLeft = new DTTrigger(() -> controller.getPOV() == 270);
         dpadUpLeft = new DTTrigger(() -> controller.getPOV() == 315);
+
+        dpadX = new DTAxis(() -> {
+            switch (controller.getPOV()) {
+                case 45:
+                case 90:
+                case 135:
+                    return 1D;
+                case 225:
+                case 270:
+                case 315:
+                    return -1D;
+                default:
+                    return 0D;
+            }
+        });
+        dpadY = new DTAxis(() -> {
+            switch (controller.getPOV()) {
+                case 315:
+                case 0:
+                case 45:
+                    return 1D;
+                case 135:
+                case 180:
+                case 225:
+                    return -1D;
+                default:
+                    return 0D;
+            }
+        });
 
         leftStickX = new DTAxis(controller::getLeftX);
         leftStickY = new DTAxis(controller::getLeftY);
