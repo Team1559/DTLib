@@ -5,24 +5,21 @@ import org.victorrobotics.frc.dtlib.sensor.imu.DTIMU;
 import edu.wpi.first.util.sendable.SendableBuilder;
 
 import com.ctre.phoenix.sensors.Pigeon2;
+import com.ctre.phoenix.sensors.Pigeon2_Faults;
 
 import com.kauailabs.navx.frc.AHRS;
 
 public class DTPigeon2 implements DTIMU<Pigeon2> {
-    private final Pigeon2  internal;
-    private final double[] angularVelocities;
-    private final double[] accelerations;
-    private final short[]  rawAccelerations;
+    private final Pigeon2 internal;
+    private final short[] rawAccelerations;
 
     public DTPigeon2(int canID) {
         internal = new Pigeon2(canID);
-        angularVelocities = new double[3];
-        accelerations = new double[3];
         rawAccelerations = new short[3];
     }
 
     @Override
-    public Pigeon2 internal() {
+    public Pigeon2 getImuImpl() {
         return internal;
     }
 
@@ -63,20 +60,28 @@ public class DTPigeon2 implements DTIMU<Pigeon2> {
 
     @Override
     public double[] getAngularVelocities() {
+        double[] angularVelocities = new double[3];
         internal.getRawGyro(angularVelocities);
-        return angularVelocities.clone();
+        return angularVelocities;
     }
 
     @Override
     public double[] getAccelerations() {
         internal.getBiasedAccelerometer(rawAccelerations);
+        double[] accelerations = new double[3];
         accelerations[0] = parseRawAcceleration(rawAccelerations[0]);
         accelerations[1] = parseRawAcceleration(rawAccelerations[1]);
         accelerations[2] = parseRawAcceleration(rawAccelerations[2]);
-        return accelerations.clone();
+        return accelerations;
     }
 
     private static double parseRawAcceleration(short raw) {
         return raw / 16384D;
+    }
+
+    public Pigeon2_Faults getFaults() {
+        Pigeon2_Faults faults = new Pigeon2_Faults();
+        internal.getFaults(faults);
+        return faults;
     }
 }

@@ -15,63 +15,60 @@ public class DTNavX implements DTIMU<AHRS> {
     }
 
     @Override
-    public void close() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'close'");
+    public void close() {
+        try {
+            internal.close();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     @Override
-    public AHRS internal() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'internal'");
+    public AHRS getImuImpl() {
+        return internal;
     }
 
     @Override
     public double getYaw() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getYaw'");
+        return internal.getYaw();
     }
 
     @Override
     public double getPitch() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPitch'");
+        return internal.getPitch();
     }
 
     @Override
     public double getRoll() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getRoll'");
+
+        return internal.getRoll();
     }
 
     @Override
     public void zeroYaw() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'zeroYaw'");
+        internal.zeroYaw();
     }
 
     @Override
     public String getFirmwareVersion() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getFirmwareVersion'");
+        return internal.getFirmwareVersion();
     }
 
     @Override
     public double getCompassHeading() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getCompassHeading'");
+        return internal.getCompassHeading();
     }
 
     @Override
     public double[] getAngularVelocities() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAngularVelocities'");
+        return new double[] { internal.getRawGyroX(), internal.getRawGyroY(),
+                internal.getRawGyroZ() };
     }
 
     @Override
     public double[] getAccelerations() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAccelerations'");
+        return new double[] { internal.getWorldLinearAccelX(), internal.getWorldLinearAccelY(),
+                internal.getWorldLinearAccelZ() };
     }
 
 }
