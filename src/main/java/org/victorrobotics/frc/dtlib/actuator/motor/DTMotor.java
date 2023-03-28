@@ -20,8 +20,8 @@ public interface DTMotor<MOTORTYPE> extends DTSendable {
                 this::setPercentOutput);
         builder.addDoubleProperty("Position",
                 limitRate(this::getEncoderPosition, UPDATE_RATE_FAST_HZ), this::setPosition);
-        builder.addDoubleProperty("Velocity",
-                limitRate(this::getEncoderVelocity, UPDATE_RATE_FAST_HZ), this::setVelocity);
+        builder.addDoubleProperty("Velocity", limitRate(this::getVelocityRPM, UPDATE_RATE_FAST_HZ),
+                this::setVelocity);
 
         builder.addBooleanProperty("Brake mode",
                 limitRate(this::isBrakeEnabled, UPDATE_RATE_SLOW_HZ), this::configBrakeMode);
@@ -118,7 +118,7 @@ public interface DTMotor<MOTORTYPE> extends DTSendable {
 
     double getEncoderPosition();
 
-    double getEncoderVelocity();
+    double getVelocityRPM();
 
     DTMotorFaults getFaults();
 

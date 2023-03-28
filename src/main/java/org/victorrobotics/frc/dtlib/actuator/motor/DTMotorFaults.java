@@ -1,8 +1,6 @@
 package org.victorrobotics.frc.dtlib.actuator.motor;
 
-public interface DTMotorFaults<FAULT_TYPE> {
-    FAULT_TYPE getFaultsImpl();
-
+public interface DTMotorFaults {
     boolean hasAnyFault();
 
     boolean lowVoltage();

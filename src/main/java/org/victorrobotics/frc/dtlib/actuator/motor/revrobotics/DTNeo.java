@@ -171,7 +171,7 @@ public class DTNeo implements DTMotor<CANSparkMax> {
     }
 
     @Override
-    public double getEncoderVelocity() {
+    public double getVelocityRPM() {
         return encoder.getVelocity();
     }
 
@@ -185,18 +185,13 @@ public class DTNeo implements DTMotor<CANSparkMax> {
         return internal.getFirmwareString();
     }
 
-    public static class DTNeoFaults implements DTMotorFaults<Short> {
+    public static class DTNeoFaults implements DTMotorFaults {
         private static final short OTHER_FAULTS_MASK = 0b00001101_11110110;
 
         private final short internal;
 
         DTNeoFaults(short internal) {
             this.internal = internal;
-        }
-
-        @Override
-        public Short getFaultsImpl() {
-            return Short.valueOf(internal);
         }
 
         @Override
