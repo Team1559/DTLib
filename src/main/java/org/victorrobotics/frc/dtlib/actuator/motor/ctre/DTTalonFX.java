@@ -4,6 +4,7 @@ import org.victorrobotics.frc.dtlib.actuator.motor.DTMotor;
 import org.victorrobotics.frc.dtlib.actuator.motor.DTMotorFaults;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.ctre.phoenix.motorcontrol.Faults;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -12,9 +13,11 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
-public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfiguration> {
+public class DTTalonFX implements DTMotor<WPI_TalonFX> {
     private static final double TICKS_PER_REV      = 2048;
     private static final double SECONDS_PER_MINUTE = 60;
+    private static final double MAX_VELOCITY_RPM   = 6380;
+    private static final double STALL_TORQUE       = 4.69;
 
     private final WPI_TalonFX internal;
     private final int         deviceID;
@@ -35,11 +38,12 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
 
     public DTTalonFX(int canID, String canBus) {
         internal = new WPI_TalonFX(canID, canBus);
+        SendableRegistry.remove(internal);
         deviceID = canID;
     }
 
     @Override
-    public WPI_TalonFX internal() {
+    public WPI_TalonFX getMotorImpl() {
         return internal;
     }
 
@@ -101,8 +105,15 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
     }
 
     @Override
-    public void configCurrentLimit(SupplyCurrentLimitConfiguration maxCurrent) {
-        internal.configSupplyCurrentLimit(maxCurrent);
+    public void configCurrentLimit(int maxSupplyCurrent) {
+        internal.configSupplyCurrentLimit(
+                new SupplyCurrentLimitConfiguration(true, maxSupplyCurrent, maxSupplyCurrent, 0));
+    }
+
+    public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit,
+            double peakDuration) {
+        internal.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true,
+                baseCurrentLimit, peakCurrentLimit, peakDuration));
     }
 
     public void configAllSettings(TalonFXConfiguration config) {
@@ -196,8 +207,8 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
     }
 
     @Override
-    public double getEncoderVelocity() {
-        return internal.getSelectedSensorVelocity() / TICKS_PER_REV * 10;
+    public double getVelocityRPM() {
+        return internal.getSelectedSensorVelocity() / TICKS_PER_REV * 10 * SECONDS_PER_MINUTE;
     }
 
     public DTTalonFXFaults getFaults() {
@@ -235,18 +246,13 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
         return internal.getBusVoltage();
     }
 
-    public static class DTTalonFXFaults implements DTMotorFaults<Faults> {
+    public static class DTTalonFXFaults implements DTMotorFaults {
         private static final int OTHER_FAULTS_MASK = 0b00111111_10000000;
 
         private final Faults internal;
 
         DTTalonFXFaults(Faults internal) {
             this.internal = internal;
-        }
-
-        @Override
-        public Faults internal() {
-            return internal;
         }
 
         @Override
@@ -293,5 +299,15 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX, SupplyCurrentLimitConfigu
         public boolean hardwareFailure() {
             return internal.HardwareFailure;
         }
+    }
+
+    @Override
+    public double getMaxVelocity() {
+        return MAX_VELOCITY_RPM;
+    }
+
+    @Override
+    public double getStallTorque() {
+        return STALL_TORQUE;
     }
 }

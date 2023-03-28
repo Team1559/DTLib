@@ -1,14 +1,10 @@
 package org.victorrobotics.frc.dtlib.actuator.motor;
 
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedBooleanSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedDoubleSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedLongSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedSupplier;
 import org.victorrobotics.frc.dtlib.network.DTSendable;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 
-public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends DTSendable, AutoCloseable {
+public interface DTMotor<MOTORTYPE> extends DTSendable {
     @Override
     void close();
 
@@ -17,52 +13,47 @@ public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends DTSendable, AutoCl
         builder.setActuator(true);
         builder.setSafeState(this::neutralOutput);
 
-        builder.addIntegerProperty("CAN ID",
-                new DTLimitedLongSupplier(this::getCanID, UPDATE_RATE_SLOW_HZ), null);
+        builder.addIntegerProperty("CAN ID", limitRate(this::getCanID, UPDATE_RATE_SLOW_HZ), null);
 
-        builder.addDoubleProperty("Output", this::getMotorOutputPercent, this::setPercentOutput);
-        builder.addDoubleProperty("Position", this::getEncoderPosition, this::setPosition);
-        builder.addDoubleProperty("Velocity", this::getEncoderVelocity, this::setVelocity);
+        builder.addDoubleProperty("Output",
+                limitRate(this::getMotorOutputPercent, UPDATE_RATE_FAST_HZ),
+                this::setPercentOutput);
+        builder.addDoubleProperty("Position",
+                limitRate(this::getEncoderPosition, UPDATE_RATE_FAST_HZ), this::setPosition);
+        builder.addDoubleProperty("Velocity", limitRate(this::getVelocityRPM, UPDATE_RATE_FAST_HZ),
+                this::setVelocity);
 
         builder.addBooleanProperty("Brake mode",
-                new DTLimitedBooleanSupplier(this::isBrakeEnabled, UPDATE_RATE_SLOW_HZ),
-                this::configBrakeMode);
+                limitRate(this::isBrakeEnabled, UPDATE_RATE_SLOW_HZ), this::configBrakeMode);
         builder.addBooleanProperty("Inverted",
-                new DTLimitedBooleanSupplier(this::isOutputInverted, UPDATE_RATE_SLOW_HZ),
-                this::configOutputInverted);
+                limitRate(this::isOutputInverted, UPDATE_RATE_SLOW_HZ), this::configOutputInverted);
 
-        builder.addDoubleProperty("kP",
-                new DTLimitedDoubleSupplier(this::getPIDproportional, UPDATE_RATE_SLOW_HZ),
+        builder.addDoubleProperty("kP", limitRate(this::getPIDproportional, UPDATE_RATE_SLOW_HZ),
                 this::configPIDproportional);
-        builder.addDoubleProperty("kI",
-                new DTLimitedDoubleSupplier(this::getPIDintegral, UPDATE_RATE_SLOW_HZ),
+        builder.addDoubleProperty("kI", limitRate(this::getPIDintegral, UPDATE_RATE_SLOW_HZ),
                 this::configPIDintegral);
-        builder.addDoubleProperty("kD",
-                new DTLimitedDoubleSupplier(this::getPIDderivative, UPDATE_RATE_SLOW_HZ),
+        builder.addDoubleProperty("kD", limitRate(this::getPIDderivative, UPDATE_RATE_SLOW_HZ),
                 this::configPIDderivative);
-        builder.addDoubleProperty("kF",
-                new DTLimitedDoubleSupplier(this::getPIDfeedforward, UPDATE_RATE_SLOW_HZ),
+        builder.addDoubleProperty("kF", limitRate(this::getPIDfeedforward, UPDATE_RATE_SLOW_HZ),
                 this::configPIDfeedforward);
-        builder.addDoubleProperty("kIZ",
-                new DTLimitedDoubleSupplier(this::getPIDintegralZone, UPDATE_RATE_SLOW_HZ),
+        builder.addDoubleProperty("kIZ", limitRate(this::getPIDintegralZone, UPDATE_RATE_SLOW_HZ),
                 this::configPIDintegralZone);
 
-        builder.addDoubleProperty("Voltage",
-                new DTLimitedDoubleSupplier(this::getInputVoltage, UPDATE_RATE_STD_HZ), null);
-        builder.addDoubleProperty("Temperature",
-                new DTLimitedDoubleSupplier(this::getTemperature, UPDATE_RATE_SLOW_HZ), null);
-        builder.addBooleanProperty("Fault",
-                new DTLimitedBooleanSupplier(() -> getFaults().hasAnyFault(), UPDATE_RATE_STD_HZ),
+        builder.addDoubleProperty("Voltage", limitRate(this::getInputVoltage, UPDATE_RATE_STD_HZ),
                 null);
+        builder.addDoubleProperty("Temperature",
+                limitRate(this::getTemperature, UPDATE_RATE_SLOW_HZ), null);
+        builder.addBooleanProperty("Fault",
+                limitRate(() -> getFaults().hasAnyFault(), UPDATE_RATE_STD_HZ), null);
         builder.addStringProperty("Firmware",
-                new DTLimitedSupplier<>(this::getFirmwareVersion, UPDATE_RATE_SLOW_HZ), null);
+                limitRate(this::getFirmwareVersion, UPDATE_RATE_SLOW_HZ), null);
 
         customizeSendable(builder);
     }
 
     default void customizeSendable(SendableBuilder builder) {}
 
-    MOTORTYPE internal();
+    MOTORTYPE getMotorImpl();
 
     int getCanID();
 
@@ -93,7 +84,7 @@ public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends DTSendable, AutoCl
         configPIDintegralZone(integralZone);
     }
 
-    void configCurrentLimit(CURRENTLIMITTYPE limit);
+    void configCurrentLimit(int maxSupplyCurrent);
 
     boolean isOutputInverted();
 
@@ -127,9 +118,13 @@ public interface DTMotor<MOTORTYPE, CURRENTLIMITTYPE> extends DTSendable, AutoCl
 
     double getEncoderPosition();
 
-    double getEncoderVelocity();
+    double getVelocityRPM();
 
     DTMotorFaults getFaults();
 
     String getFirmwareVersion();
+
+    double getMaxVelocity();
+
+    double getStallTorque();
 }
