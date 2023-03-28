@@ -1,12 +1,12 @@
 package org.victorrobotics.frc.dtlib.command.test;
 
 import org.victorrobotics.frc.dtlib.DTSubsystem;
+import org.victorrobotics.frc.dtlib.command.DTCommandBase;
 import org.victorrobotics.frc.dtlib.command.util.DTPrintCommand;
 
-import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
-public class DTSelfTestCommand extends CommandBase implements DTTestCommand {
+public class DTSelfTestCommand extends DTCommandBase implements DTTestCommand {
     private final SelfTest[] tests;
     private int              currentTestIndex;
 
@@ -33,14 +33,14 @@ public class DTSelfTestCommand extends CommandBase implements DTTestCommand {
     }
 
     @Override
-    public void initialize() {
+    protected void start() {
         CommandScheduler.getInstance()
                         .schedule(new DTPrintCommand("Starting self test"));
         currentTestIndex = -1;
     }
 
     @Override
-    public void execute() {
+    protected void run() {
         if (isFinished()) {
             return;
         } else if (currentTestIndex == -1) {
@@ -58,11 +58,10 @@ public class DTSelfTestCommand extends CommandBase implements DTTestCommand {
     }
 
     @Override
-    public void end(boolean interrupted) {
+    protected void finish(boolean interrupted) {
         if (interrupted) {
             CommandScheduler.getInstance()
-                            .schedule(new DTPrintCommand(String.format(
-                                    "Self test interrupted during test %d (%s)",
+                            .schedule(new DTPrintCommand(String.format("Self test interrupted during test %d (%s)",
                                     currentTestIndex + 1, currentTest().subsystem.getName())));
         } else {
             CommandScheduler.getInstance()
@@ -72,7 +71,7 @@ public class DTSelfTestCommand extends CommandBase implements DTTestCommand {
     }
 
     @Override
-    public boolean isFinished() {
+    protected boolean isComplete() {
         return currentTestIndex == tests.length;
     }
 
@@ -80,11 +79,11 @@ public class DTSelfTestCommand extends CommandBase implements DTTestCommand {
         return tests;
     }
 
-    private static class SelfTest {
-        final DTSubsystem   subsystem;
-        final DTTestCommand testCommand;
-        boolean             isFinished;
-        boolean             wasSuccessful;
+    public static class SelfTest {
+        public final DTSubsystem   subsystem;
+        public final DTTestCommand testCommand;
+        public boolean             isFinished;
+        public boolean             wasSuccessful;
 
         SelfTest(DTSubsystem subsystem) {
             this.subsystem = subsystem;

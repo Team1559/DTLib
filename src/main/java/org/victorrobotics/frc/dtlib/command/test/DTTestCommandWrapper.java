@@ -1,13 +1,14 @@
 package org.victorrobotics.frc.dtlib.command.test;
 
+import org.victorrobotics.frc.dtlib.command.DTCommandBase;
+
 import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 
-public class DTTestCommandWrapper<T extends Command> extends CommandBase implements DTTestCommand {
+public class DTTestCommandWrapper<T extends Command> extends DTCommandBase implements DTTestCommand {
     private final T               command;
     private final BooleanSupplier wasSuccessful;
 
@@ -25,22 +26,22 @@ public class DTTestCommandWrapper<T extends Command> extends CommandBase impleme
     }
 
     @Override
-    public void initialize() {
+    public void start() {
         command.initialize();
     }
 
     @Override
-    public void execute() {
+    public void run() {
         command.execute();
     }
 
     @Override
-    public void end(boolean interrupted) {
+    public void finish(boolean interrupted) {
         command.end(interrupted);
     }
 
     @Override
-    public boolean isFinished() {
+    public boolean isComplete() {
         return command.isFinished();
     }
 

@@ -19,8 +19,7 @@ public interface DTTestCommand extends Command {
         return new DTParallelTestCommandGroup(makeArray(this, other));
     }
 
-    private static DTTestCommand[] makeArray(DTTestCommand first, DTTestCommand next,
-            DTTestCommand... more) {
+    private static DTTestCommand[] makeArray(DTTestCommand first, DTTestCommand next, DTTestCommand... more) {
         if (more == null || more.length == 0) {
             return new DTTestCommand[] { first, next };
         } else {

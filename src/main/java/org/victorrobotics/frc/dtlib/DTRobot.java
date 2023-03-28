@@ -1,11 +1,11 @@
 package org.victorrobotics.frc.dtlib;
 
 import org.victorrobotics.frc.dtlib.command.test.DTSelfTestCommand;
+import org.victorrobotics.frc.dtlib.command.util.DTPrintCommand;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.wpi.first.hal.SimBoolean;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -15,6 +15,8 @@ public abstract class DTRobot extends TimedRobot {
     private final List<DTSubsystem> subsystems;
     private Compressor              pneumaticsCompressor;
     private boolean                 compressorEnabled;
+
+    private Command autonomousCommand;
 
     protected DTRobot() {
         super(0.02);
@@ -65,8 +67,12 @@ public abstract class DTRobot extends TimedRobot {
 
     @Override
     public final void robotInit() {
-        onBootUp();
-        bindCommands();
+        try {
+            onBootUp();
+            bindCommands();
+        } catch (Exception e) {
+            // TODO: what to do here?
+        }
     }
 
     @Override
@@ -83,15 +89,22 @@ public abstract class DTRobot extends TimedRobot {
     @Override
     public final void autonomousInit() {
         enableCompressor();
+        try {
+            autonomousCommand = getAutonomousCommand();
+        } catch (Exception e) {
+            autonomousCommand = new DTPrintCommand("Failed to fetch autonomous command");
+        }
         CommandScheduler.getInstance()
-                        .schedule(getAutonomousCommand());
+                        .schedule(autonomousCommand);
     }
 
     @Override
     public final void autonomousPeriodic() {}
 
     @Override
-    public final void autonomousExit() {}
+    public final void autonomousExit() {
+        autonomousCommand.cancel();
+    }
 
     @Override
     public final void teleopInit() {

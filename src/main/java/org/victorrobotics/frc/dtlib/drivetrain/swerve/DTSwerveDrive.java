@@ -1,6 +1,7 @@
 package org.victorrobotics.frc.dtlib.drivetrain.swerve;
 
 import org.victorrobotics.frc.dtlib.DTHardwareComponent;
+import org.victorrobotics.frc.dtlib.DTSubsystem;
 import org.victorrobotics.frc.dtlib.drivetrain.DTAccelerationLimit;
 import org.victorrobotics.frc.dtlib.drivetrain.DTVelocityLimit;
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
@@ -19,7 +20,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public abstract class DTSwerveDrive extends SubsystemBase implements DTHardwareComponent {
+public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareComponent {
     private final DTSwerveModule[]         modules;
     private final SwerveDriveKinematics    kinematics;
     private final SwerveDrivePoseEstimator poseEstimator;
