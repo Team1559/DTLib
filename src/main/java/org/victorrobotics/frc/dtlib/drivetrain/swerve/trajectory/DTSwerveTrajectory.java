@@ -8,13 +8,15 @@ import edu.wpi.first.math.trajectory.Trajectory;
 
 public class DTSwerveTrajectory {
     public static class Point {
-        public final Pose2d pose;
-        public final double time;
-        public final double distance;
-        public final double commandVelocity;
-        public final double predictVelocity;
-        public final double acceleration;
-        public final double curvature;
+        public Pose2d pose;
+        public double time;
+        public double distance;
+        public double commandVelocity;
+        public double predictVelocity;
+        public double acceleration;
+        public double curvature;
+
+        public Point() {}
 
         public Point(Pose2d pose, double time, double distance, double commandVelocity,
                 double predictVelocity, double acceleration, double curvature) {
