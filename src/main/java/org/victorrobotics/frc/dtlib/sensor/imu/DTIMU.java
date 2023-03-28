@@ -4,7 +4,7 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 
 public interface DTIMU<IMUTYPE> extends Sendable, AutoCloseable {
-    IMUTYPE internal();
+    IMUTYPE getImuImpl();
 
     double getYaw();
 
