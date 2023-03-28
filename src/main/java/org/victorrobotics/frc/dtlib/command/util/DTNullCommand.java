@@ -1,10 +1,13 @@
 package org.victorrobotics.frc.dtlib.command.util;
 
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+import org.victorrobotics.frc.dtlib.command.test.DTInstantTestCommand;
 
 // Explicitly does nothing when called (cleaner code)
-public class DTNullCommand extends InstantCommand {
-    public DTNullCommand() {
-        super();
+public class DTNullCommand extends DTInstantTestCommand {
+    public DTNullCommand() {}
+
+    @Override
+    public boolean runsWhenDisabled() {
+        return true;
     }
 }
