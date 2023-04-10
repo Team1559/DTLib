@@ -124,9 +124,9 @@ public abstract class DTSwerveDrive extends SubsystemBase implements DTHardwareC
         double minCosine = 1;
         for (int i = 0; i < modules.length; i++) {
             states[i] = SwerveModuleState.optimize(states[i], modules[i].getSteerAngle());
-            double cosine = Math.cos(Units.degreesToRadians(modules[i].getSteerAngle()
-                                                                      .getDegrees()
-                    - states[i].angle.getDegrees()));
+            double cosine = modules[i].getSteerAngle()
+                                      .minus(states[i].angle)
+                                      .getCos();
             if (cosine < minCosine) {
                 minCosine = cosine;
             }
@@ -141,7 +141,9 @@ public abstract class DTSwerveDrive extends SubsystemBase implements DTHardwareC
     public void holdPosition() {
         for (DTSwerveModule module : modules) {
             // Orient wheels towards center of robot so they all collide
-            module.holdPosition(module.getLocation().getAngle());
+            module.holdPosition(module.getLocation()
+                                      .getAngle()
+                                      .unaryMinus());
         }
     }
 
