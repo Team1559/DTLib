@@ -1,6 +1,6 @@
 package org.victorrobotics.frc.dtlib.controller;
 
-public class DTXboxControllerNEW extends DTController {
+public class DTXboxController extends DTController {
     private enum Axis {
         LEFT_X(0),
         LEFT_Y(1),
@@ -60,7 +60,7 @@ public class DTXboxControllerNEW extends DTController {
 
     public final DTPov dpad;
 
-    public DTXboxControllerNEW(int port) {
+    public DTXboxController(int port) {
         super(port, AXIS_COUNT, BUTTON_COUNT, POV_COUNT);
 
         aButton = getButton(Button.A.value);
