@@ -2,10 +2,9 @@ package org.victorrobotics.frc.dtlib.drivetrain.swerve.trajectory;
 
 import org.victorrobotics.frc.dtlib.drivetrain.DTAccelerationLimit;
 import org.victorrobotics.frc.dtlib.drivetrain.DTVelocityLimit;
-import org.victorrobotics.frc.dtlib.drivetrain.swerve.trajectory.DTSwerveTrajectory.Point;
+import org.victorrobotics.frc.dtlib.math.geometry.DTMutablePose2d;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 
 public class DTSwerveTrajectoryGenerator {
     private static final double SMOOTH_TOLERANCE = 0.005;
@@ -61,56 +60,47 @@ public class DTSwerveTrajectoryGenerator {
     }
 
     public DTSwerveTrajectory generate(Pose2d... waypoints) {
-        double[][] interpolatedPoints = interpolate(waypoints);
-        double[][] smoothPoints = smooth(interpolatedPoints);
+        DTMutablePose2d[] interpolatedPoints = interpolate(waypoints);
+        smooth(interpolatedPoints);
 
-        Pose2d[] path = new Pose2d[smoothPoints.length];
+        DTSwerveTrajectory.Point[] path = new DTSwerveTrajectory.Point[interpolatedPoints.length];
         for (int i = 0; i < path.length; i++) {
-            path[i] = new Pose2d(smoothPoints[i][0], smoothPoints[i][1],
-                    Rotation2d.fromDegrees(smoothPoints[i][2]));
+            path[i] = new DTSwerveTrajectory.Point();
+            path[i].pose = interpolatedPoints[i].toPose2d();
         }
 
-        // cumulative time, cumulative distance, commanded velocity, predicted
-        // velocity, linear acceleration, curvature
-        double[][] dataValues = new double[6][path.length];
-        computeVelocity(path, dataValues[1], dataValues[2], dataValues[3], dataValues[5]);
-        computeAcceleration(dataValues[1], dataValues[3], dataValues[0], dataValues[4]);
+        computeVelocity(path);
+        computeAcceleration(path);
 
-        Point[] points = constructPoints(path, dataValues[0], dataValues[1], dataValues[2],
-                dataValues[3], dataValues[4], dataValues[5]);
-        return new DTSwerveTrajectory(points);
+        return new DTSwerveTrajectory(path);
     }
 
-    private double[][] interpolate(Pose2d[] waypoints) {
+    private DTMutablePose2d[] interpolate(Pose2d[] waypoints) {
         // Calculate how many points to insert into each segment and their
         // initial transforms
         int[] intermediatePointCounts = new int[waypoints.length - 1];
-        double[][] deltas = new double[waypoints.length - 1][3];
+        DTMutablePose2d[] deltas = new DTMutablePose2d[waypoints.length - 1];
         int totalPointCount = 1;
         for (int i = 0; i < deltas.length; i++) {
             Pose2d currentPoint = waypoints[i];
             Pose2d nextPoint = waypoints[i + 1];
-            deltas[i][0] = nextPoint.getX() - currentPoint.getX();
-            deltas[i][1] = nextPoint.getY() - currentPoint.getY();
-            deltas[i][2] = nextPoint.getRotation()
-                                    .getDegrees()
-                    - currentPoint.getRotation()
-                                  .getDegrees();
-
-            double deltaD = Math.hypot(deltas[i][0], deltas[i][1]);
-            int pointCount = (int) (deltaD / distanceBetweenPoints);
-            deltas[i][0] /= pointCount;
-            deltas[i][1] /= pointCount;
-            deltas[i][2] /= pointCount;
+            deltas[i].x = nextPoint.getX() - currentPoint.getX();
+            deltas[i].y = nextPoint.getY() - currentPoint.getY();
+            deltas[i].r = nextPoint.getRotation()
+                                   .minus(currentPoint.getRotation())
+                                   .getDegrees();
+            double displacement = Math.hypot(deltas[i].x, deltas[i].y);
+            int pointCount = (int) (displacement / distanceBetweenPoints);
+            deltas[i].x /= pointCount;
+            deltas[i].y /= pointCount;
+            deltas[i].r /= pointCount;
             intermediatePointCounts[i] = pointCount - 1;
             totalPointCount += pointCount;
         }
-        // Insert points by adding the deltas
-        // Use 2D double array for less object creation and destruction during
-        // editing
-        double[][] points = new double[totalPointCount][3];
+        // Insert points by summing the deltas
+        DTMutablePose2d[] points = new DTMutablePose2d[totalPointCount];
         int pointIndex = 0;
-        double[] currentPoint = points[pointIndex];
+        DTMutablePose2d currentPoint = points[pointIndex];
         double x, y, r, dx, dy, dr;
         for (int i = 0; i < deltas.length; i++) {
             // Copy original point
@@ -118,35 +108,35 @@ public class DTSwerveTrajectoryGenerator {
             y = waypoints[i].getY();
             r = waypoints[i].getRotation()
                             .getDegrees();
-            currentPoint[0] = x;
-            currentPoint[1] = y;
-            currentPoint[2] = r;
+            currentPoint.x = x;
+            currentPoint.y = y;
+            currentPoint.r = r;
             pointIndex++;
             currentPoint = points[pointIndex];
             // Create intermediate points
-            dx = deltas[i][0];
-            dy = deltas[i][1];
-            dr = deltas[i][2];
+            dx = deltas[i].x;
+            dy = deltas[i].y;
+            dr = deltas[i].r;
             for (int j = 1; j <= intermediatePointCounts[i]; j++) {
-                currentPoint[0] = x + dx * j;
-                currentPoint[1] = y + dy * j;
-                currentPoint[2] = r + dr * j;
+                currentPoint.x = x + dx * j;
+                currentPoint.y = y + dy * j;
+                currentPoint.r = r + dr * j;
                 pointIndex++;
                 currentPoint = points[pointIndex];
             }
         }
-        double[] lastPoint = points[points.length - 1];
-        lastPoint[0] = waypoints[waypoints.length - 1].getX();
-        lastPoint[1] = waypoints[waypoints.length - 1].getY();
-        lastPoint[2] = waypoints[waypoints.length - 1].getRotation()
-                                                      .getDegrees();
+        DTMutablePose2d lastPoint = points[points.length - 1];
+        lastPoint.x = waypoints[waypoints.length - 1].getX();
+        lastPoint.y = waypoints[waypoints.length - 1].getY();
+        lastPoint.r = waypoints[waypoints.length - 1].getRotation()
+                                                     .getDegrees();
         return points;
     }
 
-    private double[][] smooth(double[][] points) {
-        double[][] newPoints = new double[points.length][points[0].length];
-        for (int i = 0; i < newPoints.length; i++) {
-            System.arraycopy(points[i], 0, newPoints[i], 0, points[i].length);
+    private void smooth(DTMutablePose2d[] points) {
+        DTMutablePose2d[] newPoints = new DTMutablePose2d[points.length];
+        for (int i = 0; i < points.length; i++) {
+            newPoints[i] = points[i].clone();
         }
 
         double pathWeight = 1 - smoothWeight;
@@ -154,64 +144,65 @@ public class DTSwerveTrajectoryGenerator {
         while (change >= SMOOTH_TOLERANCE) {
             change = 0;
             for (int i = 1; i < newPoints.length - 1; i++) {
-                double deltaX = pathWeight * (points[i][0] - newPoints[i][0]) + smoothWeight
-                        * (newPoints[i - 1][0] + newPoints[i + 1][0] - 2 * newPoints[i][0]);
-                newPoints[i][0] += deltaX;
+                double deltaX = pathWeight * (points[i].x - newPoints[i].x)
+                        + smoothWeight * (newPoints[i - 1].x + newPoints[i + 1].x - 2 * newPoints[i].x);
+                newPoints[i].x += deltaX;
 
-                double deltaY = pathWeight * (points[i][1] - newPoints[i][1]) + smoothWeight
-                        * (newPoints[i - 1][1] + newPoints[i + 1][1] - 2 * newPoints[i][1]);
-                newPoints[i][1] += deltaY;
+                double deltaY = pathWeight * (points[i].y - newPoints[i].y)
+                        + smoothWeight * (newPoints[i - 1].y + newPoints[i + 1].y - 2 * newPoints[i].y);
+                newPoints[i].y += deltaY;
 
                 change += Math.hypot(deltaX, deltaY);
             }
         }
 
-        return newPoints;
+        // Copy smoothed path to original array
+        System.arraycopy(newPoints, 0, points, 0, points.length);
     }
 
-    private void computeVelocity(Pose2d[] path, double[] distance, double[] commandVelocity,
-            double[] predictVelocity, double[] curvature) {
-        // Compute the commanded velocities and cumulative distances
+    private void computeVelocity(DTSwerveTrajectory.Point[] path) {
         double maxLinearVelocity = velocityLimit.maxVelocityTranslation;
         double maxLinearAccel = accelerationLimit.maxAccelTranslation;
         for (int i = 1; i < path.length - 1; i++) {
-            distance[i] = distance[i - 1] + path[i].minus(path[i - 1])
-                                                   .getTranslation()
-                                                   .getNorm();
-            curvature[i] = calculateCurvature(path[i - 1], path[i], path[i + 1]);
-            if (Double.isNaN(curvature[i])) {
+            path[i].distance = path[i - 1].distance + path[i].pose.getTranslation()
+                                                                  .minus(path[i - 1].pose.getTranslation())
+                                                                  .getNorm();
+            path[i].curvature = calculateCurvature(path[i - 1].pose, path[i].pose, path[i + 1].pose);
+            if (!Double.isFinite(path[i].curvature)) {
                 // Turn around in place
-                commandVelocity[i] = 0;
+                path[i].commandVelocity = 0;
             } else {
-                commandVelocity[i] = Math.min(
-                        velocityCoefficient / Math.pow(curvature[i], velocityPower),
+                path[i].commandVelocity = Math.min(velocityCoefficient / Math.pow(path[i].curvature, velocityPower),
                         maxLinearVelocity);
             }
         }
-        commandVelocity[0] = maxLinearVelocity;
-        distance[path.length - 1] = distance[path.length - 2]
-                + path[path.length - 1].minus(path[path.length - 2])
-                                       .getTranslation()
-                                       .getNorm();
+        path[0].commandVelocity = maxLinearVelocity;
+        // @format:off
+        path[path.length - 1].distance = path[path.length - 2].distance
+                + path[path.length - 1].pose.getTranslation()
+                                            .minus(path[path.length - 2].pose.getTranslation())
+                                            .getNorm();
+        // @format:on
+
         // Apply deceleration where needed
         for (int i = path.length - 2; i >= 0; i--) {
-            double newVelocity = Math.sqrt(commandVelocity[i + 1] * commandVelocity[i + 1]
-                    + 2 * maxLinearAccel * (distance[i + 1] - distance[i]));
-            if (!Double.isNaN(newVelocity) && newVelocity < commandVelocity[i]) {
-                commandVelocity[i] = newVelocity;
+            double newVelocity = Math.sqrt(path[i + 1].commandVelocity * path[i + 1].commandVelocity
+                    + 2 * maxLinearAccel * (path[i + 1].distance - path[i].distance));
+            if (Double.isFinite(newVelocity) && newVelocity < path[i].commandVelocity) {
+                path[i].commandVelocity = newVelocity;
             }
         }
-        /*
-         * To project the actual performance of the robot, the commanded
-         * velocities are turned into predicted velocities
-         */
-        System.arraycopy(commandVelocity, 0, predictVelocity, 0, path.length);
-        predictVelocity[0] = 0;
+
+        // To project the actual performance of the robot, the commanded
+        // velocities are turned into predicted velocities with accel limits
+        path[0].predictVelocity = 0;
         for (int i = 1; i < path.length - 1; i++) {
-            double newVelocity = Math.sqrt(predictVelocity[i - 1] * predictVelocity[i - 1]
-                    + 2 * maxLinearAccel * (distance[i] - distance[i - 1]));
-            if (!Double.isNaN(newVelocity) && newVelocity < commandVelocity[i]) {
-                predictVelocity[i] = newVelocity;
+            double accelLimitedVelocity = Math.sqrt(path[i - 1].predictVelocity * path[i - 1].predictVelocity
+                    + 2 * maxLinearAccel * (path[i].distance - path[i - 1].distance));
+            if (!Double.isNaN(accelLimitedVelocity) && accelLimitedVelocity < path[i].commandVelocity) {
+                path[i].predictVelocity = accelLimitedVelocity;
+            } else {
+                path[i].predictVelocity = path[i].commandVelocity;
             }
         }
     }
@@ -252,29 +243,17 @@ public class DTSwerveTrajectoryGenerator {
         }
     }
 
-    private static void computeAcceleration(double[] distances, double[] predictedVelocities,
-            double[] times, double[] accelerations) {
+    private static void computeAcceleration(DTSwerveTrajectory.Point[] path) {
         double time = 0;
-        for (int i = 1; i < times.length; i++) {
-            double avgVelocity = 0.5 * (predictedVelocities[i] + predictedVelocities[i - 1]);
-            double distance = distances[i] - distances[i - 1];
+        for (int i = 1; i < path.length; i++) {
+            double avgVelocity = 0.5 * (path[i].predictVelocity + path[i - 1].predictVelocity);
+            double distance = path[i].distance - path[i - 1].distance;
             time += distance / avgVelocity;
-            times[i] = time;
+            path[i].time = time;
 
-            double dv = predictedVelocities[i] - predictedVelocities[i - 1];
-            double dt = times[i] - times[i - 1];
-            accelerations[i - 1] = dv / dt;
+            double dv = path[i].predictVelocity - path[i - 1].predictVelocity;
+            double dt = path[i].time - path[i - 1].time;
+            path[i - 1].acceleration = dv / dt;
         }
-    }
-
-    private static Point[] constructPoints(Pose2d[] path, double[] time, double[] distance,
-            double[] commandVelocity, double[] predictVelocity, double[] acceleration,
-            double[] curvature) {
-        Point[] points = new Point[path.length];
-        for (int i = 0; i < path.length; i++) {
-            points[i] = new Point(path[i], time[i], distance[i], commandVelocity[i],
-                    predictVelocity[i], acceleration[i], curvature[i]);
-        }
-        return points;
     }
 }
