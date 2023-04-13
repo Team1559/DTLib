@@ -9,7 +9,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 
-public class DTNeo implements DTMotor<CANSparkMax> {
+public class DTNeo implements DTMotor {
     private static final double MAX_VELOCITY_RPM = 5676;
     private static final double STALL_TORQUE     = 2.6;
 

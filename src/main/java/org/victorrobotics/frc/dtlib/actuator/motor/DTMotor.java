@@ -4,7 +4,7 @@ import org.victorrobotics.frc.dtlib.network.DTSendable;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 
-public interface DTMotor<MOTORTYPE> extends DTSendable {
+public interface DTMotor extends DTSendable {
     @Override
     void close();
 
@@ -53,7 +53,7 @@ public interface DTMotor<MOTORTYPE> extends DTSendable {
 
     default void customizeSendable(SendableBuilder builder) {}
 
-    MOTORTYPE getMotorImpl();
+    Object getMotorImpl();
 
     int getCanID();
 
