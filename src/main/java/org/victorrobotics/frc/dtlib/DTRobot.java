@@ -1,5 +1,7 @@
 package org.victorrobotics.frc.dtlib;
 
+import org.victorrobotics.frc.dtlib.controller.DTController;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,7 +18,7 @@ public abstract class DTRobot extends TimedRobot {
 
     @Override
     public void robotPeriodic() {
-        
+        DTController.refreshAll();
     }
 
     protected final void registerSubsystem(DTSubsystem subsystem) {
