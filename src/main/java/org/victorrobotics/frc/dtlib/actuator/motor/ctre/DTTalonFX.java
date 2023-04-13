@@ -13,7 +13,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
-public class DTTalonFX implements DTMotor<WPI_TalonFX> {
+public class DTTalonFX implements DTMotor {
     private static final double TICKS_PER_REV      = 2048;
     private static final double SECONDS_PER_MINUTE = 60;
     private static final double MAX_VELOCITY_RPM   = 6380;
@@ -46,8 +46,6 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX> {
     public WPI_TalonFX getMotorImpl() {
         return internal;
     }
-
-    /* Write config params */
 
     @Override
     public void configBrakeMode(boolean enable) {
@@ -120,8 +118,6 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX> {
         internal.configAllSettings(config);
     }
 
-    /* Read config params */
-
     @Override
     public boolean isOutputInverted() {
         return internal.getInverted();
@@ -157,8 +153,6 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX> {
         return pidIZ;
     }
 
-    /* Set motor status */
-
     @Override
     public void setPercentOutput(double percent) {
         internal.set(TalonFXControlMode.PercentOutput, percent);
@@ -184,8 +178,6 @@ public class DTTalonFX implements DTMotor<WPI_TalonFX> {
     public void setEncoderPosition(double position) {
         internal.setSelectedSensorPosition(position * TICKS_PER_REV);
     }
-
-    /* Read motor status */
 
     @Override
     public double getMotorOutputPercent() {
