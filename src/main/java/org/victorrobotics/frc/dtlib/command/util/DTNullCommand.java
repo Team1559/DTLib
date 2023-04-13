@@ -4,7 +4,12 @@ import org.victorrobotics.frc.dtlib.command.test.DTInstantTestCommand;
 
 // Explicitly does nothing when called (cleaner code)
 public class DTNullCommand extends DTInstantTestCommand {
-    public DTNullCommand() {}
+    private static final Runnable NULL_RUNNABLE = () -> {
+    };
+
+    public DTNullCommand() {
+        super(NULL_RUNNABLE);
+    }
 
     @Override
     public boolean runsWhenDisabled() {

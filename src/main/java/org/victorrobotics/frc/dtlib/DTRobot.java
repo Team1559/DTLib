@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -39,11 +40,11 @@ public abstract class DTRobot extends TimedRobot {
         subsystems.add(subsystem);
     }
 
-    protected final void setCompressor(Compressor compressor) {
+    protected final void setCompressor(int module, PneumaticsModuleType type) {
         if (pneumaticsCompressor != null) {
             pneumaticsCompressor.disable();
         }
-        pneumaticsCompressor = compressor;
+        pneumaticsCompressor = new Compressor(module, type);
     }
 
     private void disableCompressor() {
