@@ -2,6 +2,7 @@ package org.victorrobotics.frc.dtlib;
 
 import org.victorrobotics.frc.dtlib.command.test.DTSelfTestCommand;
 import org.victorrobotics.frc.dtlib.command.util.DTPrintCommand;
+import org.victorrobotics.frc.dtlib.controller.DTController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ public abstract class DTRobot extends TimedRobot {
         pneumaticsCompressor = null;
         compressorEnabled = true;
     }
+
 
     protected abstract void onBootUp();
 
@@ -77,7 +79,8 @@ public abstract class DTRobot extends TimedRobot {
     }
 
     @Override
-    public final void robotPeriodic() {
+    public void robotPeriodic() {
+        DTController.refreshAll();
         getCommandScheduler().run();
     }
 
