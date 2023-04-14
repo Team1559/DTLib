@@ -20,6 +20,8 @@ public interface DTAbsoluteEncoder extends DTSendable {
 
     boolean isInverted();
 
+    void setRange(boolean signed);
+
     void setInverted(boolean invert);
 
     void setPosition(Rotation2d position);

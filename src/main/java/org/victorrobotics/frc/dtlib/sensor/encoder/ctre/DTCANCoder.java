@@ -8,18 +8,17 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.simulation.EncoderSim;
 
+import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderFaults;
 
 public class DTCANCoder implements DTAbsoluteEncoder {
     private final CANCoder internal;
 
-    private String         firmwareVersion;
+    private String firmwareVersion;
 
     public DTCANCoder(int canID) {
-        internal = new CANCoder(canID);
-
-        internal.setPositionToAbsolute();
+        this(canID, "");
     }
 
     public DTCANCoder(int canID, String canBus) {
@@ -47,6 +46,12 @@ public class DTCANCoder implements DTAbsoluteEncoder {
 
     public boolean isInverted() {
         return internal.configGetSensorDirection();
+    }
+
+    @Override
+    public void setRange(boolean signed) {
+        internal.configAbsoluteSensorRange(
+                signed ? AbsoluteSensorRange.Signed_PlusMinus180 : AbsoluteSensorRange.Unsigned_0_to_360);
     }
 
     @Override
