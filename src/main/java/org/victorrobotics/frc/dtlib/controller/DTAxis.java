@@ -1,11 +1,10 @@
 package org.victorrobotics.frc.dtlib.controller;
 
-import java.util.function.BiFunction;
-import java.util.function.DoubleBinaryOperator;
+import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+
 import java.util.function.DoublePredicate;
 import java.util.function.DoubleSupplier;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Supplier;
 
 public class DTAxis implements DoubleSupplier {
     private final DoubleSupplier input;
@@ -30,27 +29,8 @@ public class DTAxis implements DoubleSupplier {
         return new DTAxis(() -> mapper.applyAsDouble(input.getAsDouble()));
     }
 
-    public DTAxis map(DoubleBinaryOperator mapper, double param2) {
-        return new DTAxis(() -> mapper.applyAsDouble(input.getAsDouble(), param2));
-    }
-
-    public DTAxis map(DoubleBinaryOperator mapper, DoubleSupplier param2) {
-        return new DTAxis(() -> mapper.applyAsDouble(input.getAsDouble(), param2.getAsDouble()));
-    }
-
-    public DTAxis map(DoubleBinaryOperator mapper, DoubleUnaryOperator param2) {
-        return new DTAxis(() -> {
-            double val = input.getAsDouble();
-            return mapper.applyAsDouble(val, param2.applyAsDouble(val));
-        });
-    }
-
-    public <T> DTAxis map(BiFunction<Double, T, Double> mapper, T param2) {
-        return new DTAxis(() -> mapper.apply(input.getAsDouble(), param2));
-    }
-
-    public <T> DTAxis map(BiFunction<Double, T, Double> mapper, Supplier<T> param2) {
-        return new DTAxis(() -> mapper.apply(input.getAsDouble(), param2.get()));
+    public DTAxis negate() {
+        return map(d -> -d);
     }
 
     public DTAxis absolute() {
@@ -58,7 +38,7 @@ public class DTAxis implements DoubleSupplier {
     }
 
     public DTAxis squareKeepSign() {
-        return map((double d1, double d2) -> Math.copySign(d1 * d1, d2), (double d) -> d * d);
+        return map(d -> Math.copySign(d * d, d));
     }
 
     public DTAxis deadband(double minimum, double maximum) {
@@ -109,7 +89,8 @@ public class DTAxis implements DoubleSupplier {
 
     private static void requireFinite(double param) {
         if (!Double.isFinite(param)) {
-            throw new IllegalArgumentException("Expected a finite floating-point parameter");
+            throw new DTIllegalArgumentException("expected a finite floating-point parameter",
+                    param);
         }
     }
 }
