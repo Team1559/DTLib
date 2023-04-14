@@ -6,7 +6,7 @@ import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.kauailabs.navx.frc.AHRS;
 
-public class DTNavX implements DTIMU<AHRS> {
+public class DTNavX implements DTIMU {
     private final AHRS internal;
 
     public DTNavX() {
@@ -61,8 +61,7 @@ public class DTNavX implements DTIMU<AHRS> {
 
     @Override
     public double[] getAngularVelocities() {
-        return new double[] { internal.getRawGyroX(), internal.getRawGyroY(),
-                internal.getRawGyroZ() };
+        return new double[] { internal.getRawGyroX(), internal.getRawGyroY(), internal.getRawGyroZ() };
     }
 
     @Override

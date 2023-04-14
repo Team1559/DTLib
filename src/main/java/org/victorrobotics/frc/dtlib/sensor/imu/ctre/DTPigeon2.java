@@ -2,14 +2,10 @@ package org.victorrobotics.frc.dtlib.sensor.imu.ctre;
 
 import org.victorrobotics.frc.dtlib.sensor.imu.DTIMU;
 
-import edu.wpi.first.util.sendable.SendableBuilder;
-
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.ctre.phoenix.sensors.Pigeon2_Faults;
 
-import com.kauailabs.navx.frc.AHRS;
-
-public class DTPigeon2 implements DTIMU<Pigeon2> {
+public class DTPigeon2 implements DTIMU {
     private final Pigeon2 internal;
     private final short[] rawAccelerations;
 
