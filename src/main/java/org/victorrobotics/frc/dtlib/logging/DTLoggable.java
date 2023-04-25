@@ -1,9 +1,9 @@
 package org.victorrobotics.frc.dtlib.logging;
 
-import java.io.DataOutputStream;
-
 public interface DTLoggable {
-    void log(DataOutputStream dataStream);
+    default String getTypeID() {
+        return getClass().getSimpleName();
+    }
 
-    void skeleton();
+    void encode();
 }
