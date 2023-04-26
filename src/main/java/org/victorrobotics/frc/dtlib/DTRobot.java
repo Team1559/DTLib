@@ -1,6 +1,7 @@
 package org.victorrobotics.frc.dtlib;
 
-import org.victorrobotics.frc.dtlib.command.test.DTSelfTestCommand;
+import org.victorrobotics.frc.dtlib.command.DTCommand;
+import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.frc.dtlib.command.util.DTPrintCommand;
 import org.victorrobotics.frc.dtlib.controller.DTController;
 
@@ -10,15 +11,13 @@ import java.util.List;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public abstract class DTRobot extends TimedRobot {
     private final List<DTSubsystem> subsystems;
     private Compressor              pneumaticsCompressor;
     private boolean                 compressorEnabled;
 
-    private Command autonomousCommand;
+    private DTCommand autonomousCommand;
 
     protected DTRobot() {
         super(0.02);
@@ -27,15 +26,15 @@ public abstract class DTRobot extends TimedRobot {
         compressorEnabled = true;
     }
 
-
     protected abstract void onBootUp();
 
     protected abstract void bindCommands();
 
-    protected abstract Command getAutonomousCommand();
+    protected abstract DTCommand getAutonomousCommand();
 
-    public final DTSelfTestCommand getSelfTestCommand() {
-        return new DTSelfTestCommand(subsystems.toArray(DTSubsystem[]::new));
+    public final DTCommand getSelfTestCommand() {
+        throw new UnsupportedOperationException();
+        // return new DTSelfTestCommand(subsystems.toArray(DTSubsystem[]::new));
     }
 
     protected final void registerSubsystem(DTSubsystem subsystem) {
@@ -81,7 +80,7 @@ public abstract class DTRobot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         DTController.refreshAll();
-        getCommandScheduler().run();
+        DTCommandScheduler.run();
     }
 
     @Override
@@ -98,8 +97,7 @@ public abstract class DTRobot extends TimedRobot {
         } catch (Exception e) {
             autonomousCommand = new DTPrintCommand("Failed to fetch autonomous command");
         }
-        CommandScheduler.getInstance()
-                        .schedule(autonomousCommand);
+        DTCommandScheduler.schedule(autonomousCommand);
     }
 
     @Override
@@ -142,8 +140,4 @@ public abstract class DTRobot extends TimedRobot {
 
     @Override
     public final void disabledExit() {}
-
-    public static CommandScheduler getCommandScheduler() {
-        return CommandScheduler.getInstance();
-    }
 }

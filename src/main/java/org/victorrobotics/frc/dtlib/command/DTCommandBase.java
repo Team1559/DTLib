@@ -1,50 +1,62 @@
 package org.victorrobotics.frc.dtlib.command;
 
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import org.victorrobotics.frc.dtlib.DTSubsystem;
 
-public abstract class DTCommandBase extends CommandBase {
-    protected abstract void start();
+import java.util.HashSet;
+import java.util.Set;
 
-    protected abstract void run();
+public abstract class DTCommandBase implements DTCommand {
+    protected final Set<DTSubsystem> requirements;
+    protected String                 name;
 
-    protected abstract boolean isComplete();
-
-    protected abstract void finish(boolean interrupted);
-
-    @Override
-    public final void initialize() {
-        try {
-            start();
-        } catch (Exception e) {
-            cancel();
-        }
+    protected DTCommandBase() {
+        requirements = new HashSet<>();
+        name = getClass().getSimpleName();
     }
 
     @Override
-    public final void execute() {
-        try {
-            run();
-        } catch (Exception e) {
-            cancel();
-        }
+    public void initialize() {
+        // default implementation empty
     }
 
     @Override
-    public final boolean isFinished() {
-        try {
-            return isComplete();
-        } catch (Exception e) {
-            cancel();
-            return false;
-        }
+    public void execute() {
+        // default implementation empty
     }
 
     @Override
-    public final void end(boolean interrupted) {
-        try {
-            finish(interrupted);
-        } catch (Exception e) {
-            // Nothing to do, command is already finished
+    public void end() {
+        // default implementation empty
+    }
+
+    @Override
+    public void interrupt() {
+        // default implementation empty
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+
+    @Override
+    public boolean wasSuccessful() {
+        return true;
+    }
+
+    @Override
+    public final Set<DTSubsystem> getRequirements() {
+        return requirements;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    protected final void addRequirements(DTSubsystem... requirements) {
+        for (DTSubsystem subsystem : requirements) {
+            this.requirements.add(subsystem);
         }
     }
 }
