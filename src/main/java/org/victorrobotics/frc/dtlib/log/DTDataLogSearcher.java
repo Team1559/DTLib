@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.logging;
+package org.victorrobotics.frc.dtlib.log;
 
 import org.victorrobotics.frc.dtlib.DTRobot;
 
@@ -11,16 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
-import edu.wpi.first.wpilibj.TimedRobot;
-
-import javax.security.auth.callback.Callback;
-
-public class DTLogger {
-    private DTLogger() {}
-
+public class DTDataLogSearcher {
     public static List<Field> getImmediateLoggableFields(Class<? extends DTRobot> clazz) {
         List<Field> fields = new ArrayList<>();
         while (clazz != DTRobot.class) {
@@ -33,8 +25,8 @@ public class DTLogger {
                          .asSubclass(DTRobot.class);
         }
         fields.addAll(List.of(DTRobot.class.getDeclaredFields()));
-        fields.sort(DTLogger::compareFields);
-        
+        fields.sort(DTDataLogSearcher::compareFields);
+
         return fields;
     }
 
@@ -43,11 +35,11 @@ public class DTLogger {
     }
 
     private static boolean hasLogAnnotation(AnnotatedElement e) {
-        return e.isAnnotationPresent(DTLog.class);
+        return e.isAnnotationPresent(DTDataLog.class);
     }
 
     private static boolean isLoggable(Class<?> clazz) {
-        return DTLoggable.class.isAssignableFrom(clazz);
+        return false;
     }
 
     private static boolean isPrimitive(Class<?> clazz) {
@@ -99,23 +91,22 @@ public class DTLogger {
         return 0;
     }
 
-    public static void init(c1 robot) {
-        Map<Class<? extends c1>, List<Field>> fields = new HashMap<>();
-        Map<Class<? extends c1>, List<Method>> methods = new HashMap<>();
-        Class<? extends c1> clazz = robot.getClass();
-        while (clazz != c1.class) {
+    public static void init(DTRobot robot) {
+        Map<Class<? extends DTRobot>, List<Field>> fields = new HashMap<>();
+        Map<Class<? extends DTRobot>, List<Method>> methods = new HashMap<>();
+        Class<? extends DTRobot> clazz = robot.getClass();
+        while (clazz != DTRobot.class) {
             fields.put(clazz, new ArrayList<>(List.of(clazz.getDeclaredFields())));
             methods.put(clazz, new ArrayList<>(List.of(clazz.getDeclaredMethods())));
             clazz = clazz.getSuperclass()
-                         .asSubclass(c1.class);
+                         .asSubclass(DTRobot.class);
         }
         fields.put(clazz, new ArrayList<>(List.of(clazz.getDeclaredFields())));
         methods.put(clazz, new ArrayList<>(List.of(clazz.getDeclaredMethods())));
-        for (Entry<Class<? extends c1>, List<Field>> entry : fields.entrySet()) {
+        for (Entry<Class<? extends DTRobot>, List<Field>> entry : fields.entrySet()) {
             entry.getValue()
-                 .removeIf(f -> !f.isAnnotationPresent(DTLog.class)
-                         || !(DTLoggable.class.isAssignableFrom(f.getType()) || f.getType()
-                                                                                 .isPrimitive()));
+                 .removeIf(f -> !f.isAnnotationPresent(DTDataLog.class) || !f.getType()
+                                                                             .isPrimitive());
             entry.getValue()
                  .sort((Field f1, Field f2) -> {
                      int c = compareModifiers(f1.getModifiers(), f2.getModifiers());
@@ -124,9 +115,9 @@ public class DTLogger {
                                  .compareTo(f2.getName());
                  });
         }
-        for (Entry<Class<? extends c1>, List<Method>> entry : methods.entrySet()) {
+        for (Entry<Class<? extends DTRobot>, List<Method>> entry : methods.entrySet()) {
             entry.getValue()
-                 .removeIf(m -> !m.isAnnotationPresent(DTLog.class) || m.getParameterTypes().length != 0
+                 .removeIf(m -> !m.isAnnotationPresent(DTDataLog.class) || m.getParameterTypes().length != 0
                          || Void.class.isAssignableFrom(m.getReturnType()));
             entry.getValue()
                  .sort((Method m1, Method m2) -> m1.getName()
@@ -138,64 +129,6 @@ public class DTLogger {
         methods.entrySet()
                .removeIf(e -> e.getValue()
                                .isEmpty());
-        // fields.entrySet()
-        // .forEach(e -> {
-        // System.out.println(e.getKey());
-        // for (Field field : e.getValue()) {
-        // System.out.println(toString(field));
-        // }
-        // System.out.println();
-        // });
-        // methods.entrySet()
-        // .forEach(e -> {
-        // System.out.println(e.getKey());
-        // for (Method m : e.getValue()) {
-        // System.out.println(toString(m));
-        // }
-        // System.out.println();
-        // });
-    }
-
-    // ------------
-    // Test classes
-    // ------------
-
-    private static class c1 {
-        @DTLog
-        double d;
-
-        float f;
-
-        @DTLog
-        public int get() {
-            return 1;
-        }
-
-        @DTLog
-        c2 thing;
-    }
-
-    private static class c2 extends c1 implements DTLoggable {
-        double d2;
-
-        @DTLog
-        public double getD2() {
-            return d2;
-        }
-
-        @Override
-        public void encode() {
-            // nothing?
-        }
-
-        @DTLog
-        float f2;
-    }
-
-    public static void main(String... args) {
-        c2 c = new c2();
-        c.thing = new c2();
-        init(new c2());
     }
 
     private static String toString(Field f) {

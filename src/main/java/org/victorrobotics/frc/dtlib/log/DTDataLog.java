@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.logging;
+package org.victorrobotics.frc.dtlib.log;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface DTLog {
+public @interface DTDataLog {
     String value() default "";
 }
