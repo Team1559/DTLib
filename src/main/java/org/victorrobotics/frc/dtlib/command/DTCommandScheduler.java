@@ -63,9 +63,19 @@ public class DTCommandScheduler {
         for (DTSubsystem requirement : requirements) {
             REQUIREMENTS.put(requirement, command);
         }
-        command.initialize();
+
+        try {
+            command.initialize();
+        } catch (RuntimeException e) {
+            handleCommandException(command, e);
+        }
+
         for (Consumer<DTCommand> action : INIT_ACTIONS) {
-            action.accept(command);
+            try {
+                action.accept(command);
+            } catch (RuntimeException e) {
+                handleCommandException(command, e);
+            }
         }
 
         addLoopOverrunEpoch(command.getName() + ".initialize()");
@@ -161,7 +171,11 @@ public class DTCommandScheduler {
             DTCommand command = iterator.next();
 
             if (!command.runsWhenDisabled() && RobotState.isDisabled()) {
-                command.interrupt();
+                try {
+                    command.interrupt();
+                } catch (RuntimeException e) {
+                    handleCommandException(command, e);
+                }
                 for (Consumer<DTCommand> action : INTERRUPT_ACTIONS) {
                     action.accept(command);
                 }
@@ -172,14 +186,31 @@ public class DTCommandScheduler {
                 continue;
             }
 
-            command.execute();
+            try {
+                command.execute();
+            } catch (RuntimeException e) {
+                handleCommandException(command, e);
+            }
+
             for (Consumer<DTCommand> action : EXECUTE_ACTIONS) {
                 action.accept(command);
             }
             addLoopOverrunEpoch(command.getName() + ".execute()");
 
-            if (command.isFinished()) {
-                command.end();
+            boolean finished = true;
+            try {
+                finished = command.isFinished();
+            } catch (RuntimeException e) {
+                handleCommandException(command, e);
+            }
+
+            if (finished) {
+                try {
+                    command.end();
+                } catch (RuntimeException e) {
+                    handleCommandException(command, e);
+                }
+
                 for (Consumer<DTCommand> action : FINISH_ACTIONS) {
                     action.accept(command);
                 }
@@ -350,7 +381,13 @@ public class DTCommandScheduler {
             SCHEDULED_COMMANDS.remove(command);
             REQUIREMENTS.keySet()
                         .removeAll(command.getRequirements());
-            command.interrupt();
+
+            try {
+                command.interrupt();
+            } catch (RuntimeException e) {
+                handleCommandException(command, e);
+            }
+
             for (Consumer<DTCommand> action : INTERRUPT_ACTIONS) {
                 action.accept(command);
             }
@@ -504,16 +541,18 @@ public class DTCommandScheduler {
     private static void requireNotComposed(DTCommand command) {
         if (COMPOSED_COMMANDS.contains(command)) {
             throw new IllegalArgumentException(
-                    "Commands that have been composed may not be added to another composition or scheduled "
-                            + "individually!");
+                    "Commands that have been composed may not be added to another composition or scheduled individually!");
         }
     }
 
     private static void requireNotComposed(Collection<DTCommand> commands) {
         if (!Collections.disjoint(commands, COMPOSED_COMMANDS)) {
             throw new IllegalArgumentException(
-                    "Commands that have been composed may not be added to another composition or scheduled "
-                            + "individually!");
+                    "Commands that have been composed may not be added to another composition or scheduled individually!");
         }
+    }
+
+    private static void handleCommandException(DTCommand command, RuntimeException e) {
+        // TODO: handle exceptions thrown by commands
     }
 }
