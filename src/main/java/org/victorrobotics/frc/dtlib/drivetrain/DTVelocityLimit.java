@@ -1,5 +1,7 @@
 package org.victorrobotics.frc.dtlib.drivetrain;
 
+import org.victorrobotics.frc.dtlib.math.geometry.DTVector2DR;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
@@ -35,12 +37,12 @@ public final class DTVelocityLimit {
     public boolean apply(ChassisSpeeds speeds) {
         boolean changed = false;
 
-        Translation2d translationVelocity = new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
-        double translationVelocityMagnitude = translationVelocity.getNorm();
-        if (translationVelocityMagnitude > maxVelocityTranslation) {
-            translationVelocity = translationVelocity.times(maxVelocityTranslation / translationVelocityMagnitude);
-            speeds.vxMetersPerSecond = translationVelocity.getX();
-            speeds.vyMetersPerSecond = translationVelocity.getY();
+        DTVector2DR velocityVec = new DTVector2DR(speeds);
+        double velocityTranslation = velocityVec.hypotenuse();
+        if (velocityTranslation > maxVelocityTranslation) {
+            velocityVec.multiply(maxVelocityTranslation / velocityTranslation);
+            speeds.vxMetersPerSecond = velocityVec.getX();
+            speeds.vyMetersPerSecond = velocityVec.getY();
             changed = true;
         }
 
