@@ -26,8 +26,8 @@ public class DTHolonomicTrajectory implements Iterable<DTHolonomicTrajectory.Poi
             Point ret = new Point();
 
             ret.position = position.interpolate(endValue.position, t);
-            ret.velocity = position.interpolate(endValue.velocity, t);
-            ret.acceleration = position.interpolate(endValue.acceleration, t);
+            ret.velocity = velocity.interpolate(endValue.velocity, t);
+            ret.acceleration = acceleration.interpolate(endValue.acceleration, t);
 
             ret.time = MathUtil.interpolate(time, endValue.time, t);
             ret.distance = MathUtil.interpolate(distance, endValue.distance, t);
