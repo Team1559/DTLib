@@ -1,6 +1,6 @@
 package org.victorrobotics.frc.dtlib;
 
-import org.victorrobotics.frc.dtlib.command.test.DTTestCommand;
+import org.victorrobotics.frc.dtlib.command.DTCommand;
 import org.victorrobotics.frc.dtlib.dashboard.DTDash;
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.frc.dtlib.network.DTSendable;
@@ -69,5 +69,5 @@ public abstract class DTSubsystem extends SubsystemBase implements DTSendable {
 
     protected void update() {}
 
-    public abstract DTTestCommand getSelfTestCommand();
+    public abstract DTCommand getSelfTestCommand();
 }
