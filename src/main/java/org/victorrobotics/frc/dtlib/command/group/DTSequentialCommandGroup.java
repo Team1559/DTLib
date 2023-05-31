@@ -20,13 +20,15 @@ public class DTSequentialCommandGroup extends DTCommandBase {
         addCommands(commands);
     }
 
-    public final void addCommands(DTCommand... commands) {
+    public void addCommands(DTCommand... commands) {
         addCommands(sequentialCommands.size(), commands);
     }
 
-    public final void addCommands(int index, DTCommand... commands) {
+    public void addCommands(int index, DTCommand... commands) {
         if (cmdIndex != -1) {
             throw new IllegalStateException("Cannot add commands to a running composition");
+        } else if (commands == null || commands.length == 0) {
+            return;
         }
         DTCommandScheduler.registerComposedCommands(commands);
 
@@ -39,7 +41,7 @@ public class DTSequentialCommandGroup extends DTCommandBase {
     }
 
     @Override
-    public final void initialize() {
+    public void initialize() {
         cmdIndex = 0;
         if (!sequentialCommands.isEmpty()) {
             sequentialCommands.get(0)
@@ -48,7 +50,7 @@ public class DTSequentialCommandGroup extends DTCommandBase {
     }
 
     @Override
-    public final void execute() {
+    public void execute() {
         if (sequentialCommands.isEmpty()) {
             return;
         }
@@ -71,12 +73,12 @@ public class DTSequentialCommandGroup extends DTCommandBase {
     }
 
     @Override
-    public final void end() {
+    public void end() {
         cmdIndex = -1;
     }
 
     @Override
-    public final void interrupt() {
+    public void interrupt() {
         if (!sequentialCommands.isEmpty() && cmdIndex > -1 && cmdIndex < sequentialCommands.size()) {
             DTCommand command = sequentialCommands.get(cmdIndex);
             command.interrupt();
@@ -104,5 +106,17 @@ public class DTSequentialCommandGroup extends DTCommandBase {
     @Override
     public boolean wasSuccessful() {
         return success;
+    }
+
+    @Override
+    public DTSequentialCommandGroup beforeStarting(DTCommand before) {
+        addCommands(0, before);
+        return this;
+    }
+
+    @Override
+    public DTSequentialCommandGroup andThen(DTCommand... next) {
+        addCommands(next);
+        return this;
     }
 }

@@ -1,26 +1,55 @@
 package org.victorrobotics.frc.dtlib.command;
 
 import org.victorrobotics.frc.dtlib.DTSubsystem;
+import org.victorrobotics.frc.dtlib.command.group.DTConditionalCommand;
 import org.victorrobotics.frc.dtlib.command.group.DTParallelCommandGroup;
+import org.victorrobotics.frc.dtlib.command.group.DTParallelDeadlineGroup;
+import org.victorrobotics.frc.dtlib.command.group.DTParallelRaceCommandGroup;
 import org.victorrobotics.frc.dtlib.command.group.DTSequentialCommandGroup;
+import org.victorrobotics.frc.dtlib.command.util.DTNullCommand;
+import org.victorrobotics.frc.dtlib.command.util.DTProxyCommand;
+import org.victorrobotics.frc.dtlib.command.util.DTRecoveryCommand;
+import org.victorrobotics.frc.dtlib.command.util.DTRepeatCommand;
+import org.victorrobotics.frc.dtlib.command.util.DTTargetCommand;
+import org.victorrobotics.frc.dtlib.command.util.DTWaitCommand;
+import org.victorrobotics.frc.dtlib.command.util.DTWaitUntilCommand;
+import org.victorrobotics.frc.dtlib.command.util.DTWrapperCommand;
 
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 
+import edu.wpi.first.wpilibj2.command.Command;
+
 public interface DTCommand {
+    Set<DTSubsystem> getRequirements();
+
     void initialize();
 
     void execute();
 
-    void end();
-
-    void interrupt();
-
     boolean isFinished();
 
-    boolean wasSuccessful();
+    void end();
 
-    Set<DTSubsystem> getRequirements();
+    default void interrupt() {
+        end();
+    }
+
+    default boolean wasSuccessful() {
+        return true;
+    }
+
+    default boolean isInterruptible() {
+        return true;
+    }
+
+    default boolean runsWhenDisabled() {
+        return false;
+    }
+
+    default String getName() {
+        return getClass().getSimpleName();
+    }
 
     default boolean hasRequirement(DTSubsystem requirement) {
         return getRequirements().contains(requirement);
@@ -38,61 +67,82 @@ public interface DTCommand {
         return DTCommandScheduler.isScheduled(this);
     }
 
-    default String getName() {
-        return getClass().getSimpleName();
+    default DTTargetCommand withName(String name) {
+        return new DTTargetCommand(this) {
+            @Override
+            public String getName() {
+                return name;
+            }
+        };
     }
 
-    default boolean isInterruptible() {
-        return true;
+    default DTParallelRaceCommandGroup withTimeout(double seconds) {
+        return raceWith(new DTWaitCommand(seconds));
     }
 
-    default boolean runsWhenDisabled() {
-        return false;
+    default DTParallelRaceCommandGroup until(BooleanSupplier condition) {
+        return raceWith(new DTWaitUntilCommand(condition));
     }
 
-    default DTCommand withName(String name) {
-        throw new UnsupportedOperationException();
+    default DTConditionalCommand unless(BooleanSupplier condition) {
+        return new DTConditionalCommand(new DTNullCommand(), this, condition);
     }
 
-    default DTCommand withTimeout(double seconds) {
-        throw new UnsupportedOperationException();
+    default DTConditionalCommand onlyIf(BooleanSupplier condition) {
+        return new DTConditionalCommand(this, new DTNullCommand(), condition);
     }
 
-    default DTCommand until(BooleanSupplier condition) {
-        throw new UnsupportedOperationException();
-    }
-
-    default DTCommand unless(BooleanSupplier condition) {
-        throw new UnsupportedOperationException();
-    }
-
-    default DTCommand beforeStarting(DTCommand before) {
-        throw new UnsupportedOperationException();
+    default DTSequentialCommandGroup beforeStarting(DTCommand before) {
+        return new DTSequentialCommandGroup(this).beforeStarting(before);
     }
 
     default DTSequentialCommandGroup andThen(DTCommand... next) {
-        DTSequentialCommandGroup group = (this instanceof DTSequentialCommandGroup) ? (DTSequentialCommandGroup) this
-                : new DTSequentialCommandGroup(this);
-        group.addCommands(next);
-        return group;
+        return new DTSequentialCommandGroup(this).andThen(next);
     }
 
     default DTParallelCommandGroup alongWith(DTCommand... parallel) {
-        DTParallelCommandGroup group = (this instanceof DTParallelCommandGroup) ? (DTParallelCommandGroup) this
-                : new DTParallelCommandGroup(this);
-        group.addCommands(parallel);
-        return group;
+        return new DTParallelCommandGroup(this).alongWith(parallel);
     }
 
-    default DTCommand raceWith(DTCommand parallel) {
-        throw new UnsupportedOperationException();
+    default DTParallelRaceCommandGroup raceWith(DTCommand... parallel) {
+        return new DTParallelRaceCommandGroup(this).raceWith(parallel);
     }
 
-    default DTCommand repeatedly() {
-        throw new UnsupportedOperationException();
+    default DTRepeatCommand repeatedly() {
+        return new DTRepeatCommand(this);
     }
 
-    default DTCommand catchExceptions() {
-        throw new UnsupportedOperationException();
+    default DTParallelDeadlineGroup repeatUntil(BooleanSupplier condition) {
+        return new DTParallelDeadlineGroup(new DTWaitUntilCommand(condition), new DTRepeatCommand(this));
+    }
+
+    default DTRecoveryCommand catchExceptions() {
+        return new DTRecoveryCommand(this);
+    }
+
+    default DTProxyCommand proxy() {
+        return new DTProxyCommand(this);
+    }
+
+    default DTTargetCommand overrideDisable(boolean runsWhenDisabled) {
+        return new DTTargetCommand(this) {
+            @Override
+            public boolean runsWhenDisabled() {
+                return runsWhenDisabled;
+            }
+        };
+    }
+
+    default DTTargetCommand overrideInterrupt(boolean isInterruptible) {
+        return new DTTargetCommand(this) {
+            @Override
+            public boolean isInterruptible() {
+                return isInterruptible;
+            }
+        };
+    }
+
+    static DTWrapperCommand wrap(Command command) {
+        return new DTWrapperCommand(command);
     }
 }

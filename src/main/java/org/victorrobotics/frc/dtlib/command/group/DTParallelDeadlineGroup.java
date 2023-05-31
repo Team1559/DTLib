@@ -1,6 +1,5 @@
 package org.victorrobotics.frc.dtlib.command.group;
 
-import org.victorrobotics.frc.dtlib.DTSubsystem;
 import org.victorrobotics.frc.dtlib.command.DTCommand;
 import org.victorrobotics.frc.dtlib.command.DTCommandBase;
 import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
@@ -9,22 +8,22 @@ import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.Objects;
 
-public class DTParallelRaceCommandGroup extends DTCommandBase {
-    private final Map<DTCommand, Boolean> raceCommands;
+public class DTParallelDeadlineGroup extends DTCommandBase {
+    private final Map<DTCommand, Boolean> commands;
+    private final DTCommand               deadline;
 
     private boolean runsWhenDisabled;
     private boolean isFinished;
     private boolean isInterruptible;
-    private boolean success;
 
-    public DTParallelRaceCommandGroup(DTCommand... commands) {
-        raceCommands = new HashMap<>(commands.length);
-        isInterruptible = false;
+    public DTParallelDeadlineGroup(DTCommand deadline, DTCommand... commands) {
+        this.deadline = Objects.requireNonNull(deadline);
+        this.commands = new HashMap<>(commands.length + 1);
         runsWhenDisabled = true;
-        isFinished = true;
+
+        addCommands(deadline);
         addCommands(commands);
     }
 
@@ -34,15 +33,15 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
         } else if (commands == null || commands.length == 0) {
             return;
         }
+
         DTCommandScheduler.registerComposedCommands(commands);
 
         for (DTCommand command : commands) {
-            Set<DTSubsystem> commandReqs = command.getRequirements();
-            if (!Collections.disjoint(requirements, commandReqs)) {
+            if (!Collections.disjoint(command.getRequirements(), requirements)) {
                 throw new DTIllegalArgumentException("Parallel commands may not share requirements", command);
             }
-            raceCommands.put(command, false);
-            requirements.addAll(commandReqs);
+            this.commands.put(command, false);
+            requirements.addAll(command.getRequirements());
             runsWhenDisabled &= command.runsWhenDisabled();
             isInterruptible |= command.isInterruptible();
         }
@@ -50,35 +49,39 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
 
     @Override
     public void initialize() {
-        isFinished = false;
-        success = true;
-        for (DTCommand command : raceCommands.keySet()) {
-            command.initialize();
+        for (Map.Entry<DTCommand, Boolean> commandEntry : commands.entrySet()) {
+            commandEntry.getKey()
+                        .initialize();
+            commandEntry.setValue(true);
         }
+        isFinished = false;
     }
 
     @Override
     public void execute() {
-        for (Entry<DTCommand, Boolean> commandEntry : raceCommands.entrySet()) {
+        for (Map.Entry<DTCommand, Boolean> commandEntry : commands.entrySet()) {
+            if (!commandEntry.getValue()) {
+                continue;
+            }
             DTCommand command = commandEntry.getKey();
             command.execute();
             if (command.isFinished()) {
                 command.end();
-                success &= command.wasSuccessful();
-                commandEntry.setValue(true);
+                commandEntry.setValue(false);
+                if (command == deadline) {
+                    isFinished = true;
+                }
             }
         }
     }
 
     @Override
     public void end() {
-        for (Entry<DTCommand, Boolean> commandEntry : raceCommands.entrySet()) {
+        for (Map.Entry<DTCommand, Boolean> commandEntry : commands.entrySet()) {
             if (commandEntry.getValue()) {
-                continue;
+                commandEntry.getKey()
+                            .interrupt();
             }
-            DTCommand command = commandEntry.getKey();
-            command.interrupt();
-            success &= command.wasSuccessful();
         }
     }
 
@@ -88,23 +91,12 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
     }
 
     @Override
-    public boolean wasSuccessful() {
-        return success;
-    }
-
-    @Override
-    public boolean isInterruptible() {
-        return isInterruptible;
-    }
-
-    @Override
     public boolean runsWhenDisabled() {
         return runsWhenDisabled;
     }
 
     @Override
-    public DTParallelRaceCommandGroup raceWith(DTCommand... parallel) {
-        addCommands(parallel);
-        return this;
+    public boolean isInterruptible() {
+        return isInterruptible;
     }
 }

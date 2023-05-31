@@ -31,6 +31,8 @@ public class DTParallelCommandGroup extends DTCommandBase {
     public void addCommands(DTCommand... commands) {
         if (isRunning) {
             throw new IllegalStateException("Cannot add commands to a running composition");
+        } else if (commands == null || commands.length == 0) {
+            return;
         }
         DTCommandScheduler.registerComposedCommands(commands);
 
@@ -125,5 +127,11 @@ public class DTParallelCommandGroup extends DTCommandBase {
     @Override
     public boolean wasSuccessful() {
         return success;
+    }
+
+    @Override
+    public DTParallelCommandGroup alongWith(DTCommand... parallel) {
+        addCommands(parallel);
+        return this;
     }
 }

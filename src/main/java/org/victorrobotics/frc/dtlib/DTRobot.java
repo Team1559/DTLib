@@ -1,6 +1,7 @@
 package org.victorrobotics.frc.dtlib;
 
 import org.victorrobotics.frc.dtlib.command.DTCommand;
+import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.frc.dtlib.controller.DTController;
 
 import java.util.ArrayList;
@@ -17,10 +18,6 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RuntimeType;
 import edu.wpi.first.wpilibj.Watchdog;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-
-import org.ejml.simple.UnsupportedOperation;
 
 public abstract class DTRobot {
     public static final double PERIOD_SECONDS = 0.02;
@@ -40,7 +37,7 @@ public abstract class DTRobot {
     private Mode currentMode;
     private Mode previousMode;
 
-    private Command autoCommand;
+    private DTCommand autoCommand;
 
     protected DTRobot() {
         notifierHandle = NotifierJNI.initializeNotifier();
@@ -88,7 +85,7 @@ public abstract class DTRobot {
      * @return the user-supplied command to be executed when autonomous mode is
      *         enabled
      */
-    protected abstract Command getAutoCommand();
+    protected abstract DTCommand getAutoCommand();
 
     /**
      * Start the robot program. Replaces {@link RobotBase#runRobot
@@ -184,9 +181,9 @@ public abstract class DTRobot {
 
         if (currentMode == Mode.AUTO) {
             autoCommand = getAutoCommand();
-            commandScheduler().schedule(autoCommand);
+            DTCommandScheduler.schedule(autoCommand);
         } else if (previousMode == Mode.AUTO) {
-            commandScheduler().cancel(autoCommand);
+            DTCommandScheduler.cancel(autoCommand);
         }
 
         if (currentMode.isEnabled && !previousMode.isEnabled) {
@@ -208,11 +205,11 @@ public abstract class DTRobot {
                 break;
             case AUTO:
                 DriverStationJNI.observeUserProgramAutonomous();
-                commandScheduler().run();
+                DTCommandScheduler.run();
                 break;
             case TELEOP:
                 DriverStationJNI.observeUserProgramTeleop();
-                commandScheduler().run();
+                DTCommandScheduler.run();
                 break;
             case TEST:
                 DriverStationJNI.observeUserProgramTest();
@@ -225,11 +222,11 @@ public abstract class DTRobot {
         return currentMode;
     }
 
-    public boolean isSimulation() {
+    public static boolean isSimulation() {
         return RuntimeType.getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation;
     }
 
-    public boolean isReal() {
+    public static boolean isReal() {
         return !isSimulation();
     }
 
@@ -241,9 +238,7 @@ public abstract class DTRobot {
         subsystems.add(subsystem);
     }
 
-    private final DTCommand getSelfTestCommand() {
-        throw new UnsupportedOperation();
-    }
+    protected abstract DTCommand getSelfTestCommand();
 
     protected final void configCompressor(int module, PneumaticsModuleType type) {
         if (compressor != null) {
@@ -269,10 +264,6 @@ public abstract class DTRobot {
         if (compressor != null) {
             compressor.disable();
         }
-    }
-
-    protected static CommandScheduler commandScheduler() {
-        return CommandScheduler.getInstance();
     }
 
     public enum Mode {

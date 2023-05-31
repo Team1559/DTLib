@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.Watchdog;
+import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 
 public class DTCommandScheduler {
@@ -43,7 +44,7 @@ public class DTCommandScheduler {
     // TODO: add button loops to DTTrigger, DTAxis, etc.
 
     private static boolean schedulerDisabled;
-    private static boolean inRunLoop;
+    private static boolean isRunning;
 
     private static Watchdog loopOverrun;
 
@@ -94,7 +95,7 @@ public class DTCommandScheduler {
             return;
         }
 
-        if (inRunLoop) {
+        if (isRunning) {
             COMMANDS_TO_SCHEDULE.add(command);
             return;
         }
@@ -166,7 +167,7 @@ public class DTCommandScheduler {
             addLoopOverrunEpoch(subsystem.getClass(), ".periodic()");
         }
 
-        inRunLoop = true;
+        isRunning = true;
         for (Iterator<DTCommand> iterator = SCHEDULED_COMMANDS.iterator(); iterator.hasNext();) {
             DTCommand command = iterator.next();
 
@@ -221,7 +222,7 @@ public class DTCommandScheduler {
                 addLoopOverrunEpoch(command.getName() + ".end(false)");
             }
         }
-        inRunLoop = false;
+        isRunning = false;
 
         for (DTCommand command : COMMANDS_TO_SCHEDULE) {
             schedule(command);
@@ -365,7 +366,7 @@ public class DTCommandScheduler {
      *        the commands to cancel
      */
     public static void cancel(DTCommand... commands) {
-        if (inRunLoop) {
+        if (isRunning) {
             COMMANDS_TO_CANCEL.addAll(List.of(commands));
             return;
         }
@@ -494,7 +495,7 @@ public class DTCommandScheduler {
      *         if the given commands have already been composed.
      */
     public static void registerComposedCommands(DTCommand... commands) {
-        var commandSet = Set.of(commands);
+        Set<DTCommand> commandSet = Set.of(commands);
         requireNotComposed(commandSet);
         COMPOSED_COMMANDS.addAll(commandSet);
     }
@@ -540,16 +541,19 @@ public class DTCommandScheduler {
 
     private static void requireNotComposed(DTCommand command) {
         if (COMPOSED_COMMANDS.contains(command)) {
-            throw new IllegalArgumentException(
-                    "Commands that have been composed may not be added to another composition or scheduled individually!");
+            throwComposed();
         }
     }
 
     private static void requireNotComposed(Collection<DTCommand> commands) {
         if (!Collections.disjoint(commands, COMPOSED_COMMANDS)) {
-            throw new IllegalArgumentException(
-                    "Commands that have been composed may not be added to another composition or scheduled individually!");
+            throwComposed();
         }
+    }
+
+    private static void throwComposed() {
+        throw new IllegalArgumentException("Commands that have been composed may not be added"
+                + " to another composition or scheduled individually");
     }
 
     private static void handleCommandException(DTCommand command, RuntimeException e) {

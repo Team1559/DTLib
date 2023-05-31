@@ -7,11 +7,9 @@ import java.util.Set;
 
 public abstract class DTCommandBase implements DTCommand {
     protected final Set<DTSubsystem> requirements;
-    protected String                 name;
 
     protected DTCommandBase() {
         requirements = new HashSet<>();
-        name = getClass().getSimpleName();
     }
 
     @Override
@@ -30,28 +28,13 @@ public abstract class DTCommandBase implements DTCommand {
     }
 
     @Override
-    public void interrupt() {
-        // default implementation empty
-    }
-
-    @Override
     public boolean isFinished() {
         return false;
     }
 
     @Override
-    public boolean wasSuccessful() {
-        return true;
-    }
-
-    @Override
     public final Set<DTSubsystem> getRequirements() {
         return requirements;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     protected final void addRequirements(DTSubsystem... requirements) {
