@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface DTDataLog {
+public @interface DTLog {
     String value() default "";
 }

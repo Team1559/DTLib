@@ -11,13 +11,13 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
-public class DTDataLogWriter implements Closeable, Flushable {
+public class DTLogWriter implements Closeable, Flushable {
     private final ByteBuffer buffer;
     private final BitSet     bitSet;
 
     private SeekableByteChannel fileChannel;
 
-    public DTDataLogWriter(ByteBuffer buffer) {
+    public DTLogWriter(ByteBuffer buffer) {
         this.buffer = buffer;
         this.bitSet = new BitSet();
     }
@@ -64,28 +64,28 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return buffer;
     }
 
-    public DTDataLogWriter writeByte(int b) {
+    public DTLogWriter writeByte(int b) {
         flushIfNecessary(1);
 
         buffer.put((byte) b);
         return this;
     }
 
-    public DTDataLogWriter writeByte(byte b) {
+    public DTLogWriter writeByte(byte b) {
         flushIfNecessary(1);
 
         buffer.put(b);
         return this;
     }
 
-    public DTDataLogWriter writeBytes(byte[] b) {
+    public DTLogWriter writeBytes(byte[] b) {
         flushIfNecessary(b.length);
 
         buffer.put(b);
         return this;
     }
 
-    public DTDataLogWriter writeByteArray(byte[] b) {
+    public DTLogWriter writeByteArray(byte[] b) {
         checkArrayLength(b.length);
         flushIfNecessary(b.length + 1);
 
@@ -94,21 +94,21 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeShort(int s) {
+    public DTLogWriter writeShort(int s) {
         flushIfNecessary(2);
 
         buffer.putShort((short) s);
         return this;
     }
 
-    public DTDataLogWriter writeShort(short s) {
+    public DTLogWriter writeShort(short s) {
         flushIfNecessary(2);
 
         buffer.putShort(s);
         return this;
     }
 
-    public DTDataLogWriter writeShorts(short[] s) {
+    public DTLogWriter writeShorts(short[] s) {
         flushIfNecessary(s.length * 2);
 
         buffer.asShortBuffer()
@@ -116,7 +116,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeShortArray(short[] s) {
+    public DTLogWriter writeShortArray(short[] s) {
         checkArrayLength(s.length);
         flushIfNecessary(s.length * 2 + 1);
 
@@ -126,14 +126,14 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeInt(int i) {
+    public DTLogWriter writeInt(int i) {
         flushIfNecessary(4);
 
         buffer.putInt(i);
         return this;
     }
 
-    public DTDataLogWriter writeInts(int[] i) {
+    public DTLogWriter writeInts(int[] i) {
         flushIfNecessary(i.length * 4);
 
         buffer.asIntBuffer()
@@ -141,7 +141,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeIntArray(int[] i) {
+    public DTLogWriter writeIntArray(int[] i) {
         checkArrayLength(i.length);
         flushIfNecessary(i.length * 4 + 1);
 
@@ -151,21 +151,21 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeLong(long l) {
+    public DTLogWriter writeLong(long l) {
         flushIfNecessary(8);
 
         buffer.putLong(l);
         return this;
     }
 
-    public DTDataLogWriter writeLongs(long[] l) {
+    public DTLogWriter writeLongs(long[] l) {
         flushIfNecessary(l.length * 8);
         buffer.asLongBuffer()
               .put(l);
         return this;
     }
 
-    public DTDataLogWriter writeLongArray(long[] l) {
+    public DTLogWriter writeLongArray(long[] l) {
         checkArrayLength(l.length);
         flushIfNecessary(l.length * 8 + 1);
 
@@ -175,21 +175,21 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeDouble(float d) {
+    public DTLogWriter writeDouble(float d) {
         flushIfNecessary(8);
 
         buffer.putDouble(d);
         return this;
     }
 
-    public DTDataLogWriter writeDouble(double d) {
+    public DTLogWriter writeDouble(double d) {
         flushIfNecessary(8);
 
         buffer.putDouble(d);
         return this;
     }
 
-    public DTDataLogWriter writeDoubles(double[] d) {
+    public DTLogWriter writeDoubles(double[] d) {
         flushIfNecessary(d.length * 8);
 
         buffer.asDoubleBuffer()
@@ -197,7 +197,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeDoubleArray(double[] d) {
+    public DTLogWriter writeDoubleArray(double[] d) {
         checkArrayLength(d.length);
         flushIfNecessary(d.length * 8 + 1);
 
@@ -207,20 +207,20 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeFloat(float f) {
+    public DTLogWriter writeFloat(float f) {
         flushIfNecessary(4);
         buffer.putFloat(f);
         return this;
     }
 
-    public DTDataLogWriter writeFloat(double f) {
+    public DTLogWriter writeFloat(double f) {
         flushIfNecessary(4);
 
         buffer.putFloat((float) f);
         return this;
     }
 
-    public DTDataLogWriter writeFloats(float[] f) {
+    public DTLogWriter writeFloats(float[] f) {
         flushIfNecessary(f.length * 4);
 
         buffer.asFloatBuffer()
@@ -228,7 +228,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeFloatArray(float[] f) {
+    public DTLogWriter writeFloatArray(float[] f) {
         checkArrayLength(f.length);
         flushIfNecessary(f.length * 4 + 1);
 
@@ -238,14 +238,14 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeChar(char c) {
+    public DTLogWriter writeChar(char c) {
         flushIfNecessary(2);
 
         buffer.putChar(c);
         return this;
     }
 
-    public DTDataLogWriter writeChars(char[] c) {
+    public DTLogWriter writeChars(char[] c) {
         flushIfNecessary(c.length * 2);
 
         buffer.asCharBuffer()
@@ -253,7 +253,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeCharArray(char[] c) {
+    public DTLogWriter writeCharArray(char[] c) {
         checkArrayLength(c.length);
         flushIfNecessary(c.length * 2 + 1);
 
@@ -263,7 +263,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeBoolean(boolean b) {
+    public DTLogWriter writeBoolean(boolean b) {
         flushIfNecessary(1);
 
         buffer.put((byte) (b ? 1 : 0));
@@ -278,7 +278,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return bitSet.toByteArray();
     }
 
-    public DTDataLogWriter writeBooleans(boolean[] b) {
+    public DTLogWriter writeBooleans(boolean[] b) {
         int len = (b.length + 7) / 8;
         flushIfNecessary(len);
 
@@ -287,7 +287,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeBooleanArray(boolean[] b) {
+    public DTLogWriter writeBooleanArray(boolean[] b) {
         checkArrayLength(b.length);
         int len = (b.length + 7) / 8;
         flushIfNecessary(len + 1);
@@ -298,7 +298,7 @@ public class DTDataLogWriter implements Closeable, Flushable {
         return this;
     }
 
-    public DTDataLogWriter writeStringUTF(String s) {
+    public DTLogWriter writeStringUTF(String s) {
         byte[] data = s.getBytes(StandardCharsets.UTF_8);
         return writeByteArray(data);
     }

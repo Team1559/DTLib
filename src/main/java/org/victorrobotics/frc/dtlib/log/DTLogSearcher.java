@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class DTDataLogSearcher {
+public class DTLogSearcher {
     public static List<Field> getImmediateLoggableFields(Class<? extends DTRobot> clazz) {
         List<Field> fields = new ArrayList<>();
         while (clazz != DTRobot.class) {
@@ -25,7 +25,7 @@ public class DTDataLogSearcher {
                          .asSubclass(DTRobot.class);
         }
         fields.addAll(List.of(DTRobot.class.getDeclaredFields()));
-        fields.sort(DTDataLogSearcher::compareFields);
+        fields.sort(DTLogSearcher::compareFields);
 
         return fields;
     }
@@ -35,7 +35,7 @@ public class DTDataLogSearcher {
     }
 
     private static boolean hasLogAnnotation(AnnotatedElement e) {
-        return e.isAnnotationPresent(DTDataLog.class);
+        return e.isAnnotationPresent(DTLog.class);
     }
 
     private static boolean isLoggable(Class<?> clazz) {
@@ -105,7 +105,7 @@ public class DTDataLogSearcher {
         methods.put(clazz, new ArrayList<>(List.of(clazz.getDeclaredMethods())));
         for (Entry<Class<? extends DTRobot>, List<Field>> entry : fields.entrySet()) {
             entry.getValue()
-                 .removeIf(f -> !f.isAnnotationPresent(DTDataLog.class) || !f.getType()
+                 .removeIf(f -> !f.isAnnotationPresent(DTLog.class) || !f.getType()
                                                                              .isPrimitive());
             entry.getValue()
                  .sort((Field f1, Field f2) -> {
@@ -117,7 +117,7 @@ public class DTDataLogSearcher {
         }
         for (Entry<Class<? extends DTRobot>, List<Method>> entry : methods.entrySet()) {
             entry.getValue()
-                 .removeIf(m -> !m.isAnnotationPresent(DTDataLog.class) || m.getParameterTypes().length != 0
+                 .removeIf(m -> !m.isAnnotationPresent(DTLog.class) || m.getParameterTypes().length != 0
                          || Void.class.isAssignableFrom(m.getReturnType()));
             entry.getValue()
                  .sort((Method m1, Method m2) -> m1.getName()

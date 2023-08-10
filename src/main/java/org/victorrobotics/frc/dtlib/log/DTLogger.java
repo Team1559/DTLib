@@ -27,7 +27,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
 
-public class DTDataLogger {
+public class DTLogger {
     private static final ZoneId            TIME_ZONE      = ZoneId.of("UTC");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
                                                                              .withZone(TIME_ZONE);
@@ -39,9 +39,9 @@ public class DTDataLogger {
 
     private static String LOG_DIRECTORY = "/dev/sda1/dtlog";
 
-    private static final List<DTDataLogVar> entries = new ArrayList<>();
+    private static final List<DTLogVar> entries = new ArrayList<>();
 
-    static final DTDataLogWriter       dataWriter;
+    static final DTLogWriter       dataWriter;
     private static SeekableByteChannel fileChannel;
 
     private static Path filepath;
@@ -54,10 +54,10 @@ public class DTDataLogger {
 
     static {
         // 64 KB
-        dataWriter = new DTDataLogWriter(ByteBuffer.allocateDirect(65536));
+        dataWriter = new DTLogWriter(ByteBuffer.allocateDirect(65536));
     }
 
-    private DTDataLogger() {}
+    private DTLogger() {}
 
     public static int generateHandle() {
         return nextHandle++;
