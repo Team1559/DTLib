@@ -39,8 +39,7 @@ public class DTParallelCommandGroup extends DTCommandBase {
     for (DTCommand command : commands) {
       Set<DTSubsystem> commandReqs = command.getRequirements();
       if (!Collections.disjoint(requirements, commandReqs)) {
-        throw new DTIllegalArgumentException("Parallel commands may not share requirements",
-            command);
+        throw new DTIllegalArgumentException(command, "parallel commands may not share requirements");
       }
       parallelCommands.put(command, false);
       requirements.addAll(commandReqs);
@@ -57,7 +56,7 @@ public class DTParallelCommandGroup extends DTCommandBase {
 
     Set<DTSubsystem> commandReqs = command.getRequirements();
     if (!Collections.disjoint(requirements, commandReqs)) {
-      throw new DTIllegalArgumentException("Parallel commands may not share requirements", command);
+      throw new DTIllegalArgumentException(command, "parallel commands may not share requirements");
     }
     parallelCommands.put(command, false);
     requirements.addAll(commandReqs);

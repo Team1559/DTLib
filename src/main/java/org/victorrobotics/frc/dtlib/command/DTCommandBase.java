@@ -2,14 +2,14 @@ package org.victorrobotics.frc.dtlib.command;
 
 import org.victorrobotics.frc.dtlib.DTSubsystem;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class DTCommandBase implements DTCommand {
   protected final Set<DTSubsystem> requirements;
 
   protected DTCommandBase() {
-    requirements = new HashSet<>();
+    requirements = new LinkedHashSet<>();
   }
 
   @Override

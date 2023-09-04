@@ -23,7 +23,7 @@ public final class DTAccelerationLimit {
 
   public DTAccelerationLimit(double translation, double rotation, double cycleLength) {
     if (!Double.isFinite(cycleLength)) {
-      throw new DTIllegalArgumentException("cycleLength must be finite", cycleLength);
+      throw new DTIllegalArgumentException(cycleLength, "cycleLength must be finite");
     }
     cycleLength = Math.abs(cycleLength);
 

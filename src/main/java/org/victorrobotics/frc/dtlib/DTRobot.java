@@ -2,7 +2,6 @@ package org.victorrobotics.frc.dtlib;
 
 import org.victorrobotics.frc.dtlib.command.DTCommand;
 import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
-import org.victorrobotics.frc.dtlib.controller.DTController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,6 @@ public abstract class DTRobot {
   private final int notifierHandle;
 
   private final DSControlWord modeSupplier;
-  private volatile boolean    running;
   private final Watchdog      loopOverrun;
 
   private final List<DTSubsystem> subsystems;
@@ -47,7 +45,7 @@ public abstract class DTRobot {
     currentMode = Mode.DISABLED;
     previousMode = Mode.DISABLED;
 
-    loopOverrun = new Watchdog(PERIOD_MICROS * 1e-6, () -> {
+    loopOverrun = new Watchdog(PERIOD_SECONDS, () -> {
     });
     loopOverrun.suppressTimeoutMessage(true);
 
@@ -88,7 +86,6 @@ public abstract class DTRobot {
    * Start the robot program. Replaces {@link RobotBase#runRobot RobotBase::runRobot()}.
    */
   public final void start() {
-    running = true;
     String className = getClass().getSimpleName();
     System.out.println("[DTLib] " + className + " initializing...");
     // Do not catch init exceptions
@@ -103,30 +100,25 @@ public abstract class DTRobot {
     System.out.println("[DTLib] " + className + " initialization complete");
 
     long triggerTime = 0;
-    while (running) {
+    while (true) {
       // Wait to be woken up
       NotifierJNI.updateNotifierAlarm(notifierHandle, triggerTime);
       long time = NotifierJNI.waitForNotifierAlarm(notifierHandle);
       if (time == 0) {
-        // TODO: see what 0 represents
+        // Notifier has been stopped, exit
         break;
       }
       // Compute next cycle start time
-      loopOverrun.reset();
-      if (time - triggerTime >= 1000) {
-        // If more than 1ms slow, prevent snowballing
-        triggerTime = time;
-      }
       triggerTime += PERIOD_MICROS;
 
       // Load new input data
+      loopOverrun.reset();
       DriverStation.refreshData();
-      DTController.refreshAll();
       refreshMode();
 
       // Execute code for this cycle
-      runPeriodic();
       runModeChange();
+      runPeriodic();
       runCurrentMode();
 
       loopOverrun.disable();
@@ -140,7 +132,6 @@ public abstract class DTRobot {
   }
 
   public final void end() {
-    running = false;
     NotifierJNI.stopNotifier(notifierHandle);
   }
 
@@ -150,21 +141,17 @@ public abstract class DTRobot {
 
     if (modeSupplier.isEStopped()) {
       currentMode = Mode.E_STOP;
-    } else if (modeSupplier.isDisabled()) {
+    } else if (!modeSupplier.isEnabled()) {
       currentMode = Mode.DISABLED;
     } else if (modeSupplier.isAutonomous()) {
       currentMode = Mode.AUTO;
     } else if (modeSupplier.isTest()) {
       currentMode = Mode.TEST;
-    } else if (modeSupplier.isTeleop()) {
-      currentMode = Mode.TELEOP;
     } else {
-      // should never occur, just for safety
-      currentMode = Mode.DISABLED;
+      currentMode = Mode.TELEOP;
     }
     loopOverrun.addEpoch("DS refresh");
   }
-
   private void runPeriodic() {
     periodic();
     loopOverrun.addEpoch("Periodic");
@@ -194,23 +181,20 @@ public abstract class DTRobot {
   private void runCurrentMode() {
     switch (currentMode) {
       case DISABLED:
-        DriverStationJNI.observeUserProgramDisabled();
-        break;
       case E_STOP:
         DriverStationJNI.observeUserProgramDisabled();
         break;
       case AUTO:
         DriverStationJNI.observeUserProgramAutonomous();
-        DTCommandScheduler.run();
         break;
       case TELEOP:
         DriverStationJNI.observeUserProgramTeleop();
-        DTCommandScheduler.run();
         break;
       case TEST:
         DriverStationJNI.observeUserProgramTest();
         break;
     }
+    DTCommandScheduler.run();
     loopOverrun.addEpoch("Execute " + currentMode);
   }
 

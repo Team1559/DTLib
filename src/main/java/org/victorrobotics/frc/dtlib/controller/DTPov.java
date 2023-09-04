@@ -1,21 +1,30 @@
 package org.victorrobotics.frc.dtlib.controller;
 
+import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
+
 import java.util.function.IntSupplier;
 
 public class DTPov implements IntSupplier {
   private final IntSupplier supplier;
 
+  private int value;
+
   public DTPov(IntSupplier supplier) {
     this.supplier = supplier;
+    DTCommandScheduler.bindInputCallback(this::refresh);
+  }
+
+  private void refresh() {
+    value = supplier.getAsInt();
   }
 
   @Override
   public int getAsInt() {
-    return supplier.getAsInt();
+    return value;
   }
 
   private DTTrigger makeTrigger(int dir) {
-    return new DTTrigger(() -> supplier.getAsInt() == dir);
+    return new DTTrigger(() -> value == dir);
   }
 
   public DTTrigger center() {

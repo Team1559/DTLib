@@ -38,8 +38,7 @@ public class DTParallelDeadlineGroup extends DTCommandBase {
 
     for (DTCommand command : commands) {
       if (!Collections.disjoint(command.getRequirements(), requirements)) {
-        throw new DTIllegalArgumentException("Parallel commands may not share requirements",
-            command);
+        throw new DTIllegalArgumentException(command, "parallel commands may not share requirements");
       }
       this.commands.put(command, false);
       requirements.addAll(command.getRequirements());

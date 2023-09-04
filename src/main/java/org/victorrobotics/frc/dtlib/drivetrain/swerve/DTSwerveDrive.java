@@ -16,9 +16,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareComponent {
   private final DTSwerveModule[]         modules;
@@ -33,7 +31,6 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
   private boolean             isFieldRelative;
 
   private Field2d       virtualField;
-  private ChassisSpeeds previousSpeeds;
   private ChassisSpeeds currentSpeeds;
 
   protected DTSwerveDrive(DTSwerveModule... modules) {
@@ -59,8 +56,7 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
     }
 
     kinematics = new SwerveDriveKinematics(wheelLocations);
-    poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions,
-        new Pose2d());
+    poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions, new Pose2d());
 
     centerOfRotation = new Translation2d();
     accelerationLimit = new DTAccelerationLimit();
@@ -100,7 +96,7 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
   }
 
   public void driveVelocity(double vx, double vy, double vr, Translation2d centerOfRotation) {
-    previousSpeeds = currentSpeeds;
+    ChassisSpeeds previousSpeeds = currentSpeeds;
 
     if (isFieldRelative) {
       currentSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, getGyroAngle());
@@ -111,16 +107,14 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
     velocityLimit.apply(currentSpeeds);
     accelerationLimit.apply(currentSpeeds, previousSpeeds);
 
-    SwerveModuleState[] newStates = kinematics.toSwerveModuleStates(currentSpeeds,
-        centerOfRotation);
+    SwerveModuleState[] newStates = kinematics.toSwerveModuleStates(currentSpeeds, centerOfRotation);
     setStates(newStates);
   }
 
   public final void setStates(SwerveModuleState... states) {
     if (states.length != modules.length) {
-      throw new DTIllegalArgumentException(
-          "received " + states.length + " module states for " + modules.length + " modules",
-          (Object[]) states);
+      throw new DTIllegalArgumentException(states,
+          "received " + states.length + " module states for " + modules.length + " modules");
     }
 
     double minCosine = 1;
