@@ -52,8 +52,7 @@ public abstract class DTSubsystem extends SubsystemBase implements DTSendable {
       return;
     } else if (!ALL_COMPONENTS.add(component)) {
       // Component has already been added to another subsystem
-      throw new DTIllegalArgumentException("components should not belong to multiple subsystems",
-          component);
+      throw new DTIllegalArgumentException(component, "components should not belong to multiple subsystems");
     }
 
     components.add(component);

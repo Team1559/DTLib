@@ -4,13 +4,13 @@
 
 package org.victorrobotics.frc.dtlib.controller;
 
+import org.victorrobotics.frc.dtlib.command.DTCommand;
+import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
+
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.wpilibj.event.EventLoop;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 /**
  * This class provides an easy way to link commands to conditions. It is modified from
@@ -18,6 +18,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class DTTrigger implements BooleanSupplier {
   private final BooleanSupplier condition;
+
+  private boolean value;
+  private boolean previous;
 
   /**
    * Creates a new DTTrigger based on the given condition.
@@ -29,6 +32,17 @@ public class DTTrigger implements BooleanSupplier {
    */
   public DTTrigger(BooleanSupplier condition) {
     this.condition = Objects.requireNonNull(condition);
+    DTCommandScheduler.bindInputCallback(this::refresh);
+  }
+
+  private void refresh() {
+    previous = value;
+    value = condition.getAsBoolean();
+  }
+
+  @Override
+  public boolean getAsBoolean() {
+    return value;
   }
 
   /**
@@ -37,18 +51,11 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to start
    */
-  public void onTrue(Command command) {
+  public void onTrue(DTCommand command) {
     Objects.requireNonNull(command);
-    getDefaultButtonLoop().bind(new Runnable() {
-      private boolean pressedLast = condition.getAsBoolean();
-
-      @Override
-      public void run() {
-        boolean pressed = condition.getAsBoolean();
-        if (!pressedLast && pressed) {
-          command.schedule();
-        }
-        pressedLast = pressed;
+    DTCommandScheduler.bindLogicCallback(() -> {
+      if (!previous && value) {
+        command.schedule();
       }
     });
   }
@@ -59,18 +66,11 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to start
    */
-  public void onFalse(Command command) {
+  public void onFalse(DTCommand command) {
     Objects.requireNonNull(command);
-    getDefaultButtonLoop().bind(new Runnable() {
-      private boolean pressedLast = condition.getAsBoolean();
-
-      @Override
-      public void run() {
-        boolean pressed = condition.getAsBoolean();
-        if (pressedLast && !pressed) {
-          command.schedule();
-        }
-        pressedLast = pressed;
+    DTCommandScheduler.bindLogicCallback(() -> {
+      if (previous && !value) {
+        command.schedule();
       }
     });
   }
@@ -85,20 +85,13 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to start
    */
-  public void whileTrue(Command command) {
+  public void whileTrue(DTCommand command) {
     Objects.requireNonNull(command);
-    getDefaultButtonLoop().bind(new Runnable() {
-      private boolean pressedLast = condition.getAsBoolean();
-
-      @Override
-      public void run() {
-        boolean pressed = condition.getAsBoolean();
-        if (!pressedLast && pressed) {
-          command.schedule();
-        } else if (pressedLast && !pressed) {
-          command.cancel();
-        }
-        pressedLast = pressed;
+    DTCommandScheduler.bindLogicCallback(() -> {
+      if (!previous && value) {
+        command.schedule();
+      } else if (previous && !value) {
+        command.cancel();
       }
     });
   }
@@ -113,20 +106,13 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to start
    */
-  public void whileFalse(Command command) {
+  public void whileFalse(DTCommand command) {
     Objects.requireNonNull(command);
-    getDefaultButtonLoop().bind(new Runnable() {
-      private boolean pressedLast = condition.getAsBoolean();
-
-      @Override
-      public void run() {
-        boolean pressed = condition.getAsBoolean();
-        if (pressedLast && !pressed) {
-          command.schedule();
-        } else if (!pressedLast && pressed) {
-          command.cancel();
-        }
-        pressedLast = pressed;
+    DTCommandScheduler.bindLogicCallback(() -> {
+      if (previous && !value) {
+        command.schedule();
+      } else if (!previous && value) {
+        command.cancel();
       }
     });
   }
@@ -137,22 +123,15 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to toggle
    */
-  public void toggleOnTrue(Command command) {
+  public void toggleOnTrue(DTCommand command) {
     Objects.requireNonNull(command);
-    getDefaultButtonLoop().bind(new Runnable() {
-      private boolean pressedLast = condition.getAsBoolean();
-
-      @Override
-      public void run() {
-        boolean pressed = condition.getAsBoolean();
-        if (!pressedLast && pressed) {
-          if (command.isScheduled()) {
-            command.cancel();
-          } else {
-            command.schedule();
-          }
+    DTCommandScheduler.bindLogicCallback(() -> {
+      if (!previous && value) {
+        if (command.isScheduled()) {
+          command.cancel();
+        } else {
+          command.schedule();
         }
-        pressedLast = pressed;
       }
     });
   }
@@ -163,29 +142,17 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to toggle
    */
-  public void toggleOnFalse(Command command) {
+  public void toggleOnFalse(DTCommand command) {
     Objects.requireNonNull(command);
-    getDefaultButtonLoop().bind(new Runnable() {
-      private boolean pressedLast = condition.getAsBoolean();
-
-      @Override
-      public void run() {
-        boolean pressed = condition.getAsBoolean();
-        if (pressedLast && !pressed) {
-          if (command.isScheduled()) {
-            command.cancel();
-          } else {
-            command.schedule();
-          }
+    DTCommandScheduler.bindLogicCallback(() -> {
+      if (previous && !value) {
+        if (command.isScheduled()) {
+          command.cancel();
+        } else {
+          command.schedule();
         }
-        pressedLast = pressed;
       }
     });
-  }
-
-  @Override
-  public boolean getAsBoolean() {
-    return condition.getAsBoolean();
   }
 
   /**
@@ -197,7 +164,7 @@ public class DTTrigger implements BooleanSupplier {
    * @return A DTTrigger which is active when both conditions are true.
    */
   public DTTrigger and(BooleanSupplier other) {
-    return new DTTrigger(() -> condition.getAsBoolean() && other.getAsBoolean());
+    return new DTTrigger(() -> value && other.getAsBoolean());
   }
 
   /**
@@ -209,7 +176,7 @@ public class DTTrigger implements BooleanSupplier {
    * @return A DTTrigger which is active when either condition is active.
    */
   public DTTrigger or(BooleanSupplier other) {
-    return new DTTrigger(() -> condition.getAsBoolean() || other.getAsBoolean());
+    return new DTTrigger(() -> value || other.getAsBoolean());
   }
 
   /**
@@ -221,7 +188,7 @@ public class DTTrigger implements BooleanSupplier {
    * @return A DTTrigger which is active when either condition is true, but not both.
    */
   public DTTrigger xor(BooleanSupplier other) {
-    return new DTTrigger(() -> condition.getAsBoolean() != other.getAsBoolean());
+    return new DTTrigger(() -> value != other.getAsBoolean());
   }
 
   /**
@@ -233,7 +200,7 @@ public class DTTrigger implements BooleanSupplier {
    * @return A DTTrigger which is active when this condition is true and other is not.
    */
   public DTTrigger unless(BooleanSupplier other) {
-    return new DTTrigger(() -> condition.getAsBoolean() && !other.getAsBoolean());
+    return new DTTrigger(() -> value && !other.getAsBoolean());
   }
 
   /**
@@ -242,7 +209,7 @@ public class DTTrigger implements BooleanSupplier {
    * @return the negated DTTrigger
    */
   public DTTrigger negate() {
-    return new DTTrigger(() -> !condition.getAsBoolean());
+    return new DTTrigger(() -> !value);
   }
 
   /**
@@ -275,13 +242,8 @@ public class DTTrigger implements BooleanSupplier {
 
       @Override
       public boolean getAsBoolean() {
-        return debouncer.calculate(condition.getAsBoolean());
+        return debouncer.calculate(value);
       }
     });
-  }
-
-  private static EventLoop getDefaultButtonLoop() {
-    return CommandScheduler.getInstance()
-                           .getDefaultButtonLoop();
   }
 }

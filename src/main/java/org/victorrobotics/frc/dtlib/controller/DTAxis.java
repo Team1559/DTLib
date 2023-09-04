@@ -1,5 +1,6 @@
 package org.victorrobotics.frc.dtlib.controller;
 
+import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
 
 import java.util.function.DoublePredicate;
@@ -7,26 +8,30 @@ import java.util.function.DoubleSupplier;
 import java.util.function.DoubleUnaryOperator;
 
 public class DTAxis implements DoubleSupplier {
-  private final DoubleSupplier input;
+  private final DoubleSupplier supplier;
+
+  private double value;
 
   public DTAxis(DoubleSupplier input) {
-    this.input = input;
+    this.supplier = input;
+    DTCommandScheduler.bindInputCallback(this::refresh);
+  }
+
+  private void refresh() {
+    value = supplier.getAsDouble();
   }
 
   @Override
   public double getAsDouble() {
-    return input.getAsDouble();
+    return value;
   }
 
   public DTAxis filter(DoublePredicate filter, double defaultValue) {
-    return new DTAxis(() -> {
-      double val = input.getAsDouble();
-      return filter.test(val) ? val : defaultValue;
-    });
+    return new DTAxis(() -> filter.test(value) ? value : defaultValue);
   }
 
   public DTAxis map(DoubleUnaryOperator mapper) {
-    return new DTAxis(() -> mapper.applyAsDouble(input.getAsDouble()));
+    return new DTAxis(() -> mapper.applyAsDouble(value));
   }
 
   public DTAxis negate() {
@@ -41,55 +46,60 @@ public class DTAxis implements DoubleSupplier {
     return map(d -> Math.copySign(d * d, d));
   }
 
-  public DTAxis deadband(double minimum, double maximum) {
-    requireFinite(minimum);
-    requireFinite(maximum);
+  public DTAxis deadband(double min, double max) {
+    requireFinite(min);
+    requireFinite(max);
 
-    double minAbs = Math.abs(minimum);
-    double maxAbs = Math.abs(maximum);
-    double range = maxAbs - minAbs;
+    double minAbs = Math.abs(min);
+    double maxAbs = Math.abs(max);
+    double rangeInv = 1 / (maxAbs - minAbs);
 
     return map((double d) -> {
       if (Math.abs(d) <= minAbs) {
         return 0;
       } else if (d < 0) {
-        return (d + minAbs) / range;
+        return (d + minAbs) * rangeInv;
       } else {
-        return (d - minAbs) / range;
+        return (d - minAbs) * rangeInv;
       }
     });
   }
 
-  public DTTrigger whenGreaterThan(double value) {
-    requireFinite(value);
-    return new DTTrigger(() -> input.getAsDouble() > value);
+  public DTTrigger whenGreater(double d) {
+    requireFinite(d);
+    return new DTTrigger(() -> value > d);
   }
 
-  public DTTrigger whenLessThan(double value) {
-    requireFinite(value);
-    return new DTTrigger(() -> input.getAsDouble() < value);
+  public DTTrigger whenGreaterOrEqual(double d) {
+    requireFinite(d);
+    return new DTTrigger(() -> value >= d);
   }
 
-  public DTTrigger whenGreaterThanOrEqualTo(double value) {
-    requireFinite(value);
-    return new DTTrigger(() -> input.getAsDouble() >= value);
+  public DTTrigger whenLess(double d) {
+    requireFinite(d);
+    return new DTTrigger(() -> value < d);
   }
 
-  public DTTrigger whenLessThanOrEqualTo(double value) {
-    requireFinite(value);
-    return new DTTrigger(() -> input.getAsDouble() <= value);
+  public DTTrigger whenLessOrEqual(double d) {
+    requireFinite(d);
+    return new DTTrigger(() -> value <= d);
   }
 
-  public DTTrigger whenBetween(double minimum, double maximum) {
-    return new DTTrigger(() -> {
-      double val = input.getAsDouble();
-      return val >= minimum && val <= maximum;
-    });
+  public DTTrigger whenInRange(double min, double max) {
+    requireFinite(min);
+    requireFinite(max);
+    return new DTTrigger(() -> value > min && value < max);
+  }
+
+  public DTTrigger whenInRangeOrEqual(double min, double max) {
+    requireFinite(min);
+    requireFinite(max);
+    return new DTTrigger(() -> value >= min && value <= max);
   }
 
   private static void requireFinite(double param) {
     if (!Double.isFinite(param)) {
-      throw new DTIllegalArgumentException("expected a finite floating-point parameter", param);
+      throw new DTIllegalArgumentException(param, "expected a finite floating-point parameter");
     }
   }
 }
