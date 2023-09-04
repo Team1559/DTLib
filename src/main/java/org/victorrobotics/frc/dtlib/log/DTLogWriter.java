@@ -1,335 +1,289 @@
 package org.victorrobotics.frc.dtlib.log;
 
+import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+
 import java.io.Closeable;
+import java.io.File;
 import java.io.Flushable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
 import java.util.BitSet;
-import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
 
 public class DTLogWriter implements Closeable, Flushable {
-  private final ByteBuffer buffer;
-  private final BitSet     bitSet;
+  private final FileChannel channel;
+  private final ByteBuffer  buffer;
+  private final BitSet      bitSet;
 
-  private SeekableByteChannel fileChannel;
-
-  public DTLogWriter(ByteBuffer buffer) {
-    this.buffer = buffer;
+  public DTLogWriter(File file, int bufferSize) throws IOException {
+    this.channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE,
+        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    this.buffer = ByteBuffer.allocateDirect(bufferSize);
     this.bitSet = new BitSet();
   }
 
-  @Override
-  public void close() throws IOException {
-    if (fileChannel != null) {
-      fileChannel.close();
-    }
-  }
-
-  public void setFileChannel(SeekableByteChannel channel) {
-    fileChannel = channel;
-  }
-
-  public SeekableByteChannel getFileChannel() {
-    return fileChannel;
-  }
-
-  public void flush() {
-    int dataLength = buffer.position();
-    long fileStartPosition = -1;
-    try {
-      fileStartPosition = fileChannel.position();
-      buffer.flip();
-      fileChannel.write(buffer);
-      buffer.compact(); // in case not everything was written
-    } catch (ClosedChannelException e) {
-      throw new IllegalStateException(e);
-    } catch (IOException e) {
-      // Error while writing, attempt to recover
-      buffer.limit(buffer.capacity());
-      buffer.position(dataLength);
-      try {
-        fileChannel.truncate(fileStartPosition);
-      } catch (IOException e2) {
-        // Can't recover now, state is indeterminate
-        throw new IllegalStateException(e2.initCause(e));
-      }
-    }
-  }
-
-  public ByteBuffer getBuffer() {
-    return buffer;
-  }
-
   public DTLogWriter writeByte(int b) {
-    flushIfNecessary(1);
-
-    buffer.put((byte) b);
+    writeByte((byte) b);
     return this;
   }
 
   public DTLogWriter writeByte(byte b) {
-    flushIfNecessary(1);
-
+    checkBuffer(1);
     buffer.put(b);
     return this;
   }
 
-  public DTLogWriter writeBytes(byte[] b) {
-    flushIfNecessary(b.length);
+  public DTLogWriter writeShort(int s) {
+    writeShort((short) s);
+    return this;
+  }
 
+  public DTLogWriter writeShort(short s) {
+    checkBuffer(2);
+    buffer.putShort(s);
+    return this;
+  }
+
+  public DTLogWriter writeInt(int i) {
+    checkBuffer(4);
+    buffer.putInt(i);
+    return this;
+  }
+
+  public DTLogWriter writeLong(long l) {
+    checkBuffer(8);
+    buffer.putLong(l);
+    return this;
+  }
+
+  public DTLogWriter writeDouble(float d) {
+    writeDouble((double) d);
+    return this;
+  }
+
+  public DTLogWriter writeDouble(double d) {
+    checkBuffer(8);
+    buffer.putDouble(d);
+    return this;
+  }
+
+  public DTLogWriter writeFloat(double f) {
+    writeFloat((float) f);
+    return this;
+  }
+
+  public DTLogWriter writeFloat(float f) {
+    checkBuffer(4);
+    buffer.putFloat(f);
+    return this;
+  }
+
+  public DTLogWriter writeChar(char c) {
+    checkBuffer(2);
+    buffer.putChar(c);
+    return this;
+  }
+
+  public DTLogWriter writeBoolean(boolean b) {
+    checkBuffer(1);
+    buffer.put((byte) (b ? 1 : 0));
+    return this;
+  }
+
+  public DTLogWriter writeBytes(byte[] b) {
+    checkBuffer(b.length);
     buffer.put(b);
     return this;
   }
 
   public DTLogWriter writeByteArray(byte[] b) {
-    checkArrayLength(b.length);
-    flushIfNecessary(b.length + 1);
-
-    buffer.put((byte) b.length)
-          .put(b);
-    return this;
-  }
-
-  public DTLogWriter writeShort(int s) {
-    flushIfNecessary(2);
-
-    buffer.putShort((short) s);
-    return this;
-  }
-
-  public DTLogWriter writeShort(short s) {
-    flushIfNecessary(2);
-
-    buffer.putShort(s);
+    checkBuffer(b.length + 2);
+    checkWriteArrayLength(b.length);
+    buffer.put(b);
     return this;
   }
 
   public DTLogWriter writeShorts(short[] s) {
-    flushIfNecessary(s.length * 2);
-
-    buffer.asShortBuffer()
-          .put(s);
+    checkBuffer(s.length * 2);
+    for (int i = 0; i < s.length; i++) {
+      buffer.putShort(s[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeShortArray(short[] s) {
-    checkArrayLength(s.length);
-    flushIfNecessary(s.length * 2 + 1);
-
-    buffer.put((byte) s.length)
-          .asShortBuffer()
-          .put(s);
-    return this;
-  }
-
-  public DTLogWriter writeInt(int i) {
-    flushIfNecessary(4);
-
-    buffer.putInt(i);
+    checkBuffer(s.length * 2 + 2);
+    checkWriteArrayLength(s.length);
+    for (int i = 0; i < s.length; i++) {
+      buffer.putShort(s[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeInts(int[] i) {
-    flushIfNecessary(i.length * 4);
-
-    buffer.asIntBuffer()
-          .put(i);
+    checkBuffer(i.length * 4);
+    for (int j = 0; j < i.length; j++) {
+      buffer.putInt(i[j]);
+    }
     return this;
   }
 
   public DTLogWriter writeIntArray(int[] i) {
-    checkArrayLength(i.length);
-    flushIfNecessary(i.length * 4 + 1);
-
-    buffer.put((byte) i.length)
-          .asIntBuffer()
-          .put(i);
-    return this;
-  }
-
-  public DTLogWriter writeLong(long l) {
-    flushIfNecessary(8);
-
-    buffer.putLong(l);
+    checkBuffer(i.length * 4 + 2);
+    checkWriteArrayLength(i.length);
+    for (int j = 0; j < i.length; j++) {
+      buffer.putInt(i[j]);
+    }
     return this;
   }
 
   public DTLogWriter writeLongs(long[] l) {
-    flushIfNecessary(l.length * 8);
-    buffer.asLongBuffer()
-          .put(l);
+    checkBuffer(l.length * 8);
+    for (int i = 0; i < l.length; i++) {
+      buffer.putLong(l[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeLongArray(long[] l) {
-    checkArrayLength(l.length);
-    flushIfNecessary(l.length * 8 + 1);
-
-    buffer.put((byte) l.length)
-          .asLongBuffer()
-          .put(l);
-    return this;
-  }
-
-  public DTLogWriter writeDouble(float d) {
-    flushIfNecessary(8);
-
-    buffer.putDouble(d);
-    return this;
-  }
-
-  public DTLogWriter writeDouble(double d) {
-    flushIfNecessary(8);
-
-    buffer.putDouble(d);
+    checkBuffer(l.length * 8 + 2);
+    checkWriteArrayLength(l.length);
+    for (int i = 0; i < l.length; i++) {
+      buffer.putLong(l[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeDoubles(double[] d) {
-    flushIfNecessary(d.length * 8);
-
-    buffer.asDoubleBuffer()
-          .put(d);
+    checkBuffer(d.length * 8);
+    for (int i = 0; i < d.length; i++) {
+      buffer.putDouble(d[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeDoubleArray(double[] d) {
-    checkArrayLength(d.length);
-    flushIfNecessary(d.length * 8 + 1);
-
-    buffer.put((byte) d.length)
-          .asDoubleBuffer()
-          .put(d);
-    return this;
-  }
-
-  public DTLogWriter writeFloat(float f) {
-    flushIfNecessary(4);
-    buffer.putFloat(f);
-    return this;
-  }
-
-  public DTLogWriter writeFloat(double f) {
-    flushIfNecessary(4);
-
-    buffer.putFloat((float) f);
+    checkBuffer(d.length * 8 + 2);
+    checkWriteArrayLength(d.length);
+    for (int i = 0; i < d.length; i++) {
+      buffer.putDouble(d[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeFloats(float[] f) {
-    flushIfNecessary(f.length * 4);
-
-    buffer.asFloatBuffer()
-          .put(f);
+    checkBuffer(f.length * 4);
+    for (int i = 0; i < f.length; i++) {
+      buffer.putDouble(f[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeFloatArray(float[] f) {
-    checkArrayLength(f.length);
-    flushIfNecessary(f.length * 4 + 1);
-
-    buffer.put((byte) f.length)
-          .asFloatBuffer()
-          .put(f);
-    return this;
-  }
-
-  public DTLogWriter writeChar(char c) {
-    flushIfNecessary(2);
-
-    buffer.putChar(c);
+    checkBuffer(f.length * 4 + 2);
+    checkWriteArrayLength(f.length);
+    for (int i = 0; i < f.length; i++) {
+      buffer.putDouble(f[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeChars(char[] c) {
-    flushIfNecessary(c.length * 2);
-
-    buffer.asCharBuffer()
-          .put(c);
+    checkBuffer(c.length * 2);
+    for (int i = 0; i < c.length; i++) {
+      buffer.putChar(c[i]);
+    }
     return this;
   }
 
   public DTLogWriter writeCharArray(char[] c) {
-    checkArrayLength(c.length);
-    flushIfNecessary(c.length * 2 + 1);
-
-    buffer.put((byte) c.length)
-          .asCharBuffer()
-          .put(c);
-    return this;
-  }
-
-  public DTLogWriter writeBoolean(boolean b) {
-    flushIfNecessary(1);
-
-    buffer.put((byte) (b ? 1 : 0));
-    return this;
-  }
-
-  private byte[] booleansToBytes(boolean[] b) {
-    bitSet.set(b.length); // Ensure capacity
-    for (int i = 0; i < b.length; i++) {
-      bitSet.set(i, b[i]);
+    checkBuffer(c.length * 2 + 2);
+    checkWriteArrayLength(c.length);
+    for (int i = 0; i < c.length; i++) {
+      buffer.putChar(c[i]);
     }
-    return bitSet.toByteArray();
+    return this;
   }
 
   public DTLogWriter writeBooleans(boolean[] b) {
     int len = (b.length + 7) / 8;
-    flushIfNecessary(len);
-
+    checkBuffer(len);
     byte[] data = booleansToBytes(b);
     buffer.put(data, 0, len);
     return this;
   }
 
   public DTLogWriter writeBooleanArray(boolean[] b) {
-    checkArrayLength(b.length);
     int len = (b.length + 7) / 8;
-    flushIfNecessary(len + 1);
-
+    checkBuffer(len + 2);
+    checkWriteArrayLength(b.length);
     byte[] bytes = booleansToBytes(b);
-    buffer.put((byte) b.length)
-          .put(bytes, 0, len);
+    buffer.put(bytes, 0, len);
     return this;
   }
 
-  public DTLogWriter writeStringUTF(String s) {
-    byte[] data = s.getBytes(StandardCharsets.UTF_8);
-    return writeByteArray(data);
+  private byte[] booleansToBytes(boolean[] b) {
+    bitSet.clear();
+    for (int i = b.length - 1; i >= 0; i--) {
+      bitSet.set(i, b[i]);
+    }
+    return bitSet.toByteArray();
   }
 
-  private boolean flushIfNecessary(int newDataLength) {
+  public DTLogWriter writeStringUTF8(String s) {
+    byte[] data = s.getBytes(StandardCharsets.UTF_8);
+    writeByteArray(data);
+    return this;
+  }
+
+  @Override
+  public void close() throws IOException {
+    channel.close();
+  }
+
+  @Override
+  public void flush() throws IOException {
+    int bufferPos = buffer.position();
+    long channelPos = -1;
+    buffer.flip();
+    try {
+      channelPos = channel.position();
+      channel.write(buffer);
+    } catch (ClosedChannelException e) {
+      throw e;
+    } catch (IOException e) {
+      // Error while writing, attempt to recover
+      buffer.limit(buffer.capacity());
+      buffer.position(bufferPos);
+      channel.position(channelPos);
+    }
+    buffer.compact();
+  }
+
+  private boolean checkBuffer(int newDataLength) {
     int remaining = buffer.remaining();
     if (remaining >= newDataLength) {
       // Already enough space
       return false;
     }
 
-    // In case there's not enough space the first time
-    for (int i = 0; i < 5; i++) {
-      flush();
-      int newRemaining = buffer.remaining();
-      if (newRemaining > remaining) {
-        if (newRemaining >= newDataLength) {
-          // Enough space now
-          return true;
-        }
-        i = 0;
-        remaining = newRemaining;
+    do {
+      try {
+        flush();
+      } catch (IOException e) {
       }
-    }
-
-    // 5 consecutive write failures
-    throw new IllegalStateException("Failed to create enough space for new data");
+      remaining = buffer.remaining();
+    } while (remaining < newDataLength);
+    return true;
   }
 
-  private static void checkArrayLength(int len) {
-    if (len > 0xFF) {
+  private void checkWriteArrayLength(int len) {
+    if (len > 0xFFFF) {
       throw new DTIllegalArgumentException("array is too large to log", len);
     }
+    buffer.putShort((short) len);
   }
 }

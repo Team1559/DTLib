@@ -1,29 +1,34 @@
 package org.victorrobotics.frc.dtlib.log;
 
-public abstract class DTLogVar {
-  protected static final DTLogWriter dataWriter = DTLogger.dataWriter;
+public class DTLogVar {
+  private final DTLogType type;
+  final String    path;
 
-  private final String name;
-  private final int    typeByte;
+  private Object prevValue;
+  private int    handle;
 
-  private int handle;
-
-  protected DTLogVar(String name, int typeByte) {
-    this.name = name;
-    this.typeByte = typeByte & 0xFF;
+  DTLogVar(DTLogType type, String path) {
+    this.type = type;
+    this.path = path;
+    this.handle = -1;
   }
 
-  protected abstract void writeData();
-
-  final void log() {
-    if (handle == 0) {
-      // Declare new variable
-      handle = DTLogger.generateHandle();
-      dataWriter.writeShort(typeByte);
-
+  void logValue(Object obj) {
+    if (prevValue == obj) {
+      return;
     }
-    // Encoding is infered from handle
-    dataWriter.writeShort(handle);
-    writeData();
+    prevValue = obj;
+
+    if (handle < 0) {
+      handle = DTLogger.newHandle(type.id, path);
+    }
+
+    if (obj == null) {
+      DTLogger.DATA_WRITER.writeShort(0x0000)
+                          .writeShort(handle);
+    } else {
+      DTLogger.DATA_WRITER.writeShort(handle);
+      type.writeData(obj);
+    }
   }
 }

@@ -1,7 +1,7 @@
 {
     "editor.detectIndentation": false,
     "editor.insertSpaces": true,
-    "editor.tabSize": 4,
+    "editor.tabSize": 2,
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.format.settings.url": "./java-formatter.xml",
     "java.test.config": [
