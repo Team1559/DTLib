@@ -1,11 +1,11 @@
 package org.victorrobotics.frc.dtlib.sensor.encoder;
 
 public interface DTAbsoluteEncoderFaults {
-    boolean lowVoltage();
+  boolean lowVoltage();
 
-    boolean hardwareFailure();
+  boolean hardwareFailure();
 
-    boolean hasAnyFault();
+  boolean hasAnyFault();
 
-    boolean other();
+  boolean other();
 }

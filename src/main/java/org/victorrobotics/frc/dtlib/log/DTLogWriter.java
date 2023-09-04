@@ -282,7 +282,7 @@ public class DTLogWriter implements Closeable, Flushable {
 
   private void checkWriteArrayLength(int len) {
     if (len > 0xFFFF) {
-      throw new DTIllegalArgumentException("array is too large to log", len);
+      throw new DTIllegalArgumentException(len, "array is too large to log");
     }
     buffer.putShort((short) len);
   }

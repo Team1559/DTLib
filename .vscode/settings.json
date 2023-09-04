@@ -29,5 +29,8 @@
         "com.revrobotics.frc",
         "org.photonvision",
         "",
-    ]
+    ],
+    "[java]": {
+      "editor.insertSpaces": true
+    }
 }
