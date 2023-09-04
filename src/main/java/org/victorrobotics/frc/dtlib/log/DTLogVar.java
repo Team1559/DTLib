@@ -1,19 +1,19 @@
 package org.victorrobotics.frc.dtlib.log;
 
-public class DTLogVar {
-  private final DTLogType type;
-  final String    path;
+public class DTLogVar<T> {
+  private final DTLogType<T> type;
+  private final String       path;
 
   private Object prevValue;
   private int    handle;
 
-  DTLogVar(DTLogType type, String path) {
+  DTLogVar(DTLogType<T> type, String path) {
     this.type = type;
     this.path = path;
     this.handle = -1;
   }
 
-  void logValue(Object obj) {
+  void logValue(T obj) {
     if (prevValue == obj) {
       return;
     }
@@ -24,11 +24,18 @@ public class DTLogVar {
     }
 
     if (obj == null) {
-      DTLogger.DATA_WRITER.writeShort(0x0000)
-                          .writeShort(handle);
+      DTLogger.getWriter()
+              .writeShort(0x0000)
+              .writeShort(handle);
     } else {
-      DTLogger.DATA_WRITER.writeShort(handle);
-      type.writeData(obj);
+      DTLogger.getWriter()
+              .writeShort(handle);
+      type.writer.accept(obj);
     }
+  }
+
+  @Override
+  public String toString() {
+    return path;
   }
 }

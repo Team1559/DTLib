@@ -1,27 +1,16 @@
 package org.victorrobotics.frc.dtlib.log;
 
-public abstract class DTLogType {
-  public final int       id;
-  private final Class<?> clazz;
+import java.util.function.Consumer;
 
-  protected DTLogType(int id, Class<?> clazz) {
+public class DTLogType<T> {
+  final Consumer<T> writer;
+  final int id;
+
+  public DTLogType(Consumer<T> encoder, int id, Class<?>... clazzes) {
+    this.writer = encoder;
     this.id = id;
-    this.clazz = clazz;
-    DTLogger.LOGGABLE_TYPES.put(clazz, this);
-  }
-
-  protected abstract void writeData(Object obj);
-
-  DTLogType withClass(Class<?> clazz) {
-    return new DTLogType(this.id, clazz) {
-      @Override
-      protected void writeData(Object obj) {
-        DTLogType.this.writeData(obj);
-      }
-    };
-  }
-
-  protected static final DTLogWriter dataWriter() {
-    return DTLogger.DATA_WRITER;
+    for (Class<?> clazz : clazzes) {
+      DTLogger.LOGGABLE_TYPES.put(clazz, this);
+    }
   }
 }

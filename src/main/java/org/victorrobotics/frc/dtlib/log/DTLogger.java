@@ -11,18 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Year;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.NetworkTablesJNI;
-import edu.wpi.first.networktables.Topic;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
@@ -34,7 +28,7 @@ public class DTLogger {
                        .withZone(ZoneId.of("Z"));
 
   private static final String DTLIB_LOGGER_MAGIC = "DTLib Logger";
-  private static final String LOG_DIRECTORY      = "/Users/xbhalla/Desktop/logs";
+  private static final String LOG_DIRECTORY      = "/dev/sda/logs";
 
   static final Map<Class<?>, DTLogType> LOGGABLE_TYPES = new HashMap<>();
 
@@ -43,7 +37,7 @@ public class DTLogger {
   }
 
   private static File       file;
-  public static DTLogWriter DATA_WRITER;
+  private static DTLogWriter DATA_WRITER;
 
   private static String name;
   private static long   lastTimestamp;
@@ -53,20 +47,18 @@ public class DTLogger {
 
   private DTLogger() {}
 
-  private static DTLogWriter getDataWriter() {
+  public static DTLogWriter getWriter() {
     return DATA_WRITER;
   }
 
   public static int newHandle(int typeID, String path) {
     DATA_WRITER.writeShort(typeID);
     DATA_WRITER.writeStringUTF8(path);
-    // TODO: write to logon generation
     return nextHandle++;
   }
 
   public static boolean logNewTimestamp() {
-    // long newTime = RobotController.getFPGATime() / 1000;
-    long newTime = System.currentTimeMillis();
+    long newTime = RobotController.getFPGATime() / 1000;
     long diff = newTime - lastTimestamp;
     if (diff <= 0) {
       // Same time, no change
@@ -110,8 +102,7 @@ public class DTLogger {
   private static void openCapture() throws IOException {
     Instant now = Clock.systemUTC()
                        .instant();
-    // lastTimestamp = RobotController.getFPGATime() / 1_000;
-    lastTimestamp = System.currentTimeMillis();
+    lastTimestamp = RobotController.getFPGATime() / 1_000;
     startTimeMillis = now.toEpochMilli();
 
     name = TIME_FORMATTER.format(now) + ".dtlog";
@@ -137,10 +128,6 @@ public class DTLogger {
   }
 
   private static boolean isTimeSynchronized() {
-    if (true) {
-      return true;
-    }
-
     if (DriverStation.isDSAttached()) {
       dsAttachCount++;
       // Connected for 0.2s & correct year
@@ -174,10 +161,10 @@ public class DTLogger {
   }
 
   private static int getTeamNumber() {
-    // if (RobotBase.isSimulation()) {
-    // // Can't use IP address in a simulation, return unknown
-    // return 0xffff;
-    // }
+    if (RobotBase.isSimulation()) {
+      // Can't use IP address in a simulation, return unknown
+      return 0xffff;
+    }
 
     // Use IP address 10.??.??.2 to obtain team number
     try {

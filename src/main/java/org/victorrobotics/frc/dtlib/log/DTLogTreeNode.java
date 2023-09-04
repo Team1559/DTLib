@@ -132,7 +132,7 @@ public abstract class DTLogTreeNode {
   @Override
   public String toString() {
     if (node != null) {
-      return node.path;
+      return node.toString();
     } else {
       return children.stream()
                      .map(DTLogTreeNode::toString)

@@ -1,11 +1,5 @@
 package org.victorrobotics.frc.dtlib.log;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.function.Supplier;
-import java.util.function.ToLongFunction;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
@@ -29,224 +23,188 @@ public class DTLogBuiltinTypes {
   }
 
   private static void loadPrimitives() {
-    new DTLogType(0x0020, Boolean.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeBoolean(((Boolean) obj).booleanValue());
-      }
-    }.withClass(boolean.class);
-    new DTLogType(0x0021, Byte.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeByte(((Byte) obj).byteValue());
-      }
-    }.withClass(byte.class);
-    new DTLogType(0x0022, Character.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeChar(((Character) obj).charValue());
-      }
-    }.withClass(char.class);
-    new DTLogType(0x0023, Double.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeDouble(((Double) obj).doubleValue());
-      }
-    }.withClass(double.class);
-    new DTLogType(0x0024, Float.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeFloat(((Float) obj).floatValue());
-      }
-    }.withClass(float.class);
-    new DTLogType(0x0025, Integer.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeInt(((Integer) obj).intValue());
-      }
-    }.withClass(int.class);
-    new DTLogType(0x0026, Long.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeLong(((Long) obj).longValue());
-      }
-    }.withClass(long.class);
-    new DTLogType(0x0027, Short.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeShort(((Short) obj).shortValue());
-      }
-    }.withClass(short.class);
-    // 1D Arrays
-    new DTLogType(0x0028, boolean[].class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeBooleanArray((boolean[]) obj);
-      }
-    };
-    new DTLogType(0x0029, byte[].class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeByteArray((byte[]) obj);
-      }
-    };
-    new DTLogType(0x002a, char[].class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeCharArray((char[]) obj);
-      }
-    };
-    new DTLogType(0x002b, double[].class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeDoubleArray((double[]) obj);
-      }
-    };
-    new DTLogType(0x002c, float[].class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeFloatArray((float[]) obj);
-      }
-    };
-    new DTLogType(0x002d, int[].class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeIntArray((int[]) obj);
-      }
-    };
-    new DTLogType(0x002e, long[].class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeLongArray((long[]) obj);
-      }
-    };
-    new DTLogType(0x002f, short[].class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeShortArray((short[]) obj);
-      }
-    };
+    new DTLogType<>((Boolean b) -> {
+      DTLogger.getWriter()
+              .writeBoolean(b.booleanValue());
+    }, 0x20, Boolean.class, boolean.class);
+
+    new DTLogType<>((Byte b) -> {
+      DTLogger.getWriter()
+              .writeByte(b.byteValue());
+    }, 0x21, Byte.class, byte.class);
+
+    new DTLogType<>((Character c) -> {
+      DTLogger.getWriter()
+              .writeChar(c.charValue());
+    }, 0x22, Character.class, char.class);
+
+    new DTLogType<>((Double d) -> {
+      DTLogger.getWriter()
+              .writeDouble(d.doubleValue());
+    }, 0x23, Double.class, double.class);
+
+    new DTLogType<>((Float f) -> {
+      DTLogger.getWriter()
+              .writeFloat(f.floatValue());
+    }, 0x24, Float.class, float.class);
+
+    new DTLogType<>((Integer i) -> {
+      DTLogger.getWriter()
+              .writeInt(i.intValue());
+    }, 0x25, Integer.class, int.class);
+
+    new DTLogType<>((Long l) -> {
+      DTLogger.getWriter()
+              .writeLong(l.longValue());
+    }, 0x26, Long.class, long.class);
+
+    new DTLogType<>((Short s) -> {
+      DTLogger.getWriter()
+              .writeShort(s.shortValue());
+    }, 0x27, Short.class, short.class);
+
+    // 1D primitive arrays (special case)
+    new DTLogType<>((boolean[] b) -> {
+      DTLogger.getWriter()
+              .writeBooleanArray(b);
+    }, 0x28, boolean[].class);
+
+    new DTLogType<>((byte[] b) -> {
+      DTLogger.getWriter()
+              .writeByteArray(b);
+    }, 0x29, byte[].class);
+
+    new DTLogType<>((char[] b) -> {
+      DTLogger.getWriter()
+              .writeCharArray(b);
+    }, 0x2a, char[].class);
+
+    new DTLogType<>((double[] b) -> {
+      DTLogger.getWriter()
+              .writeDoubleArray(b);
+    }, 0x2b, double[].class);
+
+    new DTLogType<>((float[] b) -> {
+      DTLogger.getWriter()
+              .writeFloatArray(b);
+    }, 0x2c, float[].class);
+
+    new DTLogType<>((int[] b) -> {
+      DTLogger.getWriter()
+              .writeIntArray(b);
+    }, 0x2d, int[].class);
+
+    new DTLogType<>((long[] b) -> {
+      DTLogger.getWriter()
+              .writeLongArray(b);
+    }, 0x2e, long[].class);
+
+    new DTLogType<>((short[] b) -> {
+      DTLogger.getWriter()
+              .writeShortArray(b);
+    }, 0x2f, short[].class);
   }
 
   private static void loadJava() {
-    new DTLogType(0x0030, String.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeStringUTF8((String) obj);
-      }
-    };
+    new DTLogType<>((String s) -> {
+      DTLogger.getWriter()
+              .writeStringUTF8(s);
+    }, 0x30, String.class);
   }
 
   private static void loadWPILib() {
-    new DTLogType(0x00000000, Rotation2d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        dataWriter().writeDouble(((Rotation2d) obj).getRadians());
-      }
-    };
-    new DTLogType(0x00000000, Rotation3d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Quaternion q = ((Rotation3d) obj).getQuaternion();
-        dataWriter().writeDouble(q.getW())
-                    .writeDouble(q.getX())
-                    .writeDouble(q.getY())
-                    .writeDouble(q.getZ());
-      }
-    };
-    new DTLogType(0x00000000, Translation2d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Translation2d t = (Translation2d) obj;
-        dataWriter().writeDouble(t.getX())
-                    .writeDouble(t.getY());
-      }
-    };
-    new DTLogType(0x00000000, Translation3d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Translation3d t = (Translation3d) obj;
-        dataWriter().writeDouble(t.getX())
-                    .writeDouble(t.getY())
-                    .writeDouble(t.getZ());
-      }
-    };
-    new DTLogType(0x00000000, Pose2d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Pose2d p = (Pose2d) obj;
-        Translation2d t = p.getTranslation();
-        dataWriter().writeDouble(t.getX())
-                    .writeDouble(t.getY())
-                    .writeDouble(p.getRotation()
-                                  .getRadians());
-      }
-    };
-    new DTLogType(0x00000000, Pose3d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Pose3d p = (Pose3d) obj;
-        Translation3d t = p.getTranslation();
-        Quaternion q = p.getRotation()
-                        .getQuaternion();
-        dataWriter().writeDouble(t.getX())
-                    .writeDouble(t.getY())
-                    .writeDouble(t.getZ())
-                    .writeDouble(q.getW())
-                    .writeDouble(q.getX())
-                    .writeDouble(q.getY())
-                    .writeDouble(q.getZ());
-      }
-    };
-    new DTLogType(0x00000000, Transform2d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Transform2d t = (Transform2d) obj;
-        Translation2d t2 = t.getTranslation();
-        dataWriter().writeDouble(t2.getX())
-                    .writeDouble(t2.getY())
-                    .writeDouble(t.getRotation()
-                                  .getRadians());
-      }
-    };
-    new DTLogType(0x00000000, Transform3d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Transform3d t = (Transform3d) obj;
-        Translation3d t2 = t.getTranslation();
-        Quaternion q = t.getRotation()
-                        .getQuaternion();
-        dataWriter().writeDouble(t2.getX())
-                    .writeDouble(t2.getY())
-                    .writeDouble(t2.getZ())
-                    .writeDouble(q.getW())
-                    .writeDouble(q.getX())
-                    .writeDouble(q.getY())
-                    .writeDouble(q.getZ());
-      }
-    };
-    new DTLogType(0x00000000, Twist2d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Twist2d t = (Twist2d) obj;
-        dataWriter().writeDouble(t.dx)
-                    .writeDouble(t.dy)
-                    .writeDouble(t.dtheta);
-      }
-    };
-    new DTLogType(0x00000000, Twist3d.class) {
-      @Override
-      protected void writeData(Object obj) {
-        Twist3d t = (Twist3d) obj;
-        dataWriter().writeDouble(t.dx)
-                    .writeDouble(t.dy)
-                    .writeDouble(t.dz)
-                    .writeDouble(t.rx)
-                    .writeDouble(t.ry)
-                    .writeDouble(t.rz);
-      }
-    };
+    new DTLogType<>((Rotation2d r) -> {
+      DTLogger.getWriter()
+              .writeDouble(r.getRadians());
+    }, 0x000000, Rotation2d.class);
+
+    new DTLogType<>((Rotation3d r) -> {
+      Quaternion q = r.getQuaternion();
+      DTLogger.getWriter()
+              .writeDouble(q.getW())
+              .writeDouble(q.getX())
+              .writeDouble(q.getY())
+              .writeDouble(q.getZ());
+    }, 0x000000, Rotation3d.class);
+
+    new DTLogType<>((Translation2d t) -> {
+      DTLogger.getWriter()
+              .writeDouble(t.getX())
+              .writeDouble(t.getY());
+    }, 0x000000, Translation2d.class);
+
+    new DTLogType<>((Translation3d t) -> {
+      DTLogger.getWriter()
+              .writeDouble(t.getX())
+              .writeDouble(t.getY())
+              .writeDouble(t.getZ());
+    }, 0x000000, Translation3d.class);
+
+    new DTLogType<>((Pose2d p) -> {
+      Translation2d t = p.getTranslation();
+      DTLogger.getWriter()
+              .writeDouble(t.getX())
+              .writeDouble(t.getY())
+              .writeDouble(p.getRotation()
+                            .getRadians());
+    }, 0x000000, Pose2d.class);
+
+    new DTLogType<>((Pose3d p) -> {
+      Translation3d t = p.getTranslation();
+      Quaternion q = p.getRotation()
+                      .getQuaternion();
+      DTLogger.getWriter()
+              .writeDouble(t.getX())
+              .writeDouble(t.getY())
+              .writeDouble(t.getZ())
+              .writeDouble(q.getW())
+              .writeDouble(q.getX())
+              .writeDouble(q.getY())
+              .writeDouble(q.getZ());
+    }, 0x000000, Pose3d.class);
+
+    new DTLogType<>((Transform2d t) -> {
+      Translation2d t2 = t.getTranslation();
+      DTLogger.getWriter()
+              .writeDouble(t2.getX())
+              .writeDouble(t2.getY())
+              .writeDouble(t.getRotation()
+                            .getRadians());
+    }, 0x000000, Transform2d.class);
+
+    new DTLogType<>((Transform3d t) -> {
+      Translation3d t2 = t.getTranslation();
+      Quaternion q = t.getRotation()
+                      .getQuaternion();
+      DTLogger.getWriter()
+              .writeDouble(t2.getX())
+              .writeDouble(t2.getY())
+              .writeDouble(t2.getZ())
+              .writeDouble(q.getW())
+              .writeDouble(q.getX())
+              .writeDouble(q.getY())
+              .writeDouble(q.getZ());
+    }, 0x000000, Transform3d.class);
+
+    new DTLogType<>((Twist2d t) -> {
+      DTLogger.getWriter()
+              .writeDouble(t.dx)
+              .writeDouble(t.dy)
+              .writeDouble(t.dtheta);
+    }, 0x000000, Twist2d.class);
+
+    new DTLogType<>((Twist3d t) -> {
+      DTLogger.getWriter()
+              .writeDouble(t.dx)
+              .writeDouble(t.dy)
+              .writeDouble(t.dz)
+              .writeDouble(t.rx)
+              .writeDouble(t.ry)
+              .writeDouble(t.rz);
+    }, 0x000000, Twist3d.class);
   }
 
-  private static void loadDTLib() {}
+  private static void loadDTLib() {
+    // Nothing here yet
+  }
 }
