@@ -1,21 +1,21 @@
 package org.victorrobotics.frc.dtlib.actuator.motor;
 
 public interface DTMotorFaults {
-    boolean hasAnyFault();
+  boolean hasAnyFault();
 
-    boolean lowVoltage();
+  boolean lowVoltage();
 
-    boolean other();
+  boolean other();
 
-    boolean softLimitForward();
+  boolean softLimitForward();
 
-    boolean softLimitReverse();
+  boolean softLimitReverse();
 
-    boolean hardLimitForward();
+  boolean hardLimitForward();
 
-    boolean hardLimitReverse();
+  boolean hardLimitReverse();
 
-    boolean hasReset();
+  boolean hasReset();
 
-    boolean hardwareFailure();
+  boolean hardwareFailure();
 }

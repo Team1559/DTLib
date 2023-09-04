@@ -4,35 +4,35 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 
 public interface DTIMU extends Sendable, AutoCloseable {
-    Object getImuImpl();
+  Object getImuImpl();
 
-    double getYaw();
+  double getYaw();
 
-    double getPitch();
+  double getPitch();
 
-    double getRoll();
+  double getRoll();
 
-    void zeroYaw();
+  void zeroYaw();
 
-    @Override
-    default void initSendable(SendableBuilder builder) {
-        builder.addDoubleProperty("Roll", this::getRoll, null);
-        builder.addDoubleProperty("Pitch", this::getPitch, null);
-        builder.addDoubleProperty("Yaw", this::getYaw, null);
-        builder.addDoubleArrayProperty("Angular velocity", this::getAngularVelocities, null);
-        builder.addDoubleProperty("Compass", this::getCompassHeading, null);
-        builder.addStringProperty("Firmware", this::getFirmwareVersion, null);
+  @Override
+  default void initSendable(SendableBuilder builder) {
+    builder.addDoubleProperty("Roll", this::getRoll, null);
+    builder.addDoubleProperty("Pitch", this::getPitch, null);
+    builder.addDoubleProperty("Yaw", this::getYaw, null);
+    builder.addDoubleArrayProperty("Angular velocity", this::getAngularVelocities, null);
+    builder.addDoubleProperty("Compass", this::getCompassHeading, null);
+    builder.addStringProperty("Firmware", this::getFirmwareVersion, null);
 
-        customizeSendable(builder);
-    }
+    customizeSendable(builder);
+  }
 
-    default void customizeSendable(SendableBuilder builder) {}
+  default void customizeSendable(SendableBuilder builder) {}
 
-    String getFirmwareVersion();
+  String getFirmwareVersion();
 
-    double getCompassHeading();
+  double getCompassHeading();
 
-    double[] getAngularVelocities();
+  double[] getAngularVelocities();
 
-    double[] getAccelerations();
+  double[] getAccelerations();
 }

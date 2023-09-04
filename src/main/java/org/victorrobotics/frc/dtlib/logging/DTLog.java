@@ -14,48 +14,48 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DTLog {
-    private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat(
-            "MM-dd-yyyy_HH-mm-ss");
-    private static final String           LOG_DIRECTORY    = "";
+  private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat(
+      "MM-dd-yyyy_HH-mm-ss");
+  private static final String           LOG_DIRECTORY    = "";
 
-    private final Map<DTSubsystem, DTSubsystemLog> subsystemLogs;
-    private final DataOutputStream                 dataStream;
+  private final Map<DTSubsystem, DTSubsystemLog> subsystemLogs;
+  private final DataOutputStream                 dataStream;
 
-    public DTLog() {
-        subsystemLogs = new HashMap<>();
-        try {
-            dataStream = new DataOutputStream(new BufferedOutputStream(
-                    new FileOutputStream(new File(LOG_DIRECTORY, generateFilename()))));
-        } catch (FileNotFoundException e) {
-            throw new IllegalStateException("Failed to initialize log file");
-        }
+  public DTLog() {
+    subsystemLogs = new HashMap<>();
+    try {
+      dataStream = new DataOutputStream(new BufferedOutputStream(
+          new FileOutputStream(new File(LOG_DIRECTORY, generateFilename()))));
+    } catch (FileNotFoundException e) {
+      throw new IllegalStateException("Failed to initialize log file");
     }
+  }
 
-    public void addSubsystem(DTSubsystem subsystem) {
-        subsystemLogs.computeIfAbsent(subsystem, this::newSubsystemLog);
+  public void addSubsystem(DTSubsystem subsystem) {
+    subsystemLogs.computeIfAbsent(subsystem, this::newSubsystemLog);
+  }
+
+  public void initialize() {
+    writeHeader();
+    for (Map.Entry<DTSubsystem, DTSubsystemLog> entry : subsystemLogs.entrySet()) {
+      entry.getValue()
+           .writeFormat(dataStream);
     }
+  }
 
-    public void initialize() {
-        writeHeader();
-        for (Map.Entry<DTSubsystem, DTSubsystemLog> entry : subsystemLogs.entrySet()) {
-            entry.getValue()
-                 .writeFormat(dataStream);
-        }
-    }
+  public void log() {
 
-    public void log() {
+  }
 
-    }
+  private void writeHeader() {
 
-    private void writeHeader() {
+  }
 
-    }
+  private String generateFilename() {
+    return TIMESTAMP_FORMAT.format(new Date()) + ".dtlog";
+  }
 
-    private String generateFilename() {
-        return TIMESTAMP_FORMAT.format(new Date()) + ".dtlog";
-    }
-
-    private DTSubsystemLog newSubsystemLog(DTSubsystem subsystem) {
-        return new DTSubsystemLog(this, subsystem);
-    }
+  private DTSubsystemLog newSubsystemLog(DTSubsystem subsystem) {
+    return new DTSubsystemLog(this, subsystem);
+  }
 }
