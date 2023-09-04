@@ -14,60 +14,61 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public abstract class DTSubsystem extends SubsystemBase implements DTSendable {
-    private static final Set<DTHardwareComponent>                   ALL_COMPONENTS   = new HashSet<>();
-    private static final Map<Class<? extends DTSubsystem>, Integer> SUBSYSTEM_COUNTS = new HashMap<>();
+  private static final Set<DTHardwareComponent>                   ALL_COMPONENTS   = new HashSet<>();
+  private static final Map<Class<? extends DTSubsystem>, Integer> SUBSYSTEM_COUNTS = new HashMap<>();
 
-    private final NetworkTable dashboardTable;
-    private final String       typename;
-    private final String       identifier;
-    private final int          id;
+  private final NetworkTable dashboardTable;
+  private final String       typename;
+  private final String       identifier;
+  private final int          id;
 
-    private final Set<DTHardwareComponent> components;
+  private final Set<DTHardwareComponent> components;
 
-    protected DTSubsystem() {
-        Class<? extends DTSubsystem> clazz = getClass();
-        typename = clazz.getSimpleName();
-        id = SUBSYSTEM_COUNTS.compute(clazz, (c, i) -> i == null ? 1 : (i + 1));
+  protected DTSubsystem() {
+    Class<? extends DTSubsystem> clazz = getClass();
+    typename = clazz.getSimpleName();
+    id = SUBSYSTEM_COUNTS.compute(clazz, (c, i) -> i == null ? 1 : (i + 1));
 
-        identifier = typename + "-" + id;
-        setName(identifier);
-        setSubsystem(typename);
+    identifier = typename + "-" + id;
+    setName(identifier);
+    setSubsystem(typename);
 
-        dashboardTable = DTDash.getMainTable()
-                               .getSubTable(identifier);
-        components = new HashSet<>();
+    dashboardTable = DTDash.getMainTable()
+                           .getSubTable(identifier);
+    components = new HashSet<>();
+  }
+
+  public NetworkTable getDashboardTable() {
+    return dashboardTable;
+  }
+
+  public String getIdentifier() {
+    return identifier;
+  }
+
+  protected final void addComponent(DTHardwareComponent component) {
+    if (components.contains(component)) {
+      // Already registered here
+      return;
+    } else if (!ALL_COMPONENTS.add(component)) {
+      // Component has already been added to another subsystem
+      throw new DTIllegalArgumentException("components should not belong to multiple subsystems",
+          component);
     }
 
-    public NetworkTable getDashboardTable() {
-        return dashboardTable;
+    components.add(component);
+  }
+
+  @Override
+  public final void periodic() {
+    try {
+      update();
+    } catch (Exception e) {
+      // TODO: what to do here?
     }
+  }
 
-    public String getIdentifier() {
-        return identifier;
-    }
+  protected void update() {}
 
-    protected final void addComponent(DTHardwareComponent component) {
-        if (components.contains(component)) {
-            // Already registered here
-            return;
-        } else if (!ALL_COMPONENTS.add(component)) {
-            // Component has already been added to another subsystem
-            throw new DTIllegalArgumentException("components should not belong to multiple subsystems", component);
-        }
-
-        components.add(component);
-    }
-
-    @Override
-    public final void periodic() {
-        try {
-            update();
-        } catch (Exception e) {
-            // TODO: what to do here?
-        }
-    }
-
-    protected void update() {}
-
-    public abstract DTCommand getSelfTestCommand();
+  public abstract DTCommand getSelfTestCommand();
 }

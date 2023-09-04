@@ -21,137 +21,138 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareComponent {
-    private final DTSwerveModule[]         modules;
-    private final SwerveDriveKinematics    kinematics;
-    private final SwerveDrivePoseEstimator poseEstimator;
+  private final DTSwerveModule[]         modules;
+  private final SwerveDriveKinematics    kinematics;
+  private final SwerveDrivePoseEstimator poseEstimator;
 
-    private final SwerveModulePosition[] positions;
+  private final SwerveModulePosition[] positions;
 
-    private Translation2d       centerOfRotation;
-    private DTAccelerationLimit accelerationLimit;
-    private DTVelocityLimit     velocityLimit;
-    private boolean             isFieldRelative;
+  private Translation2d       centerOfRotation;
+  private DTAccelerationLimit accelerationLimit;
+  private DTVelocityLimit     velocityLimit;
+  private boolean             isFieldRelative;
 
-    private Field2d       virtualField;
-    private ChassisSpeeds previousSpeeds;
-    private ChassisSpeeds currentSpeeds;
+  private Field2d       virtualField;
+  private ChassisSpeeds previousSpeeds;
+  private ChassisSpeeds currentSpeeds;
 
-    protected DTSwerveDrive(DTSwerveModule... modules) {
-        Objects.requireNonNull(modules);
-        if (modules.length < 2) {
-            throw new IllegalArgumentException("Swerve drive requires at least 2 wheels");
-        }
-        for (DTSwerveModule m : modules) {
-            Objects.requireNonNull(m);
-        }
-        this.modules = modules.clone();
+  protected DTSwerveDrive(DTSwerveModule... modules) {
+    Objects.requireNonNull(modules);
+    if (modules.length < 2) {
+      throw new IllegalArgumentException("Swerve drive requires at least 2 wheels");
+    }
+    for (DTSwerveModule m : modules) {
+      Objects.requireNonNull(m);
+    }
+    this.modules = modules.clone();
 
-        setSubsystem("Swerve Drive");
-        setName(getSubsystem());
+    setSubsystem("Swerve Drive");
+    setName(getSubsystem());
 
-        initializeHardware();
+    initializeHardware();
 
-        Translation2d[] wheelLocations = new Translation2d[modules.length];
-        positions = new SwerveModulePosition[modules.length];
-        for (int i = 0; i < wheelLocations.length; i++) {
-            wheelLocations[i] = modules[i].getLocation();
-            positions[i] = modules[i].getPosition();
-        }
-
-        kinematics = new SwerveDriveKinematics(wheelLocations);
-        poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions,
-                new Pose2d());
-
-        centerOfRotation = new Translation2d();
-        accelerationLimit = new DTAccelerationLimit();
-        currentSpeeds = new ChassisSpeeds();
+    Translation2d[] wheelLocations = new Translation2d[modules.length];
+    positions = new SwerveModulePosition[modules.length];
+    for (int i = 0; i < wheelLocations.length; i++) {
+      wheelLocations[i] = modules[i].getLocation();
+      positions[i] = modules[i].getPosition();
     }
 
-    public void initializeHardware() {
-        for (DTSwerveModule module : modules) {
-            module.initializeHardware();
-        }
+    kinematics = new SwerveDriveKinematics(wheelLocations);
+    poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions,
+        new Pose2d());
+
+    centerOfRotation = new Translation2d();
+    accelerationLimit = new DTAccelerationLimit();
+    currentSpeeds = new ChassisSpeeds();
+  }
+
+  public void initializeHardware() {
+    for (DTSwerveModule module : modules) {
+      module.initializeHardware();
+    }
+  }
+
+  public final void setCenterOfRotation(Translation2d newCenterOfRotation) {
+    centerOfRotation = newCenterOfRotation;
+  }
+
+  public void setAccelerationLimit(DTAccelerationLimit limit) {
+    accelerationLimit = limit;
+  }
+
+  public void setVelocityLimit(DTVelocityLimit limit) {
+    velocityLimit = limit;
+  }
+
+  public void setFieldRelative() {
+    isFieldRelative = true;
+  }
+
+  public void setRobotRelative() {
+    isFieldRelative = false;
+  }
+
+  protected abstract Rotation2d getGyroAngle();
+
+  public final void driveVelocity(double vx, double vy, double vr) {
+    driveVelocity(vx, vy, vr, centerOfRotation);
+  }
+
+  public void driveVelocity(double vx, double vy, double vr, Translation2d centerOfRotation) {
+    previousSpeeds = currentSpeeds;
+
+    if (isFieldRelative) {
+      currentSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, getGyroAngle());
+    } else {
+      currentSpeeds = new ChassisSpeeds(vx, vy, vr);
     }
 
-    public final void setCenterOfRotation(Translation2d newCenterOfRotation) {
-        centerOfRotation = newCenterOfRotation;
+    velocityLimit.apply(currentSpeeds);
+    accelerationLimit.apply(currentSpeeds, previousSpeeds);
+
+    SwerveModuleState[] newStates = kinematics.toSwerveModuleStates(currentSpeeds,
+        centerOfRotation);
+    setStates(newStates);
+  }
+
+  public final void setStates(SwerveModuleState... states) {
+    if (states.length != modules.length) {
+      throw new DTIllegalArgumentException(
+          "received " + states.length + " module states for " + modules.length + " modules",
+          (Object[]) states);
     }
 
-    public void setAccelerationLimit(DTAccelerationLimit limit) {
-        accelerationLimit = limit;
+    double minCosine = 1;
+    for (int i = 0; i < modules.length; i++) {
+      states[i] = SwerveModuleState.optimize(states[i], modules[i].getSteerAngle());
+      double cosine = modules[i].getSteerAngle()
+                                .minus(states[i].angle)
+                                .getCos();
+      if (cosine < minCosine) {
+        minCosine = cosine;
+      }
     }
-
-    public void setVelocityLimit(DTVelocityLimit limit) {
-        velocityLimit = limit;
+    minCosine *= minCosine * minCosine; // minCosine to the 3rd power
+    for (int i = 0; i < modules.length; i++) {
+      states[i].speedMetersPerSecond *= minCosine;
+      modules[i].setState(states[i]);
     }
+  }
 
-    public void setFieldRelative() {
-        isFieldRelative = true;
+  public void holdPosition() {
+    for (DTSwerveModule module : modules) {
+      // Orient wheels towards center of robot so they all collide
+      module.holdPosition(module.getLocation()
+                                .getAngle()
+                                .unaryMinus());
     }
+  }
 
-    public void setRobotRelative() {
-        isFieldRelative = false;
+  @Override
+  public void close() {
+    for (DTSwerveModule module : modules) {
+      module.close();
     }
-
-    protected abstract Rotation2d getGyroAngle();
-
-    public final void driveVelocity(double vx, double vy, double vr) {
-        driveVelocity(vx, vy, vr, centerOfRotation);
-    }
-
-    public void driveVelocity(double vx, double vy, double vr, Translation2d centerOfRotation) {
-        previousSpeeds = currentSpeeds;
-
-        if (isFieldRelative) {
-            currentSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, getGyroAngle());
-        } else {
-            currentSpeeds = new ChassisSpeeds(vx, vy, vr);
-        }
-
-        velocityLimit.apply(currentSpeeds);
-        accelerationLimit.apply(currentSpeeds, previousSpeeds);
-
-        SwerveModuleState[] newStates = kinematics.toSwerveModuleStates(currentSpeeds,
-                centerOfRotation);
-        setStates(newStates);
-    }
-
-    public final void setStates(SwerveModuleState... states) {
-        if (states.length != modules.length) {
-            throw new DTIllegalArgumentException("received " + states.length + " module states for "
-                    + modules.length + " modules", (Object[]) states);
-        }
-
-        double minCosine = 1;
-        for (int i = 0; i < modules.length; i++) {
-            states[i] = SwerveModuleState.optimize(states[i], modules[i].getSteerAngle());
-            double cosine = modules[i].getSteerAngle()
-                                      .minus(states[i].angle)
-                                      .getCos();
-            if (cosine < minCosine) {
-                minCosine = cosine;
-            }
-        }
-        minCosine *= minCosine * minCosine; // minCosine to the 3rd power
-        for (int i = 0; i < modules.length; i++) {
-            states[i].speedMetersPerSecond *= minCosine;
-            modules[i].setState(states[i]);
-        }
-    }
-
-    public void holdPosition() {
-        for (DTSwerveModule module : modules) {
-            // Orient wheels towards center of robot so they all collide
-            module.holdPosition(module.getLocation()
-                                      .getAngle()
-                                      .unaryMinus());
-        }
-    }
-
-    @Override
-    public void close() {
-        for (DTSwerveModule module : modules) {
-            module.close();
-        }
-    }
+  }
 }
