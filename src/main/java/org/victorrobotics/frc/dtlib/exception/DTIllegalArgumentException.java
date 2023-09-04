@@ -1,18 +1,13 @@
 package org.victorrobotics.frc.dtlib.exception;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 public class DTIllegalArgumentException extends IllegalArgumentException {
-    public DTIllegalArgumentException(Object... args) {
-        this(null, args);
-    }
+  public DTIllegalArgumentException(Object arg) {
+    super("Invalid argument " + Objects.toString(arg));
+  }
 
-    public DTIllegalArgumentException(String message, Object... args) {
-        super("Invalid argument " + new StringBuilder(Arrays.toString(args)).deleteCharAt(0)
-                                                                            .reverse()
-                                                                            .deleteCharAt(0)
-                                                                            .reverse()
-                                                                            .toString()
-                + (message == null ? "" : (" because " + message)));
-    }
+  public DTIllegalArgumentException(Object arg, String message) {
+    super("Invalid argument " + Objects.toString(arg) + " because " + message);
+  }
 }

@@ -7,15 +7,15 @@ import java.io.DataOutputStream;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 
 public class DTSubsystemLog {
-    private final DTLog       parent;
-    private final DTSubsystem subsystem;
+  private final DTLog       parent;
+  private final DTSubsystem subsystem;
 
-    public DTSubsystemLog(DTLog parent, DTSubsystem subsystem) {
-        this.parent = parent;
-        this.subsystem = subsystem;
-    }
+  public DTSubsystemLog(DTLog parent, DTSubsystem subsystem) {
+    this.parent = parent;
+    this.subsystem = subsystem;
+  }
 
-    public void writeFormat(DataOutputStream dataStream) {
-        
-    }
+  public void writeFormat(DataOutputStream dataStream) {
+
+  }
 }

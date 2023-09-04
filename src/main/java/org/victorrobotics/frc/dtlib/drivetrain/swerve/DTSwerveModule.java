@@ -8,19 +8,19 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public interface DTSwerveModule extends DTHardwareComponent {
-    Translation2d getLocation();
+  Translation2d getLocation();
 
-    void setState(SwerveModuleState state);
+  void setState(SwerveModuleState state);
 
-    void holdPosition(Rotation2d steerAngle);
+  void holdPosition(Rotation2d steerAngle);
 
-    Rotation2d getSteerAngle();
+  Rotation2d getSteerAngle();
 
-    double getVelocity();
+  double getVelocity();
 
-    default SwerveModuleState getState() {
-        return new SwerveModuleState(getVelocity(), getSteerAngle());
-    }
+  default SwerveModuleState getState() {
+    return new SwerveModuleState(getVelocity(), getSteerAngle());
+  }
 
-    SwerveModulePosition getPosition();
+  SwerveModulePosition getPosition();
 }
