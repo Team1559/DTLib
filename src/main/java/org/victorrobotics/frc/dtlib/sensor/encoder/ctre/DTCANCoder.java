@@ -4,70 +4,101 @@ import org.victorrobotics.frc.dtlib.sensor.encoder.DTAbsoluteEncoder;
 import org.victorrobotics.frc.dtlib.sensor.encoder.DTAbsoluteEncoderFaults;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.simulation.EncoderSim;
 
-import com.ctre.phoenix.sensors.AbsoluteSensorRange;
-import com.ctre.phoenix.sensors.CANCoder;
-import com.ctre.phoenix.sensors.CANCoderFaults;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 public class DTCANCoder implements DTAbsoluteEncoder {
-  private final CANCoder internal;
+  private final CANcoder internal;
 
-  private String firmwareVersion;
+  private StatusSignal<Double> position;
+  private StatusSignal<Double> absolutePosition;
+  private StatusSignal<Double> velocity;
+
+  private DTCANCoderFaults faults;
+
+  public DTCANCoder(CANcoder cancoder) {
+    internal = cancoder;
+  }
 
   public DTCANCoder(int canID) {
-    this(canID, "");
+    this(new CANcoder(canID));
   }
 
   public DTCANCoder(int canID, String canBus) {
-    internal = new CANCoder(canID, canBus);
+    this(new CANcoder(canID, canBus));
   }
 
   @Override
-  public CANCoder getEncoderImpl() {
+  public CANcoder getEncoderImpl() {
     return internal;
-  }
-
-  public void configFactoryDefault() {
-    internal.configFactoryDefault();
   }
 
   @Override
   public Rotation2d getPosition() {
-    return Rotation2d.fromDegrees(internal.getPosition());
+    if (position == null) {
+      position = internal.getPosition();
+    } else {
+      position.refresh();
+    }
+    return Rotation2d.fromRotations(position.getValue()
+                                            .doubleValue());
   }
 
   @Override
   public Rotation2d getAbsolutePosition() {
-    return Rotation2d.fromDegrees(internal.getAbsolutePosition());
+    if (absolutePosition == null) {
+      absolutePosition = internal.getAbsolutePosition();
+    } else {
+      absolutePosition.refresh();
+    }
+    return Rotation2d.fromRotations(absolutePosition.getValue()
+                                                    .doubleValue());
   }
 
+  @Override
   public boolean isInverted() {
-    return internal.configGetSensorDirection();
+    MagnetSensorConfigs config = new MagnetSensorConfigs();
+    internal.getConfigurator()
+            .refresh(config);
+    return config.SensorDirection == SensorDirectionValue.CounterClockwise_Positive;
   }
 
   @Override
   public void setRange(boolean signed) {
-    internal.configAbsoluteSensorRange(
-        signed ? AbsoluteSensorRange.Signed_PlusMinus180 : AbsoluteSensorRange.Unsigned_0_to_360);
+    MagnetSensorConfigs config = new MagnetSensorConfigs();
+    internal.getConfigurator()
+            .refresh(config);
+    config.AbsoluteSensorRange = signed ? AbsoluteSensorRangeValue.Signed_PlusMinusHalf
+        : AbsoluteSensorRangeValue.Unsigned_0To1;
+    internal.getConfigurator()
+            .apply(config);
   }
 
   @Override
   public void setInverted(boolean invert) {
-    internal.configSensorDirection(invert);
+    MagnetSensorConfigs config = new MagnetSensorConfigs();
+    internal.getConfigurator()
+            .refresh(config);
+    config.SensorDirection = invert ? SensorDirectionValue.CounterClockwise_Positive
+        : SensorDirectionValue.Clockwise_Positive;
+    internal.getConfigurator()
+            .apply(config);
   }
 
   @Override
   public void setPosition(Rotation2d position) {
-    internal.setPosition(position.getDegrees() % 360);
+    internal.setPosition(position.getRotations());
   }
 
   @Override
   public void setZeroPosition(Rotation2d position) {
-    double currentPos = internal.getAbsolutePosition();
-    internal.setPosition((currentPos - position.getDegrees()) % 360);
+    double currentPos = this.position.getValue()
+                                     .doubleValue();
+    internal.setPosition((currentPos - position.getRotations()) % 1);
   }
 
   @Override
@@ -77,55 +108,78 @@ public class DTCANCoder implements DTAbsoluteEncoder {
 
   @Override
   public void close() {
-    // nothing here
+    internal.close();
   }
 
   @Override
   public Rotation2d getVelocity() {
-    return Rotation2d.fromDegrees(internal.getVelocity());
+    if (velocity == null) {
+      velocity = internal.getVelocity();
+    } else {
+      velocity.refresh();
+    }
+    return Rotation2d.fromRotations(velocity.getValue()
+                                            .doubleValue());
   }
 
   @Override
   public String getFirmwareVersion() {
-    if (firmwareVersion == null) {
-      int version = internal.getFirmwareVersion();
-      firmwareVersion = (version >> 8) + "." + (version & 0xFF);
-    }
-    return firmwareVersion;
+    return Integer.toHexString(internal.getVersion()
+                                       .getValue()
+                                       .intValue());
   }
 
   @Override
-  public DTAbsoluteEncoderFaults getFaults() {
-    CANCoderFaults faults = new CANCoderFaults();
-    internal.getFaults(faults);
-    return new DTCANCoderFaults(faults);
+  public DTCANCoderFaults getFaults() {
+    if (faults == null) {
+      faults = new DTCANCoderFaults(internal);
+    }
+    return faults;
   }
 
   public static class DTCANCoderFaults implements DTAbsoluteEncoderFaults {
-    private final CANCoderFaults internal;
+    private final StatusSignal<Integer> allFaults;
+    private final StatusSignal<Boolean> badMagnet;
+    private final StatusSignal<Boolean> bootDuringEnable;
+    private final StatusSignal<Boolean> hardware;
+    private final StatusSignal<Boolean> lowVoltage;
+    private final StatusSignal<Boolean> unlicensedFeature;
 
-    DTCANCoderFaults(CANCoderFaults internal) {
-      this.internal = internal;
+    DTCANCoderFaults(CANcoder internal) {
+      allFaults = internal.getFaultField();
+      badMagnet = internal.getFault_BadMagnet();
+      bootDuringEnable = internal.getFault_BootDuringEnable();
+      hardware = internal.getFault_Hardware();
+      lowVoltage = internal.getFault_Undervoltage();
+      unlicensedFeature = internal.getFault_UnlicensedFeatureInUse();
     }
 
     @Override
     public boolean lowVoltage() {
-      return internal.UnderVoltage;
+      return lowVoltage.getValue()
+                       .booleanValue();
     }
 
     @Override
     public boolean hardwareFailure() {
-      return internal.HardwareFault || internal.MagnetTooWeak;
+      return hardware.getValue()
+                     .booleanValue()
+          || badMagnet.getValue()
+                      .booleanValue();
     }
 
     @Override
     public boolean hasAnyFault() {
-      return internal.hasAnyFault();
+      return allFaults.getValue()
+                      .intValue() != 0;
     }
 
     @Override
     public boolean other() {
-      return internal.APIError || internal.ResetDuringEn;
+      return bootDuringEnable.getValue()
+                             .booleanValue()
+          || unlicensedFeature.getValue()
+                              .booleanValue();
     }
   }
 }
