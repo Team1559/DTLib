@@ -1,11 +1,13 @@
 package org.victorrobotics.frc.dtlib.log;
 
+import java.util.Objects;
+
 public class DTLogVar<T> {
   private final DTLogType<T> type;
   private final String       path;
 
-  private Object prevValue;
-  private int    handle;
+  private T   prevValue;
+  private int handle;
 
   DTLogVar(DTLogType<T> type, String path) {
     this.type = type;
@@ -14,7 +16,7 @@ public class DTLogVar<T> {
   }
 
   void logValue(T obj) {
-    if (prevValue == obj) {
+    if (Objects.equals(prevValue, obj)) {
       return;
     }
     prevValue = obj;

@@ -30,30 +30,28 @@ public class DTLogger {
   private static final String DTLIB_LOGGER_MAGIC = "DTLib Logger";
   private static final String LOG_DIRECTORY      = "/dev/sda/logs";
 
-  static final Map<Class<?>, DTLogType> LOGGABLE_TYPES = new HashMap<>();
+  static final Map<Class<?>, DTLogType<?>> LOGGABLE_TYPES = new HashMap<>();
 
   static {
     DTLogBuiltinTypes.load();
   }
 
-  private static File       file;
-  private static DTLogWriter DATA_WRITER;
+  private static File        file;
+  private static DTLogWriter dataWriter;
 
-  private static String name;
-  private static long   lastTimestamp;
-  private static long   startTimeMillis;
-  private static int    dsAttachCount;
-  private static int    nextHandle = 0x0100;
+  private static long lastTimestamp;
+  private static long startTimeMillis;
+  private static int  nextHandle = 0x0100;
 
   private DTLogger() {}
 
   public static DTLogWriter getWriter() {
-    return DATA_WRITER;
+    return dataWriter;
   }
 
   public static int newHandle(int typeID, String path) {
-    DATA_WRITER.writeShort(typeID);
-    DATA_WRITER.writeStringUTF8(path);
+    dataWriter.writeShort(typeID);
+    dataWriter.writeStringUTF8(path);
     return nextHandle++;
   }
 
@@ -68,17 +66,17 @@ public class DTLogger {
 
     if (diff <= 0xFFFF) {
       // 2 byte form, maximum of 65.535 seconds
-      DATA_WRITER.writeShort(0x0001);
-      DATA_WRITER.writeShort((short) diff);
+      dataWriter.writeShort(0x0001);
+      dataWriter.writeShort((short) diff);
     } else {
       // write new timestamp
-      DATA_WRITER.writeShort(0x0002);
-      DATA_WRITER.writeLong(newTime);
+      dataWriter.writeShort(0x0002);
+      dataWriter.writeLong(newTime);
     }
     return true;
   }
 
-  public static boolean isReady() {
+  public static boolean init() {
     if (!isTimeSynchronized()) {
       return false;
     }
@@ -89,12 +87,12 @@ public class DTLogger {
       return true;
     } catch (IOException e) {
       try {
-        if (DATA_WRITER != null) {
-          DATA_WRITER.close();
+        if (dataWriter != null) {
+          dataWriter.close();
         }
       } catch (IOException e2) {
       }
-      DATA_WRITER = null;
+      dataWriter = null;
       return false;
     }
   }
@@ -105,38 +103,31 @@ public class DTLogger {
     lastTimestamp = RobotController.getFPGATime() / 1_000;
     startTimeMillis = now.toEpochMilli();
 
-    name = TIME_FORMATTER.format(now) + ".dtlog";
-    file = new File(LOG_DIRECTORY, "test_log.dtlog");
-    DATA_WRITER = new DTLogWriter(file, 65536);
+    String name = TIME_FORMATTER.format(now) + ".dtlog";
+    file = new File(LOG_DIRECTORY, name);
+    dataWriter = new DTLogWriter(file, 65536);
   }
 
   private static void writeHeader() {
-    DATA_WRITER.writeBytes(DTLIB_LOGGER_MAGIC.getBytes(StandardCharsets.UTF_8));
+    dataWriter.writeBytes(DTLIB_LOGGER_MAGIC.getBytes(StandardCharsets.UTF_8));
 
-    DATA_WRITER.writeShort(DTLibInfo.Version.YEAR);
-    DATA_WRITER.writeByte(DTLibInfo.Version.MAJOR);
-    DATA_WRITER.writeByte(DTLibInfo.Version.MINOR);
+    dataWriter.writeShort(DTLibInfo.Version.YEAR);
+    dataWriter.writeByte(DTLibInfo.Version.MAJOR);
+    dataWriter.writeByte(DTLibInfo.Version.MINOR);
 
     String[] wpilibVersion = WPILibVersion.Version.split("\\.");
-    DATA_WRITER.writeShort(Integer.parseInt(wpilibVersion[0]));
-    DATA_WRITER.writeByte(Integer.parseInt(wpilibVersion[1]));
-    DATA_WRITER.writeByte(Integer.parseInt(wpilibVersion[2]));
+    dataWriter.writeShort(Integer.parseInt(wpilibVersion[0]));
+    dataWriter.writeByte(Integer.parseInt(wpilibVersion[1]));
+    dataWriter.writeByte(Integer.parseInt(wpilibVersion[2]));
 
-    DATA_WRITER.writeShort(getTeamNumber());
-    DATA_WRITER.writeShort(0); // unused flags
-    DATA_WRITER.writeLong(startTimeMillis);
+    dataWriter.writeShort(getTeamNumber());
+    dataWriter.writeShort(0); // unused flags
+    dataWriter.writeLong(startTimeMillis);
   }
 
   private static boolean isTimeSynchronized() {
-    if (DriverStation.isDSAttached()) {
-      dsAttachCount++;
-      // Connected for 0.2s & correct year
-      return dsAttachCount >= 10 && LocalDate.now(Clock.systemUTC())
-                                             .getYear() >= 2000;
-    } else {
-      dsAttachCount = 0;
-      return false;
-    }
+    return DriverStation.isDSAttached() && LocalDate.now(Clock.systemUTC())
+                                                    .getYear() >= 2000;
   }
 
   public static void logDebug(String msg) {
@@ -156,8 +147,12 @@ public class DTLogger {
   }
 
   private static void logMessage(String msg, int type) {
-    DATA_WRITER.writeShort(type);
-    DATA_WRITER.writeStringUTF8(msg);
+    dataWriter.writeShort(type);
+    dataWriter.writeStringUTF8(msg);
+  }
+
+  public static void flush() {
+    dataWriter.flush();
   }
 
   private static int getTeamNumber() {

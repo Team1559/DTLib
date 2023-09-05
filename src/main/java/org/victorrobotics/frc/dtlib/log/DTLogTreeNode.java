@@ -1,11 +1,14 @@
 package org.victorrobotics.frc.dtlib.log;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public abstract class DTLogTreeNode {
   private final String              path;
@@ -23,20 +26,23 @@ public abstract class DTLogTreeNode {
 
   protected abstract Object getValue(Object parent);
 
-  public void init(Deque<Class<?>> clazzTree) {
+  public void init(Deque<Class<?>> clazzTree, Set<Class<?>> clazzes,
+      List<DTLogStaticVar<?>> staticVars) {
     Class<?> clazz = getType();
     if (clazzTree.contains(clazz)) {
       // Prevent infinite recursion
       return;
     }
+
+    boolean includeStatic = clazzes.add(clazz);
     boolean foundValidAnnotation = false;
     while (clazz != null) {
       if (!foundValidAnnotation) {
         // Check if type is registered as directly encodeable
-        DTLogType type = DTLogger.LOGGABLE_TYPES.get(clazz);
+        DTLogType<?> type = DTLogger.LOGGABLE_TYPES.get(clazz);
         if (type != null) {
           // Terminal node
-          node = new DTLogVar(type, path);
+          node = new DTLogVar<>(type, path);
           return;
         }
       }
@@ -48,6 +54,11 @@ public abstract class DTLogTreeNode {
           continue;
         }
 
+        boolean isStatic = Modifier.isStatic(field.getModifiers());
+        if (isStatic && !includeStatic) {
+          continue;
+        }
+
         if (!field.trySetAccessible()) {
           continue;
         }
@@ -56,8 +67,23 @@ public abstract class DTLogTreeNode {
         if (!isValidName(name)) {
           name = field.getName();
         }
-        foundValidAnnotation = true;
-        children.add(new DTLogFieldNode(field, path + "/" + name));
+
+        if (isStatic) {
+          DTLogType<?> type = DTLogger.LOGGABLE_TYPES.get(field.getType());
+          if (type != null) {
+            staticVars.add(new DTLogStaticVar(type, field.getDeclaringClass(), name, () -> {
+              try {
+                return field.get(null);
+              } catch (IllegalAccessException | IllegalArgumentException e) {
+                e.printStackTrace();
+                return null;
+              }
+            }));
+          }
+        } else {
+          foundValidAnnotation = true;
+          children.add(new DTLogFieldNode(field, path + "/" + name));
+        }
       }
 
       for (Method method : clazz.getDeclaredMethods()) {
@@ -67,7 +93,12 @@ public abstract class DTLogTreeNode {
         }
 
         if (method.getParameterCount() != 0 || method.getReturnType() == void.class) {
-          // Must be a getter method
+          // Not a getter method
+          continue;
+        }
+
+        boolean isStatic = Modifier.isStatic(method.getModifiers());
+        if (isStatic && !includeStatic) {
           continue;
         }
 
@@ -79,17 +110,33 @@ public abstract class DTLogTreeNode {
         if (!isValidName(name)) {
           name = method.getName() + "()";
         }
-        foundValidAnnotation = true;
-        children.add(new DTLogMethodNode(method, path + "/" + name));
+
+        if (isStatic) {
+          DTLogType<?> type = DTLogger.LOGGABLE_TYPES.get(method.getReturnType());
+          if (type != null) {
+            staticVars.add(new DTLogStaticVar(type, method.getDeclaringClass(), name, () -> {
+              try {
+                return method.invoke(null);
+              } catch (IllegalAccessException | IllegalArgumentException
+                  | InvocationTargetException e) {
+                e.printStackTrace();
+                return null;
+              }
+            }));
+          }
+        } else {
+          foundValidAnnotation = true;
+          children.add(new DTLogMethodNode(method, path + "/" + name));
+        }
       }
 
       clazz = clazz.getSuperclass();
     }
 
     // Init children
-    clazzTree.addFirst(getClass());
+    clazzTree.addFirst(getType());
     for (DTLogTreeNode child : children) {
-      child.init(clazzTree);
+      child.init(clazzTree, clazzes, staticVars);
     }
     clazzTree.removeFirst();
 
@@ -103,7 +150,7 @@ public abstract class DTLogTreeNode {
     }
   }
 
-  public void log(Object parent) {
+  void log(Object parent) {
     if (parent == null) {
       logNull();
       return;

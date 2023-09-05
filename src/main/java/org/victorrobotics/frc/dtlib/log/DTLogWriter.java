@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.Flushable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
@@ -245,22 +244,24 @@ public class DTLogWriter implements Closeable, Flushable {
   }
 
   @Override
-  public void flush() throws IOException {
-    int bufferPos = buffer.position();
-    long channelPos = -1;
-    buffer.flip();
+  public void flush() {
     try {
-      channelPos = channel.position();
-      channel.write(buffer);
-    } catch (ClosedChannelException e) {
-      throw e;
+      int bufferPos = buffer.position();
+      long channelPos = -1;
+      buffer.flip();
+      try {
+        channelPos = channel.position();
+        channel.write(buffer);
+      } catch (IOException e) {
+        // Error while writing, attempt to recover
+        buffer.limit(buffer.capacity());
+        buffer.position(bufferPos);
+        channel.position(channelPos);
+      }
+      buffer.compact();
     } catch (IOException e) {
-      // Error while writing, attempt to recover
-      buffer.limit(buffer.capacity());
-      buffer.position(bufferPos);
-      channel.position(channelPos);
+      e.printStackTrace();
     }
-    buffer.compact();
   }
 
   private boolean checkBuffer(int newDataLength) {
@@ -271,10 +272,7 @@ public class DTLogWriter implements Closeable, Flushable {
     }
 
     do {
-      try {
-        flush();
-      } catch (IOException e) {
-      }
+      flush();
       remaining = buffer.remaining();
     } while (remaining < newDataLength);
     return true;
