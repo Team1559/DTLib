@@ -1,12 +1,12 @@
 package org.victorrobotics.frc.dtlib.hardware.kauailabs;
 
-import org.victorrobotics.frc.dtlib.hardware.DT_InertialMeasurementUnit;
+import org.victorrobotics.frc.dtlib.hardware.DTInertialMeasurementUnit;
 
 import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.kauailabs.navx.frc.AHRS;
 
-public class DTNavX implements DT_InertialMeasurementUnit {
+public class DTNavX implements DTInertialMeasurementUnit {
   private final AHRS internal;
 
   public DTNavX() {
