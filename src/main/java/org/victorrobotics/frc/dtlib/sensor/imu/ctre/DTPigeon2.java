@@ -2,16 +2,36 @@ package org.victorrobotics.frc.dtlib.sensor.imu.ctre;
 
 import org.victorrobotics.frc.dtlib.sensor.imu.DTIMU;
 
-import com.ctre.phoenix.sensors.Pigeon2;
-import com.ctre.phoenix.sensors.Pigeon2_Faults;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.hardware.Pigeon2;
 
 public class DTPigeon2 implements DTIMU {
   private final Pigeon2 internal;
-  private final short[] rawAccelerations;
+
+  private StatusSignal<Double> yaw;
+  private StatusSignal<Double> pitch;
+  private StatusSignal<Double> roll;
+
+  private StatusSignal<Double> angularVelocityX;
+  private StatusSignal<Double> angularVelocityY;
+  private StatusSignal<Double> angularVelocityZ;
+
+  private StatusSignal<Double> accelerationX;
+  private StatusSignal<Double> accelerationY;
+  private StatusSignal<Double> accelerationZ;
+
+  private StatusSignal<Integer> faults;
 
   public DTPigeon2(int canID) {
-    internal = new Pigeon2(canID);
-    rawAccelerations = new short[3];
+    this(new Pigeon2(canID));
+  }
+
+  public DTPigeon2(int canID, String canBus) {
+    this(new Pigeon2(canID, canBus));
+  }
+
+  public DTPigeon2(Pigeon2 pigeon) {
+    internal = pigeon;
   }
 
   @Override
@@ -20,64 +40,114 @@ public class DTPigeon2 implements DTIMU {
   }
 
   @Override
-  public void close() throws Exception {
-    internal.DestroyObject();
+  public void close() {
+    internal.close();
   }
 
   @Override
   public double getYaw() {
-    return internal.getYaw();
+    if (yaw == null) {
+      yaw = internal.getYaw();
+    } else {
+      yaw.refresh();
+    }
+    return yaw.getValue()
+              .doubleValue();
   }
 
   @Override
   public double getPitch() {
-    return internal.getPitch();
+    if (pitch == null) {
+      pitch = internal.getPitch();
+    } else {
+      pitch.refresh();
+    }
+    return pitch.getValue()
+                .doubleValue();
   }
 
   @Override
   public double getRoll() {
-    return internal.getRoll();
+    if (roll == null) {
+      roll = internal.getRoll();
+    } else {
+      roll.refresh();
+    }
+    return roll.getValue()
+               .doubleValue();
   }
 
   @Override
   public String getFirmwareVersion() {
-    return Integer.toHexString(internal.getFirmwareVersion());
+    return Integer.toHexString(internal.getVersion()
+                                       .getValue()
+                                       .intValue());
+
   }
 
   @Override
   public void zeroYaw() {
-    internal.setYaw(0);
+    internal.setYaw(0, 0.005);
   }
 
   @Override
   public double getCompassHeading() {
-    return internal.getAbsoluteCompassHeading();
+    // TODO: revise API or solve implementation
+    throw new UnsupportedOperationException("Unimplemented method 'getCompassHeading'");
   }
 
   @Override
   public double[] getAngularVelocities() {
-    double[] angularVelocities = new double[3];
-    internal.getRawGyro(angularVelocities);
-    return angularVelocities;
+    if (angularVelocityX == null || angularVelocityY == null || angularVelocityZ == null) {
+      angularVelocityX = internal.getAngularVelocityX();
+      angularVelocityY = internal.getAngularVelocityY();
+      angularVelocityZ = internal.getAngularVelocityZ();
+    } else {
+      angularVelocityX.refresh();
+      angularVelocityY.refresh();
+      angularVelocityZ.refresh();
+    }
+
+    double[] result = new double[3];
+    result[0] = angularVelocityX.getValue()
+                                .doubleValue();
+    result[1] = angularVelocityY.getValue()
+                                .doubleValue();
+    result[2] = angularVelocityZ.getValue()
+                                .doubleValue();
+    return result;
   }
 
   @Override
   public double[] getAccelerations() {
-    internal.getBiasedAccelerometer(rawAccelerations);
-    double[] accelerations = new double[3];
-    accelerations[0] = parseRawAcceleration(rawAccelerations[0]);
-    accelerations[1] = parseRawAcceleration(rawAccelerations[1]);
-    accelerations[2] = parseRawAcceleration(rawAccelerations[2]);
-    return accelerations;
+    if (accelerationX == null || accelerationY == null || accelerationZ == null) {
+      accelerationX = internal.getAccelerationX();
+      accelerationY = internal.getAccelerationY();
+      accelerationZ = internal.getAccelerationZ();
+    } else {
+      accelerationX.refresh();
+      accelerationY.refresh();
+      accelerationZ.refresh();
+    }
+
+    double[] result = new double[3];
+    result[0] = accelerationX.getValue()
+                             .doubleValue();
+    result[1] = accelerationY.getValue()
+                             .doubleValue();
+    result[2] = accelerationZ.getValue()
+                             .doubleValue();
+    return result;
   }
 
-  private static double parseRawAcceleration(short raw) {
-    return raw / 16384D;
-  }
+  public int getFaults() {
+    if (faults == null) {
+      faults = internal.getFaultField();
+    } else {
+      faults.refresh();
+    }
 
-  public Pigeon2_Faults getFaults() {
-    Pigeon2_Faults faults = new Pigeon2_Faults();
-    internal.getFaults(faults);
-    return faults;
+    return faults.getValue()
+                 .intValue();
   }
 }
