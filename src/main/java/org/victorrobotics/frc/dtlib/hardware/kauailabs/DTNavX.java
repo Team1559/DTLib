@@ -1,12 +1,12 @@
-package org.victorrobotics.frc.dtlib.sensor.imu.kauailabs;
+package org.victorrobotics.frc.dtlib.hardware.kauailabs;
 
-import org.victorrobotics.frc.dtlib.sensor.imu.DTIMU;
+import org.victorrobotics.frc.dtlib.hardware.DT_InertialMeasurementUnit;
 
 import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.kauailabs.navx.frc.AHRS;
 
-public class DTNavX implements DTIMU {
+public class DTNavX implements DT_InertialMeasurementUnit {
   private final AHRS internal;
 
   public DTNavX() {

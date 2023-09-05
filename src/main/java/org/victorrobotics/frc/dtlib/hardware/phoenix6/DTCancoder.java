@@ -1,7 +1,7 @@
-package org.victorrobotics.frc.dtlib.sensor.encoder.ctre;
+package org.victorrobotics.frc.dtlib.hardware.phoenix6;
 
-import org.victorrobotics.frc.dtlib.sensor.encoder.DTAbsoluteEncoder;
-import org.victorrobotics.frc.dtlib.sensor.encoder.DTAbsoluteEncoderFaults;
+import org.victorrobotics.frc.dtlib.hardware.DTAbsoluteEncoder;
+import org.victorrobotics.frc.dtlib.hardware.DTAbsoluteEncoderFaults;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 
@@ -11,7 +11,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
-public class DTCANCoder implements DTAbsoluteEncoder {
+public class DTCancoder implements DTAbsoluteEncoder {
   private final CANcoder internal;
 
   private StatusSignal<Double> position;
@@ -21,15 +21,15 @@ public class DTCANCoder implements DTAbsoluteEncoder {
   private DTCANCoderFaults faults;
   private String firmwareVersion;
 
-  public DTCANCoder(CANcoder cancoder) {
+  public DTCancoder(CANcoder cancoder) {
     internal = cancoder;
   }
 
-  public DTCANCoder(int canID) {
+  public DTCancoder(int canID) {
     this(new CANcoder(canID));
   }
 
-  public DTCANCoder(int canID, String canBus) {
+  public DTCancoder(int canID, String canBus) {
     this(new CANcoder(canID, canBus));
   }
 

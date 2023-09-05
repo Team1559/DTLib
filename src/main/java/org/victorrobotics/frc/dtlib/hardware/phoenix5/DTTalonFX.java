@@ -1,8 +1,8 @@
-package org.victorrobotics.frc.dtlib.actuator.motor.ctre;
+package org.victorrobotics.frc.dtlib.hardware.phoenix5;
 
-import org.victorrobotics.frc.dtlib.actuator.motor.DTMotor;
-import org.victorrobotics.frc.dtlib.actuator.motor.DTMotorFaults;
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.frc.dtlib.hardware.DTMotor;
+import org.victorrobotics.frc.dtlib.hardware.DTMotorFaults;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;

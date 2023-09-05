@@ -1,8 +1,8 @@
-package org.victorrobotics.frc.dtlib.actuator.motor.ctre;
+package org.victorrobotics.frc.dtlib.hardware.phoenix6;
 
-import org.victorrobotics.frc.dtlib.actuator.motor.DTMotor;
-import org.victorrobotics.frc.dtlib.actuator.motor.DTMotorFaults;
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.frc.dtlib.hardware.DTMotor;
+import org.victorrobotics.frc.dtlib.hardware.DTMotorFaults;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 
@@ -23,7 +23,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import org.ejml.simple.UnsupportedOperation;
 
-public class DTTalonFX_v6 implements DTMotor {
+public class DTTalonFX implements DTMotor {
   private static final double MAX_VELOCITY_RPM = 6380;
   private static final double STALL_TORQUE     = 4.69;
 
@@ -39,15 +39,15 @@ public class DTTalonFX_v6 implements DTMotor {
   private String          firmwareVersion;
   private int             pidSlot;
 
-  public DTTalonFX_v6(TalonFX motor) {
+  public DTTalonFX(TalonFX motor) {
     internal = motor;
   }
 
-  public DTTalonFX_v6(int canID) {
+  public DTTalonFX(int canID) {
     this(new TalonFX(canID));
   }
 
-  public DTTalonFX_v6(int canID, String canBus) {
+  public DTTalonFX(int canID, String canBus) {
     this(new TalonFX(canID, canBus));
   }
 

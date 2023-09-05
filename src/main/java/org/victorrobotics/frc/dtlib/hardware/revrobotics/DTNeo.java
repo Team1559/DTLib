@@ -1,8 +1,8 @@
-package org.victorrobotics.frc.dtlib.actuator.motor.revrobotics;
+package org.victorrobotics.frc.dtlib.hardware.revrobotics;
 
-import org.victorrobotics.frc.dtlib.actuator.motor.DTMotor;
-import org.victorrobotics.frc.dtlib.actuator.motor.DTMotorFaults;
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.frc.dtlib.hardware.DTMotor;
+import org.victorrobotics.frc.dtlib.hardware.DTMotorFaults;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
