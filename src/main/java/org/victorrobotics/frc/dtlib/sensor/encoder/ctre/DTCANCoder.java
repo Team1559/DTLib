@@ -19,6 +19,7 @@ public class DTCANCoder implements DTAbsoluteEncoder {
   private StatusSignal<Double> velocity;
 
   private DTCANCoderFaults faults;
+  private String firmwareVersion;
 
   public DTCANCoder(CANcoder cancoder) {
     internal = cancoder;
@@ -124,9 +125,21 @@ public class DTCANCoder implements DTAbsoluteEncoder {
 
   @Override
   public String getFirmwareVersion() {
-    return Integer.toHexString(internal.getVersion()
-                                       .getValue()
-                                       .intValue());
+    if (firmwareVersion == null) {
+      int version = internal.getVersion()
+                            .getValue()
+                            .intValue();
+      StringBuilder builder = new StringBuilder();
+      builder.append(version >> 24);
+      builder.append('.');
+      builder.append((version >> 16) & 0xFF);
+      builder.append('.');
+      builder.append((version >> 8) & 0xFF);
+      builder.append('.');
+      builder.append(version & 0xFF);
+      firmwareVersion = builder.toString();
+    }
+    return firmwareVersion;
   }
 
   @Override

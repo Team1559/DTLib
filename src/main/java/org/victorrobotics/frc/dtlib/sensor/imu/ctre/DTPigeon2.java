@@ -21,6 +21,7 @@ public class DTPigeon2 implements DTIMU {
   private StatusSignal<Double> accelerationZ;
 
   private StatusSignal<Integer> faults;
+  private String firmwareVersion;
 
   public DTPigeon2(int canID) {
     this(new Pigeon2(canID));
@@ -79,9 +80,21 @@ public class DTPigeon2 implements DTIMU {
 
   @Override
   public String getFirmwareVersion() {
-    return Integer.toHexString(internal.getVersion()
-                                       .getValue()
-                                       .intValue());
+    if (firmwareVersion == null) {
+      int version = internal.getVersion()
+                            .getValue()
+                            .intValue();
+      StringBuilder builder = new StringBuilder();
+      builder.append(version >> 24);
+      builder.append('.');
+      builder.append((version >> 16) & 0xFF);
+      builder.append('.');
+      builder.append((version >> 8) & 0xFF);
+      builder.append('.');
+      builder.append(version & 0xFF);
+      firmwareVersion = builder.toString();
+    }
+    return firmwareVersion;
 
   }
 

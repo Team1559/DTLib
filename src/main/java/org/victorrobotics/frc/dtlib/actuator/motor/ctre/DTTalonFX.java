@@ -2,6 +2,7 @@ package org.victorrobotics.frc.dtlib.actuator.motor.ctre;
 
 import org.victorrobotics.frc.dtlib.actuator.motor.DTMotor;
 import org.victorrobotics.frc.dtlib.actuator.motor.DTMotorFaults;
+import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
@@ -10,6 +11,7 @@ import com.ctre.phoenix.motorcontrol.Faults;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+import com.ctre.phoenix.motorcontrol.can.SlotConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
@@ -20,17 +22,8 @@ public class DTTalonFX implements DTMotor {
   private static final double STALL_TORQUE       = 4.69;
 
   private final WPI_TalonFX internal;
-  private final int         deviceID;
 
   private String firmwareVersion;
-
-  private double pidP;
-  private double pidI;
-  private double pidD;
-  private double pidF;
-  private double pidIZ;
-
-  private boolean brakeEnabled;
 
   public DTTalonFX(int canID) {
     this(canID, "");
@@ -39,7 +32,6 @@ public class DTTalonFX implements DTMotor {
   public DTTalonFX(int canID, String canBus) {
     internal = new WPI_TalonFX(canID, canBus);
     SendableRegistry.remove(internal);
-    deviceID = canID;
   }
 
   @Override
@@ -50,7 +42,6 @@ public class DTTalonFX implements DTMotor {
   @Override
   public void configBrakeMode(boolean enable) {
     internal.setNeutralMode(enable ? NeutralMode.Brake : NeutralMode.Coast);
-    brakeEnabled = enable;
   }
 
   @Override
@@ -73,45 +64,38 @@ public class DTTalonFX implements DTMotor {
   }
 
   @Override
-  public void configPIDproportional(double coefficient) {
-    internal.config_kP(0, coefficient);
-    pidP = coefficient;
-  }
+  public void configPID(int slot, double proportional, double integral, double derivative, double velocityFF,
+      double staticFF, double integralZone) {
+    if (slot < 0 || slot > 3) {
+      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+    }
 
-  @Override
-  public void configPIDintegral(double coefficient) {
-    internal.config_kI(0, coefficient);
-    pidI = coefficient;
-  }
-
-  @Override
-  public void configPIDderivative(double coefficient) {
-    internal.config_kD(0, coefficient);
-    pidD = coefficient;
-  }
-
-  @Override
-  public void configPIDfeedforward(double coefficient) {
-    internal.config_kF(0, coefficient);
-    pidF = coefficient;
-  }
-
-  @Override
-  public void configPIDintegralZone(double iZone) {
-    internal.config_IntegralZone(0, iZone);
-    pidIZ = iZone;
+    // velocityFF unused
+    if (Double.isFinite(proportional)) {
+      internal.config_kP(slot, proportional);
+    }
+    if (Double.isFinite(integral)) {
+      internal.config_kI(slot, integral);
+    }
+    if (Double.isFinite(derivative)) {
+      internal.config_kD(slot, derivative);
+    }
+    if (Double.isFinite(staticFF)) {
+      internal.config_kF(slot, staticFF);
+    }
+    if (Double.isFinite(integralZone)) {
+      internal.config_IntegralZone(slot, integralZone);
+    }
   }
 
   @Override
   public void configCurrentLimit(int maxSupplyCurrent) {
-    internal.configSupplyCurrentLimit(
-        new SupplyCurrentLimitConfiguration(true, maxSupplyCurrent, maxSupplyCurrent, 0));
+    internal.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, maxSupplyCurrent, maxSupplyCurrent, 0));
   }
 
-  public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit,
-      double peakDuration) {
-    internal.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, baseCurrentLimit,
-        peakCurrentLimit, peakDuration));
+  public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit, double peakDuration) {
+    internal.configSupplyCurrentLimit(
+        new SupplyCurrentLimitConfiguration(true, baseCurrentLimit, peakCurrentLimit, peakDuration));
   }
 
   public void configAllSettings(TalonFXConfiguration config) {
@@ -121,36 +105,6 @@ public class DTTalonFX implements DTMotor {
   @Override
   public boolean isOutputInverted() {
     return internal.getInverted();
-  }
-
-  @Override
-  public boolean isBrakeEnabled() {
-    return brakeEnabled;
-  }
-
-  @Override
-  public double getPIDproportional() {
-    return pidP;
-  }
-
-  @Override
-  public double getPIDintegral() {
-    return pidI;
-  }
-
-  @Override
-  public double getPIDderivative() {
-    return pidD;
-  }
-
-  @Override
-  public double getPIDfeedforward() {
-    return pidF;
-  }
-
-  @Override
-  public double getPIDintegralZone() {
-    return pidIZ;
   }
 
   @Override
@@ -228,11 +182,6 @@ public class DTTalonFX implements DTMotor {
   }
 
   @Override
-  public int getCanID() {
-    return deviceID;
-  }
-
-  @Override
   public double getInputVoltage() {
     return internal.getBusVoltage();
   }
@@ -300,5 +249,44 @@ public class DTTalonFX implements DTMotor {
   @Override
   public double getStallTorque() {
     return STALL_TORQUE;
+  }
+
+  @Override
+  public void setPIDSlot(int slot) {
+    if (slot < 0 || slot > 3) {
+      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+    }
+    internal.selectProfileSlot(slot, 0);
+  }
+
+  @Override
+  public double[] getPIDConstants(int slot) {
+    if (slot < 0 || slot > 3) {
+      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+    }
+    TalonFXConfiguration allConfigs = new TalonFXConfiguration();
+    internal.getAllConfigs(allConfigs);
+    SlotConfiguration config;
+    switch (slot) {
+      case 0:
+        config = allConfigs.slot0;
+        break;
+      case 1:
+        config = allConfigs.slot1;
+        break;
+      case 2:
+        config = allConfigs.slot2;
+        break;
+      default:
+        config = allConfigs.slot3;
+    }
+    double[] result = new double[6];
+    result[0] = config.kP;
+    result[1] = config.kI;
+    result[2] = config.kD;
+    result[3] = Double.NaN; // no velocityFF
+    result[4] = config.kF;
+    result[5] = config.integralZone;
+    return result;
   }
 }
