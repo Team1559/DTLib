@@ -1,4 +1,6 @@
 ﻿# DTLib
+[![Gradle Build & Test](https://github.com/Team1559/DTLib/actions/workflows/gradle.yml/badge.svg)](https://github.com/Team1559/DTLib/actions/workflows/gradle.yml)
+
 DTLib is an extension of [WPILib](https://github.com/wpilibsuite/allwpilib) designed by FRC Team 1559 for the [FIRST Robotics Competition](http://firstinspires.org/robotics/frc). It adds features that we felt were lacking, as well as improving code reusability and maintainability. The primary motivation behind this project is to ensure the software team can get up and running before the robot is fully assembled (or even designed).
 
 ## License
@@ -21,8 +23,7 @@ The project can be built as-is using the included Gradle wrapper, and all requir
 * *Building on Windows systems:* `gradlew build`
 
 ## Usage
-
-**Units**
+### Units
 Unless explicitly specified in documentation, all units used within this library are *metric*. Typical units utilized include the following:
 * Frequency: *hertz*
 * Time: *seconds, microseconds, robot program cycles*
@@ -40,10 +41,8 @@ Unless explicitly specified in documentation, all units used within this library
 
 ## Authors
 
-*Students*
-
+### Students
 [@MathNerd28](https://github.com/MathNerd28) - Alexander Bhalla, [Team 1559](https://github.com/Team1559/)
 
-*Mentors*
-
+### Mentors
 [@mmarchetti](https://github.com/mmarchetti) - Mike Marchetti, [Team 1559](https://github.com/Team1559/)
