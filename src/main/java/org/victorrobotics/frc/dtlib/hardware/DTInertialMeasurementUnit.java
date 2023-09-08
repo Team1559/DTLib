@@ -1,9 +1,9 @@
-package org.victorrobotics.frc.dtlib.sensor.imu;
+package org.victorrobotics.frc.dtlib.hardware;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 
-public interface DTIMU extends Sendable, AutoCloseable {
+public interface DTInertialMeasurementUnit extends Sendable, AutoCloseable {
   Object getImuImpl();
 
   double getYaw();

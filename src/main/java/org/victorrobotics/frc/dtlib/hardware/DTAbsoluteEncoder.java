@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.sensor.encoder;
+package org.victorrobotics.frc.dtlib.hardware;
 
 import org.victorrobotics.frc.dtlib.network.DTSendable;
 
