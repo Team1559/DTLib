@@ -1,5 +1,9 @@
 package org.victorrobotics.frc.dtlib.math.spline;
 
-public interface DTCurveControl {
-  int getModCount();
+public abstract class DTCurveControl {
+  protected int modCount;
+
+  public int getModCount() {
+    return modCount;
+  }
 }

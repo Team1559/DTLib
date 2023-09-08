@@ -2,11 +2,10 @@ package org.victorrobotics.frc.dtlib.math.spline;
 
 import org.victorrobotics.frc.dtlib.math.geometry.DTVector2DR;
 
-public class DTQuinticBezierControl implements DTCurveControl {
+public class DTQuinticBezierControl extends DTCurveControl {
   private final DTVector2DR p0;
   private final DTVector2DR p1;
   private final DTVector2DR p2;
-  private int               modCount;
 
   public DTQuinticBezierControl() {
     p0 = new DTVector2DR();
@@ -18,11 +17,6 @@ public class DTQuinticBezierControl implements DTCurveControl {
     this.p0 = p0;
     this.p1 = p1;
     this.p2 = p2;
-  }
-
-  @Override
-  public int getModCount() {
-    return modCount;
   }
 
   public DTVector2DR getP0() {
