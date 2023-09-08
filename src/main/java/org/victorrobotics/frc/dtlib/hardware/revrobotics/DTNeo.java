@@ -1,7 +1,8 @@
-package org.victorrobotics.frc.dtlib.actuator.motor.revrobotics;
+package org.victorrobotics.frc.dtlib.hardware.revrobotics;
 
-import org.victorrobotics.frc.dtlib.actuator.motor.DTMotor;
-import org.victorrobotics.frc.dtlib.actuator.motor.DTMotorFaults;
+import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.frc.dtlib.hardware.DTMotor;
+import org.victorrobotics.frc.dtlib.hardware.DTMotorFaults;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
@@ -16,10 +17,10 @@ public class DTNeo implements DTMotor {
   private final CANSparkMax           internal;
   private final SparkMaxPIDController pidController;
   private final RelativeEncoder       encoder;
-  private final int                   deviceID;
+
+  private int pidSlot;
 
   public DTNeo(int canID) {
-    deviceID = canID;
     internal = new CANSparkMax(canID, MotorType.kBrushless);
     pidController = internal.getPIDController();
     encoder = internal.getEncoder();
@@ -33,11 +34,6 @@ public class DTNeo implements DTMotor {
   @Override
   public CANSparkMax getMotorImpl() {
     return internal;
-  }
-
-  @Override
-  public int getCanID() {
-    return deviceID;
   }
 
   @Override
@@ -61,31 +57,6 @@ public class DTNeo implements DTMotor {
   }
 
   @Override
-  public void configPIDproportional(double proportional) {
-    pidController.setP(proportional);
-  }
-
-  @Override
-  public void configPIDintegral(double integral) {
-    pidController.setI(integral);
-  }
-
-  @Override
-  public void configPIDderivative(double derivative) {
-    pidController.setD(derivative);
-  }
-
-  @Override
-  public void configPIDfeedforward(double feedforward) {
-    pidController.setFF(feedforward);
-  }
-
-  @Override
-  public void configPIDintegralZone(double iZone) {
-    pidController.setIZone(iZone);
-  }
-
-  @Override
   public void configCurrentLimit(int maxCurrentDraw) {
     internal.setSmartCurrentLimit(maxCurrentDraw, maxCurrentDraw);
   }
@@ -96,33 +67,48 @@ public class DTNeo implements DTMotor {
   }
 
   @Override
-  public boolean isBrakeEnabled() {
-    return internal.getIdleMode() == CANSparkMax.IdleMode.kBrake;
+  public void configPID(int slot, double proportional, double integral, double derivative, double velocityFF,
+      double staticFF, double integralZone) {
+    if (slot < 0 || slot > 3) {
+      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+    }
+
+    // No velocityFF
+    if (Double.isFinite(proportional)) {
+      pidController.setP(proportional, slot);
+    }
+    if (Double.isFinite(integral)) {
+      pidController.setI(integral, slot);
+    }
+    if (Double.isFinite(derivative)) {
+      pidController.setD(derivative, slot);
+    }
+    if (Double.isFinite(staticFF)) {
+      pidController.setFF(staticFF, slot);
+    }
+    if (Double.isFinite(integralZone)) {
+      pidController.setIZone(integralZone, slot);
+    }
   }
 
   @Override
-  public double getPIDproportional() {
-    return pidController.getP();
+  public void setPIDSlot(int slot) {
+    if (slot < 0 || slot > 3) {
+      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+    }
+    pidSlot = slot;
   }
 
   @Override
-  public double getPIDintegral() {
-    return pidController.getI();
-  }
-
-  @Override
-  public double getPIDderivative() {
-    return pidController.getD();
-  }
-
-  @Override
-  public double getPIDfeedforward() {
-    return pidController.getFF();
-  }
-
-  @Override
-  public double getPIDintegralZone() {
-    return pidController.getIZone();
+  public double[] getPIDConstants(int slot) {
+    double[] result = new double[6];
+    result[0] = pidController.getP(slot);
+    result[1] = pidController.getI(slot);
+    result[2] = pidController.getD(slot);
+    result[3] = Double.NaN;
+    result[4] = pidController.getFF(slot);
+    result[5] = pidController.getIZone(slot);
+    return result;
   }
 
   @Override
@@ -132,12 +118,12 @@ public class DTNeo implements DTMotor {
 
   @Override
   public void setPosition(double position) {
-    encoder.setPosition(position);
+    pidController.setReference(position, ControlType.kPosition, pidSlot);
   }
 
   @Override
   public void setVelocity(double velocity) {
-    pidController.setReference(velocity, ControlType.kVelocity);
+    pidController.setReference(velocity, ControlType.kVelocity, pidSlot);
   }
 
   @Override

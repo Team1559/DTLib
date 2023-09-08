@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.actuator.motor;
+package org.victorrobotics.frc.dtlib.hardware;
 
 public interface DTMotorFaults {
   boolean hasAnyFault();

@@ -1,27 +1,24 @@
-package org.victorrobotics.frc.dtlib.sensor.encoder.ctre;
+package org.victorrobotics.frc.dtlib.hardware.phoenix5;
 
-import org.victorrobotics.frc.dtlib.sensor.encoder.DTAbsoluteEncoder;
-import org.victorrobotics.frc.dtlib.sensor.encoder.DTAbsoluteEncoderFaults;
+import org.victorrobotics.frc.dtlib.hardware.DTAbsoluteEncoder;
+import org.victorrobotics.frc.dtlib.hardware.DTAbsoluteEncoderFaults;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.simulation.EncoderSim;
 
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderFaults;
 
-public class DTCANCoder implements DTAbsoluteEncoder {
+public class DTCancoder implements DTAbsoluteEncoder {
   private final CANCoder internal;
 
   private String firmwareVersion;
 
-  public DTCANCoder(int canID) {
+  public DTCancoder(int canID) {
     this(canID, "");
   }
 
-  public DTCANCoder(int canID, String canBus) {
+  public DTCancoder(int canID, String canBus) {
     internal = new CANCoder(canID, canBus);
   }
 
