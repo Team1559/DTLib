@@ -1,7 +1,6 @@
 package org.victorrobotics.frc.dtlib.drivetrain;
 
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.frc.dtlib.math.geometry.DTVector2DR;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -40,13 +39,11 @@ public final class DTAccelerationLimit {
     if (!Double.isNaN(maxAccelTranslationPerCycle)) {
       Translation2d oldTranslation = new Translation2d(previousSpeeds.vxMetersPerSecond,
           previousSpeeds.vyMetersPerSecond);
-      Translation2d newTranslation = new Translation2d(newSpeeds.vxMetersPerSecond,
-          newSpeeds.vyMetersPerSecond);
+      Translation2d newTranslation = new Translation2d(newSpeeds.vxMetersPerSecond, newSpeeds.vyMetersPerSecond);
       Translation2d translationAccel = newTranslation.minus(oldTranslation);
       double translationAccelMagnitude = translationAccel.getNorm();
       if (translationAccelMagnitude > maxAccelTranslationPerCycle) {
-        translationAccel = translationAccel.times(
-            maxAccelTranslationPerCycle / translationAccelMagnitude);
+        translationAccel = translationAccel.times(maxAccelTranslationPerCycle / translationAccelMagnitude);
         newSpeeds.vxMetersPerSecond = previousSpeeds.vxMetersPerSecond + translationAccel.getX();
         newSpeeds.vyMetersPerSecond = previousSpeeds.vyMetersPerSecond + translationAccel.getY();
         changed = true;
@@ -54,15 +51,12 @@ public final class DTAccelerationLimit {
     }
 
     if (!Double.isNaN(maxAccelRotationPerCycle)) {
-      double rotationAccelMagnitude = newSpeeds.omegaRadiansPerSecond
-          - previousSpeeds.omegaRadiansPerSecond;
+      double rotationAccelMagnitude = newSpeeds.omegaRadiansPerSecond - previousSpeeds.omegaRadiansPerSecond;
       if (rotationAccelMagnitude > maxAccelRotationPerCycle) {
-        newSpeeds.omegaRadiansPerSecond = previousSpeeds.omegaRadiansPerSecond
-            + maxAccelRotationPerCycle;
+        newSpeeds.omegaRadiansPerSecond = previousSpeeds.omegaRadiansPerSecond + maxAccelRotationPerCycle;
         changed = true;
       } else if (rotationAccelMagnitude < -maxAccelRotationPerCycle) {
-        newSpeeds.omegaRadiansPerSecond = previousSpeeds.omegaRadiansPerSecond
-            - maxAccelRotationPerCycle;
+        newSpeeds.omegaRadiansPerSecond = previousSpeeds.omegaRadiansPerSecond - maxAccelRotationPerCycle;
         changed = true;
       }
     }

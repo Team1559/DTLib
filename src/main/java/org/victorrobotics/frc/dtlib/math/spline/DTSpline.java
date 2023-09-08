@@ -8,84 +8,84 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 public abstract class DTSpline<T extends DTCurve> implements Iterable<T> {
-    protected final List<T> segments;
+  protected final List<T> segments;
 
-    protected DTSpline() {
-        segments = new ArrayList<>();
+  protected DTSpline() {
+    segments = new ArrayList<>();
+  }
+
+  protected DTSpline(T segment) {
+    segments = new ArrayList<>();
+    segments.add(segment);
+  }
+
+  public abstract T splitSegment(int index, double t);
+
+  public T split(double u) {
+    if (segments.isEmpty() || !Double.isFinite(u) || u < 0 || u >= segments.size()) {
+      return null;
     }
 
-    protected DTSpline(T segment) {
-        segments = new ArrayList<>();
-        segments.add(segment);
+    int index = (int) u;
+    return splitSegment(index, u % 1);
+  }
+
+  protected DTVector2DR get(double u, BiFunction<T, Double, DTVector2DR> func) {
+    if (segments.isEmpty() || !Double.isFinite(u)) {
+      return null;
+    } else if (u < 0) {
+      return func.apply(segments.get(0), 0D);
+    } else if (u >= segments.size()) {
+      return func.apply(segments.get(segments.size() - 1), 1D);
     }
 
-    public abstract T splitSegment(int index, double t);
+    int index = (int) u;
+    u %= 1;
+    return func.apply(segments.get(index), u);
+  }
 
-    public T split(double u) {
-        if (segments.isEmpty() || !Double.isFinite(u) || u < 0 || u >= segments.size()) {
-            return null;
-        }
+  public DTVector2DR getPosition(double u) {
+    return get(u, DTCurve::getPosition);
+  }
 
-        int index = (int) u;
-        return splitSegment(index, u % 1);
-    }
+  public DTVector2DR getVelocity(double u) {
+    return get(u, DTCurve::getVelocity);
+  }
 
-    protected DTVector2DR get(double u, BiFunction<T, Double, DTVector2DR> func) {
-        if (segments.isEmpty() || !Double.isFinite(u)) {
-            return null;
-        } else if (u < 0) {
-            return func.apply(segments.get(0), 0D);
-        } else if (u >= segments.size()) {
-            return func.apply(segments.get(segments.size() - 1), 1D);
-        }
+  public DTVector2DR getAcceleration(double u) {
+    return get(u, DTCurve::getAcceleration);
+  }
 
-        int index = (int) u;
-        u %= 1;
-        return func.apply(segments.get(index), u);
-    }
+  public DTVector2DR getJolt(double u) {
+    return get(u, DTCurve::getJolt);
+  }
 
-    public DTVector2DR getPosition(double u) {
-        return get(u, DTCurve::getPosition);
-    }
+  public List<T> getSegments() {
+    return List.copyOf(segments);
+  }
 
-    public DTVector2DR getVelocity(double u) {
-        return get(u, DTCurve::getVelocity);
-    }
+  public int length() {
+    return segments.size();
+  }
 
-    public DTVector2DR getAcceleration(double u) {
-        return get(u, DTCurve::getAcceleration);
-    }
+  public T getSegment(int index) {
+    return segments.get(index);
+  }
 
-    public DTVector2DR getJolt(double u) {
-        return get(u, DTCurve::getJolt);
-    }
+  public T removeFirstSegment() {
+    return segments.isEmpty() ? null : segments.remove(0);
+  }
 
-    public List<T> getSegments() {
-        return List.copyOf(segments);
-    }
+  public T removeLastSegment() {
+    return segments.isEmpty() ? null : segments.remove(segments.size() - 1);
+  }
 
-    public int length() {
-        return segments.size();
-    }
+  public void clear() {
+    segments.clear();
+  }
 
-    public T getSegment(int index) {
-        return segments.get(index);
-    }
-
-    public T removeFirstSegment() {
-        return segments.isEmpty() ? null : segments.remove(0);
-    }
-
-    public T removeLastSegment() {
-        return segments.isEmpty() ? null : segments.remove(segments.size() - 1);
-    }
-
-    public void clear() {
-        segments.clear();
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return segments.iterator();
-    }
+  @Override
+  public Iterator<T> iterator() {
+    return segments.iterator();
+  }
 }
