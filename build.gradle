@@ -11,9 +11,6 @@ plugins {
   id "edu.wpi.first.GradleRIO" version "2023.4.3"
 }
 
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
-
 version = '0.1'
 
 repositories {
@@ -44,6 +41,9 @@ test {
 }
 
 java {
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+
   withSourcesJar()
 }
 
