@@ -36,7 +36,7 @@ public class DTTalonFX implements DTMotor {
   private StatusSignal<Double> temperature;
 
   private DTTalonFXFaults faults;
-  private String          firmwareVersion;
+  private String          firmware;
   private int             pidSlot;
 
   public DTTalonFX(TalonFX motor) {
@@ -319,21 +319,20 @@ public class DTTalonFX implements DTMotor {
 
   @Override
   public String getFirmwareVersion() {
-    if (firmwareVersion == null) {
-      int version = internal.getVersion()
-                            .getValue()
-                            .intValue();
-      StringBuilder builder = new StringBuilder();
-      builder.append(version >> 24);
-      builder.append('.');
-      builder.append((version >> 16) & 0xFF);
-      builder.append('.');
-      builder.append((version >> 8) & 0xFF);
-      builder.append('.');
-      builder.append(version & 0xFF);
-      firmwareVersion = builder.toString();
+    if (firmware == null) {
+      int v = internal.getVersion()
+                      .getValue()
+                      .intValue();
+      firmware = new StringBuilder().append((v >> 24) & 0xFF)
+                                    .append('.')
+                                    .append((v >> 16) & 0xFF)
+                                    .append('.')
+                                    .append((v >> 8) & 0xFF)
+                                    .append('.')
+                                    .append(v & 0xFF)
+                                    .toString();
     }
-    return firmwareVersion;
+    return firmware;
   }
 
   @Override

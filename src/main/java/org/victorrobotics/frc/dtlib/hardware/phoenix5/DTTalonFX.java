@@ -2,7 +2,6 @@ package org.victorrobotics.frc.dtlib.hardware.phoenix5;
 
 import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.frc.dtlib.hardware.DTMotor;
-import org.victorrobotics.frc.dtlib.hardware.DTMotorFaults;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
@@ -23,7 +22,7 @@ public class DTTalonFX implements DTMotor {
 
   private final WPI_TalonFX internal;
 
-  private String firmwareVersion;
+  private String firmware;
 
   public DTTalonFX(int canID) {
     this(canID, "");
@@ -156,19 +155,22 @@ public class DTTalonFX implements DTMotor {
     return internal.getSelectedSensorVelocity() / TICKS_PER_REV * 10 * SECONDS_PER_MINUTE;
   }
 
-  public DTTalonFXFaults getFaults() {
+  public DTTalonFaults getFaults() {
     Faults faults = new Faults();
     internal.getFaults(faults);
-    return new DTTalonFXFaults(faults);
+    return new DTTalonFaults(faults);
   }
 
   @Override
   public String getFirmwareVersion() {
-    if (firmwareVersion == null) {
-      int version = internal.getFirmwareVersion();
-      firmwareVersion = (version >> 8) + "." + (version & 0xFF);
+    if (firmware == null) {
+      int v = internal.getFirmwareVersion();
+      firmware = new StringBuilder().append((v >> 8) & 0xFF)
+                                    .append('.')
+                                    .append(v & 0xFF)
+                                    .toString();
     }
-    return firmwareVersion;
+    return firmware;
   }
 
   @Override
@@ -184,61 +186,6 @@ public class DTTalonFX implements DTMotor {
   @Override
   public double getInputVoltage() {
     return internal.getBusVoltage();
-  }
-
-  public static class DTTalonFXFaults implements DTMotorFaults {
-    private static final int OTHER_FAULTS_MASK = 0b00111111_10000000;
-
-    private final Faults internal;
-
-    DTTalonFXFaults(Faults internal) {
-      this.internal = internal;
-    }
-
-    @Override
-    public boolean hasAnyFault() {
-      return internal.hasAnyFault();
-    }
-
-    @Override
-    public boolean lowVoltage() {
-      return internal.UnderVoltage;
-    }
-
-    @Override
-    public boolean other() {
-      return (internal.toBitfield() & OTHER_FAULTS_MASK) != 0;
-    }
-
-    @Override
-    public boolean softLimitForward() {
-      return internal.ForwardSoftLimit;
-    }
-
-    @Override
-    public boolean softLimitReverse() {
-      return internal.ReverseSoftLimit;
-    }
-
-    @Override
-    public boolean hardLimitForward() {
-      return internal.ForwardLimitSwitch;
-    }
-
-    @Override
-    public boolean hardLimitReverse() {
-      return internal.ReverseLimitSwitch;
-    }
-
-    @Override
-    public boolean hasReset() {
-      return internal.ResetDuringEn;
-    }
-
-    @Override
-    public boolean hardwareFailure() {
-      return internal.HardwareFailure;
-    }
   }
 
   @Override

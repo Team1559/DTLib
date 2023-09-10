@@ -12,7 +12,7 @@ import com.ctre.phoenix.sensors.CANCoderFaults;
 public class DTCancoder implements DTAbsoluteEncoder {
   private final CANCoder internal;
 
-  private String firmwareVersion;
+  private String firmware;
 
   public DTCancoder(int canID) {
     this(canID, "");
@@ -84,11 +84,14 @@ public class DTCancoder implements DTAbsoluteEncoder {
 
   @Override
   public String getFirmwareVersion() {
-    if (firmwareVersion == null) {
-      int version = internal.getFirmwareVersion();
-      firmwareVersion = (version >> 8) + "." + (version & 0xFF);
+    if (firmware == null) {
+      int v = internal.getFirmwareVersion();
+      firmware = new StringBuilder().append((v >> 8) & 0xFF)
+                                    .append('.')
+                                    .append(v & 0xFF)
+                                    .toString();
     }
-    return firmwareVersion;
+    return firmware;
   }
 
   @Override
