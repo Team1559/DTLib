@@ -6,74 +6,74 @@
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-    id 'java-library'
-    id 'maven-publish'
-    id "edu.wpi.first.GradleRIO" version "2023.4.3"
+  id 'java-library'
+  id 'maven-publish'
+  id "edu.wpi.first.GradleRIO" version "2023.4.3"
 }
-
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
 
 version = '0.1'
 
 repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
+  // Use Maven Central for resolving dependencies.
+  mavenCentral()
 
-    // Custom repo endpoints
-    maven { url "https://maven.ctr-electronics.com/release/" }
-    maven { url "https://maven.photonvision.org/repository/internal" }
-    maven { url "https://maven.photonvision.org/repository/snapshots" }
-    maven { url "https://maven.revrobotics.com/" }
+  // Custom repo endpoints
+  maven { url "https://maven.ctr-electronics.com/release/" }
+  maven { url "https://maven.photonvision.org/repository/internal" }
+  maven { url "https://maven.photonvision.org/repository/snapshots" }
+  maven { url "https://maven.revrobotics.com/" }
 
-    // allwpilib
-    maven { url "https://frcmaven.wpi.edu/artifactory/release/" }
+  // allwpilib
+  maven { url "https://frcmaven.wpi.edu/artifactory/release/" }
 }
 
 dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+  // Use JUnit Jupiter for testing.
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
 
-    // Add standard WPILib classes
-    implementation wpi.java.deps.wpilib()
-    implementation wpi.java.vendor.java()
+  // Add standard WPILib classes
+  implementation wpi.java.deps.wpilib()
+  implementation wpi.java.vendor.java()
 }
 
 test {
-    useJUnitPlatform()
+  useJUnitPlatform()
 }
 
 java {
-    withSourcesJar()
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+
+  withSourcesJar()
 }
 
 // Add classpath to manifest
 jar {
-    manifest {
-        attributes (
-            "Class-Path": configurations.compileClasspath.collect { it.name }.join(' ')
-        )
-    }
+  manifest {
+    attributes (
+      "Class-Path": configurations.compileClasspath.collect { it.name }.join(' ')
+    )
+  }
 }
 
 // Publish package to GitHub
 publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/Team1559/DTLib")
-            credentials {
-                username = project.findProperty("gpr.user") ?: "Team1559"
-                password = project.findProperty("gpr.key") ?: System.getenv("GHP_PUBLISH_TOKEN")
-            }
-        }
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/Team1559/DTLib")
+      credentials {
+        username = project.findProperty("gpr.user") ?: "Team1559"
+        password = project.findProperty("gpr.key") ?: System.getenv("GHP_PUBLISH_TOKEN")
+      }
     }
-    publications {
-        gpr(MavenPublication) {
-            groupId = 'org.victorrobotics'
-            artifactId = 'dtlib-java'
-            version = '0.1'
-            from(components.java)
-        }
+  }
+  publications {
+    gpr(MavenPublication) {
+      groupId = 'org.victorrobotics'
+      artifactId = 'dtlib-java'
+      version = '0.1'
+      from(components.java)
     }
+  }
 }
