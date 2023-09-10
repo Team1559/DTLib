@@ -1,10 +1,10 @@
-package org.victorrobotics.frc.dtlib.command.group;
+package org.victorrobotics.dtlib.command.group;
 
-import org.victorrobotics.frc.dtlib.DTSubsystem;
-import org.victorrobotics.frc.dtlib.command.DTCommand;
-import org.victorrobotics.frc.dtlib.command.DTCommandBase;
-import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
-import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.DTSubsystem;
+import org.victorrobotics.dtlib.command.DTCommand;
+import org.victorrobotics.dtlib.command.DTCommandBase;
+import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 
 import java.util.Collections;
 import java.util.HashMap;

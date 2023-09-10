@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.drivetrain.swerve.trajectory;
+package org.victorrobotics.dtlib.drivetrain.swerve.trajectory;
 
 import java.util.ArrayList;
 import java.util.List;

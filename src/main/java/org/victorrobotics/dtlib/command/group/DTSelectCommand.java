@@ -1,9 +1,9 @@
-package org.victorrobotics.frc.dtlib.command.group;
+package org.victorrobotics.dtlib.command.group;
 
-import org.victorrobotics.frc.dtlib.command.DTCommand;
-import org.victorrobotics.frc.dtlib.command.DTCommandBase;
-import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
-import org.victorrobotics.frc.dtlib.command.util.DTNullCommand;
+import org.victorrobotics.dtlib.command.DTCommand;
+import org.victorrobotics.dtlib.command.DTCommandBase;
+import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.util.DTNullCommand;
 
 import java.util.Map;
 import java.util.Objects;

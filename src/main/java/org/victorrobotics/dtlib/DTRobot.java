@@ -1,7 +1,7 @@
-package org.victorrobotics.frc.dtlib;
+package org.victorrobotics.dtlib;
 
-import org.victorrobotics.frc.dtlib.command.DTCommand;
-import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.DTCommand;
+import org.victorrobotics.dtlib.command.DTCommandScheduler;
 
 import java.util.ArrayList;
 import java.util.List;

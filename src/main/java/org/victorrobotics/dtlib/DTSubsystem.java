@@ -1,9 +1,9 @@
-package org.victorrobotics.frc.dtlib;
+package org.victorrobotics.dtlib;
 
-import org.victorrobotics.frc.dtlib.command.DTCommand;
-import org.victorrobotics.frc.dtlib.dashboard.DTDash;
-import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.frc.dtlib.network.DTSendable;
+import org.victorrobotics.dtlib.command.DTCommand;
+import org.victorrobotics.dtlib.dashboard.DTDash;
+import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.network.DTSendable;
 
 import java.util.HashMap;
 import java.util.HashSet;

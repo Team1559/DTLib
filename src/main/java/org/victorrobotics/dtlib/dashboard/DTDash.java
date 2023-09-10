@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.dashboard;
+package org.victorrobotics.dtlib.dashboard;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;

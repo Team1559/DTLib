@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.exception;
+package org.victorrobotics.dtlib.exception;
 
 import java.util.Objects;
 

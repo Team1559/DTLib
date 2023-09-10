@@ -1,6 +1,6 @@
-package org.victorrobotics.frc.dtlib.hardware;
+package org.victorrobotics.dtlib.hardware;
 
-import org.victorrobotics.frc.dtlib.network.DTSendable;
+import org.victorrobotics.dtlib.network.DTSendable;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 

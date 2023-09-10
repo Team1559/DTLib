@@ -1,19 +1,19 @@
-package org.victorrobotics.frc.dtlib.command;
+package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.frc.dtlib.DTSubsystem;
-import org.victorrobotics.frc.dtlib.command.group.DTConditionalCommand;
-import org.victorrobotics.frc.dtlib.command.group.DTParallelCommandGroup;
-import org.victorrobotics.frc.dtlib.command.group.DTParallelDeadlineGroup;
-import org.victorrobotics.frc.dtlib.command.group.DTParallelRaceCommandGroup;
-import org.victorrobotics.frc.dtlib.command.group.DTSequentialCommandGroup;
-import org.victorrobotics.frc.dtlib.command.util.DTNullCommand;
-import org.victorrobotics.frc.dtlib.command.util.DTProxyCommand;
-import org.victorrobotics.frc.dtlib.command.util.DTRecoveryCommand;
-import org.victorrobotics.frc.dtlib.command.util.DTRepeatCommand;
-import org.victorrobotics.frc.dtlib.command.util.DTTargetCommand;
-import org.victorrobotics.frc.dtlib.command.util.DTWaitCommand;
-import org.victorrobotics.frc.dtlib.command.util.DTWaitUntilCommand;
-import org.victorrobotics.frc.dtlib.command.util.DTWrapperCommand;
+import org.victorrobotics.dtlib.DTSubsystem;
+import org.victorrobotics.dtlib.command.group.DTConditionalCommand;
+import org.victorrobotics.dtlib.command.group.DTParallelCommandGroup;
+import org.victorrobotics.dtlib.command.group.DTParallelDeadlineGroup;
+import org.victorrobotics.dtlib.command.group.DTParallelRaceCommandGroup;
+import org.victorrobotics.dtlib.command.group.DTSequentialCommandGroup;
+import org.victorrobotics.dtlib.command.util.DTNullCommand;
+import org.victorrobotics.dtlib.command.util.DTProxyCommand;
+import org.victorrobotics.dtlib.command.util.DTRecoveryCommand;
+import org.victorrobotics.dtlib.command.util.DTRepeatCommand;
+import org.victorrobotics.dtlib.command.util.DTTargetCommand;
+import org.victorrobotics.dtlib.command.util.DTWaitCommand;
+import org.victorrobotics.dtlib.command.util.DTWaitUntilCommand;
+import org.victorrobotics.dtlib.command.util.DTWrapperCommand;
 
 import java.util.Set;
 import java.util.function.BooleanSupplier;

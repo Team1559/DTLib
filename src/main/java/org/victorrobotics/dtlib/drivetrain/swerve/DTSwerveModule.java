@@ -1,6 +1,6 @@
-package org.victorrobotics.frc.dtlib.drivetrain.swerve;
+package org.victorrobotics.dtlib.drivetrain.swerve;
 
-import org.victorrobotics.frc.dtlib.DTHardwareComponent;
+import org.victorrobotics.dtlib.DTHardwareComponent;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;

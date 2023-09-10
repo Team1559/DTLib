@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.network;
+package org.victorrobotics.dtlib.network;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

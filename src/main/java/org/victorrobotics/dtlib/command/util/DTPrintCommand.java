@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.command.util;
+package org.victorrobotics.dtlib.command.util;
 
 public class DTPrintCommand extends DTInstantCommand {
   public DTPrintCommand(String message) {

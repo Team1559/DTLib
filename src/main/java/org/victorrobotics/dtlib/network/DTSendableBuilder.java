@@ -1,10 +1,10 @@
-package org.victorrobotics.frc.dtlib.network;
+package org.victorrobotics.dtlib.network;
 
-import org.victorrobotics.frc.dtlib.function.supplier.DTConditionalBooleanSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTConditionalDoubleSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTConditionalFloatSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTConditionalLongSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTConditionalSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTConditionalBooleanSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTConditionalDoubleSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTConditionalFloatSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTConditionalLongSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTConditionalSupplier;
 
 import java.util.ArrayList;
 import java.util.List;

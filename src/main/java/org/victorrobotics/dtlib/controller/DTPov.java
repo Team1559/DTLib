@@ -1,6 +1,6 @@
-package org.victorrobotics.frc.dtlib.controller;
+package org.victorrobotics.dtlib.controller;
 
-import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.DTCommandScheduler;
 
 import java.util.function.IntSupplier;
 

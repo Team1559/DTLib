@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.logging;
+package org.victorrobotics.dtlib.logging;
 
 import java.util.List;
 import java.util.Random;

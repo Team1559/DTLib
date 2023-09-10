@@ -1,7 +1,7 @@
-package org.victorrobotics.frc.dtlib.controller;
+package org.victorrobotics.dtlib.controller;
 
-import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
-import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 
 import java.util.function.DoublePredicate;
 import java.util.function.DoubleSupplier;

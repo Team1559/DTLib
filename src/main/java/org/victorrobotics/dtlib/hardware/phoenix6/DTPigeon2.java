@@ -1,6 +1,6 @@
-package org.victorrobotics.frc.dtlib.hardware.phoenix6;
+package org.victorrobotics.dtlib.hardware.phoenix6;
 
-import org.victorrobotics.frc.dtlib.hardware.DTInertialMeasurementUnit;
+import org.victorrobotics.dtlib.hardware.DTInertialMeasurementUnit;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;

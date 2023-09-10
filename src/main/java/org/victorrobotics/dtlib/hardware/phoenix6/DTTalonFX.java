@@ -1,8 +1,8 @@
-package org.victorrobotics.frc.dtlib.hardware.phoenix6;
+package org.victorrobotics.dtlib.hardware.phoenix6;
 
-import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.frc.dtlib.hardware.DTMotor;
-import org.victorrobotics.frc.dtlib.hardware.DTMotorFaults;
+import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.hardware.DTMotor;
+import org.victorrobotics.dtlib.hardware.DTMotorFaults;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 

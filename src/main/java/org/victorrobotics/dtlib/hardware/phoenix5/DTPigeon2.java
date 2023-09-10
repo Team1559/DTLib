@@ -1,6 +1,6 @@
-package org.victorrobotics.frc.dtlib.hardware.phoenix5;
+package org.victorrobotics.dtlib.hardware.phoenix5;
 
-import org.victorrobotics.frc.dtlib.hardware.DTInertialMeasurementUnit;
+import org.victorrobotics.dtlib.hardware.DTInertialMeasurementUnit;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.ctre.phoenix.sensors.Pigeon2_Faults;

@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.function.supplier;
+package org.victorrobotics.dtlib.function.supplier;
 
 import java.util.function.IntSupplier;
 

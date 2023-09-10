@@ -1,10 +1,10 @@
-package org.victorrobotics.frc.dtlib.network;
+package org.victorrobotics.dtlib.network;
 
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedBooleanSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedDoubleSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedFloatSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedLongSupplier;
-import org.victorrobotics.frc.dtlib.function.supplier.DTLimitedSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTLimitedBooleanSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTLimitedDoubleSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTLimitedFloatSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTLimitedLongSupplier;
+import org.victorrobotics.dtlib.function.supplier.DTLimitedSupplier;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;

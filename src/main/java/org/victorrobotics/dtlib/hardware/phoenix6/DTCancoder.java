@@ -1,7 +1,7 @@
-package org.victorrobotics.frc.dtlib.hardware.phoenix6;
+package org.victorrobotics.dtlib.hardware.phoenix6;
 
-import org.victorrobotics.frc.dtlib.hardware.DTAbsoluteEncoder;
-import org.victorrobotics.frc.dtlib.hardware.DTAbsoluteEncoderFaults;
+import org.victorrobotics.dtlib.hardware.DTAbsoluteEncoder;
+import org.victorrobotics.dtlib.hardware.DTAbsoluteEncoderFaults;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 

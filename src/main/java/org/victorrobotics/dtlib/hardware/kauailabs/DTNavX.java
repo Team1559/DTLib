@@ -1,6 +1,6 @@
-package org.victorrobotics.frc.dtlib.hardware.kauailabs;
+package org.victorrobotics.dtlib.hardware.kauailabs;
 
-import org.victorrobotics.frc.dtlib.hardware.DTInertialMeasurementUnit;
+import org.victorrobotics.dtlib.hardware.DTInertialMeasurementUnit;
 
 import edu.wpi.first.util.sendable.SendableRegistry;
 

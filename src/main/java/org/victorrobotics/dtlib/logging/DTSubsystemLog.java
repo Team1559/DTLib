@@ -1,6 +1,6 @@
-package org.victorrobotics.frc.dtlib.logging;
+package org.victorrobotics.dtlib.logging;
 
-import org.victorrobotics.frc.dtlib.DTSubsystem;
+import org.victorrobotics.dtlib.DTSubsystem;
 
 import java.io.DataOutputStream;
 

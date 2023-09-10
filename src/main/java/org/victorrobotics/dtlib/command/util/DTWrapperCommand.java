@@ -1,7 +1,7 @@
-package org.victorrobotics.frc.dtlib.command.util;
+package org.victorrobotics.dtlib.command.util;
 
-import org.victorrobotics.frc.dtlib.DTSubsystem;
-import org.victorrobotics.frc.dtlib.command.DTCommandBase;
+import org.victorrobotics.dtlib.DTSubsystem;
+import org.victorrobotics.dtlib.command.DTCommandBase;
 
 import java.util.Objects;
 

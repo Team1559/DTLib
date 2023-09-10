@@ -1,8 +1,8 @@
-package org.victorrobotics.frc.dtlib.command.util;
+package org.victorrobotics.dtlib.command.util;
 
-import org.victorrobotics.frc.dtlib.DTSubsystem;
-import org.victorrobotics.frc.dtlib.command.DTCommand;
-import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.DTSubsystem;
+import org.victorrobotics.dtlib.command.DTCommand;
+import org.victorrobotics.dtlib.command.DTCommandScheduler;
 
 import java.util.Set;
 

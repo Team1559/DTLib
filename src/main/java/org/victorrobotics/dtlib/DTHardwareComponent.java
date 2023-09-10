@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib;
+package org.victorrobotics.dtlib;
 
 public interface DTHardwareComponent extends AutoCloseable {
   void initializeHardware();

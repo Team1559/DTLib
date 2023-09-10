@@ -1,8 +1,8 @@
-package org.victorrobotics.frc.dtlib.drivetrain.swerve.trajectory;
+package org.victorrobotics.dtlib.drivetrain.swerve.trajectory;
 
-import org.victorrobotics.frc.dtlib.drivetrain.DTAccelerationLimit;
-import org.victorrobotics.frc.dtlib.drivetrain.DTVelocityLimit;
-import org.victorrobotics.frc.dtlib.math.geometry.DTMutablePose2d;
+import org.victorrobotics.dtlib.drivetrain.DTAccelerationLimit;
+import org.victorrobotics.dtlib.drivetrain.DTVelocityLimit;
+import org.victorrobotics.dtlib.math.geometry.DTMutablePose2d;
 
 import edu.wpi.first.math.geometry.Pose2d;
 

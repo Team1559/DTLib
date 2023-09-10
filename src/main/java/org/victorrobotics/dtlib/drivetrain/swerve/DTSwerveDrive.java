@@ -1,10 +1,10 @@
-package org.victorrobotics.frc.dtlib.drivetrain.swerve;
+package org.victorrobotics.dtlib.drivetrain.swerve;
 
-import org.victorrobotics.frc.dtlib.DTHardwareComponent;
-import org.victorrobotics.frc.dtlib.DTSubsystem;
-import org.victorrobotics.frc.dtlib.drivetrain.DTAccelerationLimit;
-import org.victorrobotics.frc.dtlib.drivetrain.DTVelocityLimit;
-import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.DTHardwareComponent;
+import org.victorrobotics.dtlib.DTSubsystem;
+import org.victorrobotics.dtlib.drivetrain.DTAccelerationLimit;
+import org.victorrobotics.dtlib.drivetrain.DTVelocityLimit;
+import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 
 import java.util.Objects;
 

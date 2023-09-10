@@ -2,10 +2,10 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package org.victorrobotics.frc.dtlib.controller;
+package org.victorrobotics.dtlib.controller;
 
-import org.victorrobotics.frc.dtlib.command.DTCommand;
-import org.victorrobotics.frc.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.DTCommand;
+import org.victorrobotics.dtlib.command.DTCommandScheduler;
 
 import java.util.Objects;
 import java.util.function.BooleanSupplier;

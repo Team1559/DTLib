@@ -1,7 +1,7 @@
-package org.victorrobotics.frc.dtlib.command.util;
+package org.victorrobotics.dtlib.command.util;
 
-import org.victorrobotics.frc.dtlib.command.DTCommand;
-import org.victorrobotics.frc.dtlib.command.DTCommandBase;
+import org.victorrobotics.dtlib.command.DTCommand;
+import org.victorrobotics.dtlib.command.DTCommandBase;
 
 public class DTProxyCommand extends DTCommandBase {
   private final DTCommand target;

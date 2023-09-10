@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.controller;
+package org.victorrobotics.dtlib.controller;
 
 public class DTXboxController extends DTController {
   private enum Axis {

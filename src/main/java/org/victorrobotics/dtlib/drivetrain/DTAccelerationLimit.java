@@ -1,6 +1,6 @@
-package org.victorrobotics.frc.dtlib.drivetrain;
+package org.victorrobotics.dtlib.drivetrain;
 
-import org.victorrobotics.frc.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;

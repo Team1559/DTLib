@@ -1,4 +1,4 @@
-package org.victorrobotics.frc.dtlib.lighting;
+package org.victorrobotics.dtlib.lighting;
 
 import java.awt.Color;
 
