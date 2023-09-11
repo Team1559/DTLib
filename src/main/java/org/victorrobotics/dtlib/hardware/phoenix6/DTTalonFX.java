@@ -21,7 +21,6 @@ import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import org.ejml.simple.UnsupportedOperation;
 
 public class DTTalonFX implements DTMotor {
   private static final double MAX_VELOCITY_RPM = 6380;
@@ -264,7 +263,7 @@ public class DTTalonFX implements DTMotor {
 
   @Override
   public double getMotorOutputPercent() {
-    throw new UnsupportedOperation("Unimplemented method 'getMotorOutputPercent'");
+    throw new UnsupportedOperationException("Unimplemented method 'getMotorOutputPercent'");
   }
 
   public double getCurrentDraw() {
