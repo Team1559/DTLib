@@ -1,39 +1,49 @@
-/*
- * This file is primarily sourced (but heavily modified) from FRC Team 578's library under the MIT license
- * https://github.com/FairportRobotics/potential-octo-eureka
- */
-
-import org.gradle.internal.os.OperatingSystem
-
 plugins {
   id 'java-library'
   id 'maven-publish'
-  id "edu.wpi.first.GradleRIO" version "2023.4.3"
 }
 
 version = '0.1'
 
 repositories {
-  // Use Maven Central for resolving dependencies.
   mavenCentral()
 
-  // Custom repo endpoints
-  maven { url "https://maven.ctr-electronics.com/release/" }
-  maven { url "https://maven.photonvision.org/repository/internal" }
-  maven { url "https://maven.photonvision.org/repository/snapshots" }
-  maven { url "https://maven.revrobotics.com/" }
+  maven { url 'https://frcmaven.wpi.edu/artifactory/release/' }
 
-  // allwpilib
-  maven { url "https://frcmaven.wpi.edu/artifactory/release/" }
+  maven { url 'https://maven.ctr-electronics.com/release/' }
+  maven { url 'https://maven.revrobotics.com/' }
+  maven { url 'https://maven.photonvision.org/repository/internal' }
 }
 
 dependencies {
-  // Use JUnit Jupiter for testing.
-  testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+  String wpilibVersion = '2023.4.3'
+  implementation 'edu.wpi.first.wpilibj:wpilibj-java:' + wpilibVersion
+  implementation 'edu.wpi.first.ntcore:ntcore-java:' + wpilibVersion
+  implementation 'edu.wpi.first.hal:hal-java:' + wpilibVersion
+  implementation 'edu.wpi.first.wpinet:wpinet-java:' + wpilibVersion
+  implementation 'edu.wpi.first.wpiutil:wpiutil-java:' + wpilibVersion
+  implementation 'edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:' + wpilibVersion
 
-  // Add standard WPILib classes
-  implementation wpi.java.deps.wpilib()
-  implementation wpi.java.vendor.java()
+  String wpimathVersion = '2023.4.3'
+  implementation 'edu.wpi.first.wpimath:wpimath-java:' + wpimathVersion
+
+  String jacksonVersion = '2.12.4'
+  implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
+
+  String navxVersion = '4.0.447'
+  implementation 'com.kauailabs.navx.frc:navx-java:' + navxVersion
+
+  String phoenix5Version = '5.30.4'
+  implementation 'com.ctre.phoenix:api-java:' + phoenix5Version
+  implementation 'com.ctre.phoenix:wpiapi-java:' + phoenix5Version
+
+  String phoenix6Version = '23.2.2'
+  implementation 'com.ctre.phoenix6:wpiapi-java:' + phoenix6Version
+
+  String revlibVersion = '2023.1.3'
+  implementation 'com.revrobotics.frc:REVLib-java:' + revlibVersion
+
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
 }
 
 test {
@@ -47,30 +57,28 @@ java {
   withSourcesJar()
 }
 
-// Add classpath to manifest
 jar {
   manifest {
     attributes (
-      "Class-Path": configurations.compileClasspath.collect { it.name }.join(' ')
+      'Class-Path': configurations.compileClasspath.collect { it.name }.join(' ')
     )
   }
 }
 
-// Publish package to GitHub
 publishing {
   repositories {
     maven {
-      name = "GitHubPackages"
-      url = uri("https://maven.pkg.github.com/Team1559/DTLib")
+      name = 'GitHubPackages'
+      url = uri('https://maven.pkg.github.com/Team1559/DTLib')
       credentials {
-        username = project.findProperty("gpr.user") ?: "Team1559"
-        password = project.findProperty("gpr.key") ?: System.getenv("GHP_PUBLISH_TOKEN")
+        username = project.findProperty('gpr.user') ?: 'Team1559'
+        password = project.findProperty('gpr.key') ?: System.getenv('GHP_PUBLISH_TOKEN')
       }
     }
   }
   publications {
     gpr(MavenPublication) {
-      groupId = 'org.victorrobotics'
+      groupId = 'org.victorrobotics.dtlib'
       artifactId = 'dtlib-java'
       version = '0.1'
       from(components.java)
