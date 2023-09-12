@@ -21,7 +21,7 @@ public class DTPigeon2 implements DTInertialMeasurementUnit {
   private StatusSignal<Double> accelerationZ;
 
   private StatusSignal<Integer> faults;
-  private String firmwareVersion;
+  private String                firmware;
 
   public DTPigeon2(int canID) {
     this(new Pigeon2(canID));
@@ -80,22 +80,20 @@ public class DTPigeon2 implements DTInertialMeasurementUnit {
 
   @Override
   public String getFirmwareVersion() {
-    if (firmwareVersion == null) {
-      int version = internal.getVersion()
-                            .getValue()
-                            .intValue();
-      StringBuilder builder = new StringBuilder();
-      builder.append(version >> 24);
-      builder.append('.');
-      builder.append((version >> 16) & 0xFF);
-      builder.append('.');
-      builder.append((version >> 8) & 0xFF);
-      builder.append('.');
-      builder.append(version & 0xFF);
-      firmwareVersion = builder.toString();
+    if (firmware == null) {
+      int v = internal.getVersion()
+                      .getValue()
+                      .intValue();
+      firmware = new StringBuilder().append((v >> 24) & 0xFF)
+                                    .append('.')
+                                    .append((v >> 16) & 0xFF)
+                                    .append('.')
+                                    .append((v >> 8) & 0xFF)
+                                    .append('.')
+                                    .append(v & 0xFF)
+                                    .toString();
     }
-    return firmwareVersion;
-
+    return firmware;
   }
 
   @Override
