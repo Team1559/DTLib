@@ -2,6 +2,8 @@ package org.victorrobotics.dtlib;
 
 import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.log.DTLogRootNode;
+import org.victorrobotics.dtlib.log.DTLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,8 @@ public abstract class DTRobot {
 
   private final List<DTSubsystem> subsystems;
 
+  private final DTLogRootNode logRoot;
+
   private Compressor compressor;
   private boolean    compressorEnabled;
 
@@ -45,13 +49,14 @@ public abstract class DTRobot {
     currentMode = Mode.DISABLED;
     previousMode = Mode.DISABLED;
 
-    loopOverrun = new Watchdog(PERIOD_SECONDS, () -> {
-    });
+    loopOverrun = new Watchdog(PERIOD_SECONDS, () -> {});
     loopOverrun.suppressTimeoutMessage(true);
 
     subsystems = new ArrayList<>();
     compressor = null;
     compressorEnabled = true;
+
+    logRoot = new DTLogRootNode(this);
   }
 
   /**
@@ -95,7 +100,14 @@ public abstract class DTRobot {
     }
     bindCommands();
 
-    // No exceptions? Robot is ready to be enabled
+    while (!DTLogger.init()) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        // ignore
+      }
+    }
+
     DriverStationJNI.observeUserProgramStarting();
     System.out.println("[DTLib] " + className + " initialization complete");
 
@@ -112,7 +124,7 @@ public abstract class DTRobot {
       triggerTime += PERIOD_MICROS;
 
       // Load new input data
-      loopOverrun.reset();
+      loopOverrun.enable();
       DriverStation.refreshData();
       refreshMode();
 
@@ -120,6 +132,7 @@ public abstract class DTRobot {
       runModeChange();
       runPeriodic();
       runCurrentMode();
+      log();
 
       loopOverrun.disable();
 
@@ -152,6 +165,7 @@ public abstract class DTRobot {
     }
     loopOverrun.addEpoch("DS refresh");
   }
+
   private void runPeriodic() {
     periodic();
     loopOverrun.addEpoch("Periodic");
@@ -196,6 +210,34 @@ public abstract class DTRobot {
     }
     DTCommandScheduler.run();
     loopOverrun.addEpoch("Execute " + currentMode);
+  }
+
+  private void log() {
+    DTLogger.logNewTimestamp();
+    if (currentMode != previousMode) {
+      switch (currentMode) {
+        case DISABLED:
+        case E_STOP:
+          DTLogger.getWriter()
+                  .writeShort(0x04);
+          break;
+        case AUTO:
+          DTLogger.getWriter()
+                  .writeShort(0x05);
+          break;
+        case TELEOP:
+          DTLogger.getWriter()
+                  .writeShort(0x06);
+          break;
+        case TEST:
+          DTLogger.getWriter()
+                  .writeShort(0x07);
+          break;
+      }
+    }
+    logRoot.log();
+    DTLogger.flush();
+    loopOverrun.addEpoch("DTLog");
   }
 
   public final Mode getCurrentMode() {
