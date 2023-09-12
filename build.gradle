@@ -30,6 +30,9 @@ dependencies {
   String jacksonVersion = '2.12.4'
   implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
 
+  String ejmlVersion = '0.42'
+  implementation 'org.ejml:ejml-simple:' + ejmlVersion
+
   String navxVersion = '4.0.447'
   implementation 'com.kauailabs.navx.frc:navx-java:' + navxVersion
 
