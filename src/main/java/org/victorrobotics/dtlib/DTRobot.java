@@ -3,7 +3,7 @@ package org.victorrobotics.dtlib;
 import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.dtlib.log.DTLogRootNode;
-import org.victorrobotics.dtlib.log.DTLogger;
+import org.victorrobotics.dtlib.log.DTLogWriter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.DSControlWord;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.RuntimeType;
 import edu.wpi.first.wpilibj.Watchdog;
 
@@ -31,7 +32,7 @@ public abstract class DTRobot {
 
   private final List<DTSubsystem> subsystems;
 
-  private final DTLogRootNode logRoot;
+  private final DTLogRootNode logTreeRoot;
 
   private Compressor compressor;
   private boolean    compressorEnabled;
@@ -56,7 +57,7 @@ public abstract class DTRobot {
     compressor = null;
     compressorEnabled = true;
 
-    logRoot = new DTLogRootNode(this);
+    logTreeRoot = new DTLogRootNode(this, getClass().getSimpleName());
   }
 
   /**
@@ -100,18 +101,12 @@ public abstract class DTRobot {
     }
     bindCommands();
 
-    while (!DTLogger.init()) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        // ignore
-      }
-    }
+    DTLogWriter.init();
 
     DriverStationJNI.observeUserProgramStarting();
     System.out.println("[DTLib] " + className + " initialization complete");
 
-    long triggerTime = 0;
+    long triggerTime = RobotController.getFPGATime();
     while (true) {
       // Wait to be woken up
       NotifierJNI.updateNotifierAlarm(notifierHandle, triggerTime);
@@ -176,6 +171,9 @@ public abstract class DTRobot {
       return;
     }
 
+    DTLogWriter.getInstance()
+               .writeShort(currentMode.identifier);
+
     if (currentMode == Mode.AUTO) {
       autoCommand = getAutoCommand();
       DTCommandScheduler.schedule(autoCommand);
@@ -213,31 +211,12 @@ public abstract class DTRobot {
   }
 
   private void log() {
-    DTLogger.logNewTimestamp();
-    if (currentMode != previousMode) {
-      switch (currentMode) {
-        case DISABLED:
-        case E_STOP:
-          DTLogger.getWriter()
-                  .writeShort(0x04);
-          break;
-        case AUTO:
-          DTLogger.getWriter()
-                  .writeShort(0x05);
-          break;
-        case TELEOP:
-          DTLogger.getWriter()
-                  .writeShort(0x06);
-          break;
-        case TEST:
-          DTLogger.getWriter()
-                  .writeShort(0x07);
-          break;
-      }
-    }
-    logRoot.log();
-    DTLogger.flush();
-    loopOverrun.addEpoch("DTLog");
+    DTLogWriter.getInstance()
+               .logNewTimestamp();
+    logTreeRoot.log();
+    DTLogWriter.getInstance()
+               .tryFlush();
+    loopOverrun.addEpoch("DTLogger");
   }
 
   public final Mode getCurrentMode() {
@@ -289,16 +268,18 @@ public abstract class DTRobot {
   }
 
   public enum Mode {
-    DISABLED(false),
-    E_STOP(false),
-    AUTO(true),
-    TELEOP(true),
-    TEST(true);
+    E_STOP(false, 0x03),
+    DISABLED(false, 0x04),
+    TEST(true, 0x05),
+    TELEOP(true, 0x06),
+    AUTO(true, 0x07);
 
     public final boolean isEnabled;
+    private final short  identifier;
 
-    Mode(boolean isEnabled) {
+    Mode(boolean isEnabled, int identifier) {
       this.isEnabled = isEnabled;
+      this.identifier = (short) identifier;
     }
   }
 
