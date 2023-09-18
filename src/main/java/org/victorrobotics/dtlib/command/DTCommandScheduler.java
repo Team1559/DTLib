@@ -29,7 +29,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public final class DTCommandScheduler {
   // TODO: do these need to be weakly referenced?
-  private static final Set<DTCommand> COMPOSED_COMMANDS    = Collections.newSetFromMap(new WeakHashMap<>());
+  private static final Set<DTCommand> COMPOSED_COMMANDS    =
+      Collections.newSetFromMap(new WeakHashMap<>());
   private static final Set<DTCommand> SCHEDULED_COMMANDS   = new LinkedHashSet<>();
   private static final Set<DTCommand> COMMANDS_TO_SCHEDULE = new LinkedHashSet<>();
   private static final Set<DTCommand> COMMANDS_TO_CANCEL   = new LinkedHashSet<>();
@@ -120,7 +121,8 @@ public final class DTCommandScheduler {
       return;
     }
 
-    if (schedulerDisabled || isScheduled(command) || (DriverStation.isDisabled() && !command.runsWhenDisabled())) {
+    if (schedulerDisabled || isScheduled(command)
+        || (DriverStation.isDisabled() && !command.runsWhenDisabled())) {
       return;
     }
 
@@ -206,19 +208,14 @@ public final class DTCommandScheduler {
    * Runs a single iteration of the scheduler. The execution occurs in the
    * following order:
    * <ol>
-   * Inputs are polled
-   * <p>
-   * Subsystem periodic methods are called.
-   * <p>
-   * Input-bound commands are scheduled
-   * <p>
-   * Scheduled commands are executed.
-   * <p>
-   * End conditions are checked on scheduled commands, and finished commands
-   * have their end methods called and are removed.
-   * <p>
-   * Any subsystems not being used as requirements have their default commands
-   * started.
+   * <li>Inputs are polled</li>
+   * <li>Subsystem periodic methods are called.</li>
+   * <li>Input-bound commands are scheduled.</li>
+   * <li>Scheduled commands are executed.</li>
+   * <li>End conditions are checked on scheduled commands, and finished commands
+   * have their end methods called and are removed.</li>
+   * <li>Any subsystems not being used as requirements have their default
+   * commands started.</li>
    * </ol>
    */
   public static void run() {
@@ -306,7 +303,8 @@ public final class DTCommandScheduler {
     COMMANDS_TO_CANCEL.clear();
 
     for (Map.Entry<DTSubsystem, DTCommand> subsystemCommand : SUBSYSTEMS.entrySet()) {
-      if (!REQUIREMENTS.containsKey(subsystemCommand.getKey()) && subsystemCommand.getValue() != null) {
+      if (!REQUIREMENTS.containsKey(subsystemCommand.getKey())
+          && subsystemCommand.getValue() != null) {
         schedule(subsystemCommand.getValue());
       }
     }
@@ -383,7 +381,8 @@ public final class DTCommandScheduler {
 
     if (!defaultCommand.getRequirements()
                        .contains(subsystem)) {
-      throw new DTIllegalArgumentException(defaultCommand, "default commands must require their subsystem");
+      throw new DTIllegalArgumentException(defaultCommand,
+                                           "default commands must require their subsystem");
     }
 
     if (!defaultCommand.isInterruptible()) {
@@ -441,7 +440,8 @@ public final class DTCommandScheduler {
   /** Disables the command scheduler. */
   public static void disable() {
     schedulerDisabled = true;
-    CommandScheduler.getInstance().enable();
+    CommandScheduler.getInstance()
+                    .enable();
   }
 
   /** Enables the command scheduler. */
@@ -532,9 +532,7 @@ public final class DTCommandScheduler {
     COMPOSED_COMMANDS.remove(command);
   }
 
-  public static void setLoopOverrunWatchdog(Watchdog watchdog) {
-    loopOverrun = watchdog;
-  }
+  public static void setLoopOverrunWatchdog(Watchdog watchdog) { loopOverrun = watchdog; }
 
   private static void addLoopOverrunEpoch(String name) {
     if (loopOverrun != null) {
@@ -549,14 +547,14 @@ public final class DTCommandScheduler {
   private static void requireNotComposed(DTCommand command) {
     if (COMPOSED_COMMANDS.contains(command)) {
       throw new DTIllegalArgumentException(command,
-          "composed commands may not be scheduled or added to another composition");
+                                           "composed commands may not be scheduled or added to another composition");
     }
   }
 
   private static void requireNotComposed(Collection<DTCommand> commands) {
     if (!Collections.disjoint(commands, COMPOSED_COMMANDS)) {
       throw new DTIllegalArgumentException(commands,
-          "composed commands may not be scheduled or added to another composition");
+                                           "composed commands may not be scheduled or added to another composition");
     }
   }
 
