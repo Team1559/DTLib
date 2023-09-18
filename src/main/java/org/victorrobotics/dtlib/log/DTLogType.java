@@ -6,9 +6,13 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
 public class DTLogType {
-  final Consumer    writer;
+  @SuppressWarnings("rawtypes")
+  final Consumer writer;
+
+  @SuppressWarnings("rawtypes")
   final BiPredicate equals;
-  final int         id;
+
+  final int id;
 
   public <T> DTLogType(Consumer<T> encoder, BiPredicate<T, T> equals, int id,
       Set<Class<? extends T>> clazzes) {

@@ -13,6 +13,7 @@ public class DTLogVar {
     this.handle = -1;
   }
 
+  @SuppressWarnings("unchecked")
   void logValue(Object value) {
     if (type.equals.test(prevValue, value)) {
       return;
