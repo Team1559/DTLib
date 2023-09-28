@@ -1,25 +1,24 @@
 package org.victorrobotics.dtlib.command.util;
 
+import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.command.DTCommandBase;
-
-import edu.wpi.first.wpilibj.RobotController;
 
 public class DTWaitCommand extends DTCommandBase {
   private final long duration;
   private long       endTime;
 
   public DTWaitCommand(double duration) {
-    this.duration = (long) (duration * 1_000_000);
+    this.duration = (long) (duration * 1e6);
   }
 
   @Override
   public void initialize() {
-    endTime = RobotController.getFPGATime() + duration;
+    endTime = DTRobot.currentTimeMicros() + duration;
   }
 
   @Override
   public boolean isFinished() {
-    return RobotController.getFPGATime() >= endTime;
+    return DTRobot.currentTimeMicros() >= endTime;
   }
 
   @Override

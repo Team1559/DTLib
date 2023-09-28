@@ -1,6 +1,5 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.DTSubsystem;
 import org.victorrobotics.dtlib.command.group.DTConditionalCommand;
 import org.victorrobotics.dtlib.command.group.DTParallelCommandGroup;
 import org.victorrobotics.dtlib.command.group.DTParallelDeadlineGroup;
@@ -14,6 +13,7 @@ import org.victorrobotics.dtlib.command.util.DTTargetCommand;
 import org.victorrobotics.dtlib.command.util.DTWaitCommand;
 import org.victorrobotics.dtlib.command.util.DTWaitUntilCommand;
 import org.victorrobotics.dtlib.command.util.DTWrapperCommand;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Set;
 import java.util.function.BooleanSupplier;

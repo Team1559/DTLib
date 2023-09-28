@@ -1,88 +1,147 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.DTRobot;
-import org.victorrobotics.dtlib.DTSubsystem;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.log.DTWatchdog;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.function.Consumer;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.Watchdog;
-import edu.wpi.first.wpilibj.event.EventLoop;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
+/**
+ * The scheduler responsible for managing DTCommands and DTSubsystems
+ *
+ * @see DTCommand
+ * @see DTSubsystem
+ */
 public final class DTCommandScheduler {
-  // TODO: do these need to be weakly referenced?
-  private static final Set<DTCommand> COMPOSED_COMMANDS    =
+  private static class DTSubsystemStatus {
+    private DTCommand defaultCommand;
+    private DTCommand requiringCommand;
+
+    DTSubsystemStatus() {
+      // nothing
+    }
+  }
+
+  private static final Set<DTCommand> COMPOSED_COMMANDS  =
       Collections.newSetFromMap(new WeakHashMap<>());
-  private static final Set<DTCommand> SCHEDULED_COMMANDS   = new LinkedHashSet<>();
+  private static final Set<DTCommand> SCHEDULED_COMMANDS = new LinkedHashSet<>();
+
   private static final Set<DTCommand> COMMANDS_TO_SCHEDULE = new LinkedHashSet<>();
   private static final Set<DTCommand> COMMANDS_TO_CANCEL   = new LinkedHashSet<>();
 
-  private static final Map<DTSubsystem, DTCommand> REQUIREMENTS = new LinkedHashMap<>();
-  private static final Map<DTSubsystem, DTCommand> SUBSYSTEMS   = new LinkedHashMap<>();
+  private static final Map<DTSubsystem, DTSubsystemStatus> SUBSYSTEMS = new LinkedHashMap<>();
 
-  private static final List<Consumer<DTCommand>> INIT_ACTIONS      = new ArrayList<>();
-  private static final List<Consumer<DTCommand>> EXECUTE_ACTIONS   = new ArrayList<>();
-  private static final List<Consumer<DTCommand>> INTERRUPT_ACTIONS = new ArrayList<>();
-  private static final List<Consumer<DTCommand>> FINISH_ACTIONS    = new ArrayList<>();
-
-  private static EventLoop inputLoop;
-  private static EventLoop logicLoop;
+  private static final List<Runnable> INPUT_ACTIONS = new LinkedList<>();
+  private static final List<Runnable> LOGIC_ACTIONS = new LinkedList<>();
 
   private static boolean schedulerDisabled;
   private static boolean isRunning;
 
-  private static Watchdog loopOverrun;
-
   private DTCommandScheduler() {}
 
   /**
-   * Initializes a given command, adds its requirements to the list, and
-   * performs the init actions.
-   *
-   * @param command
-   *        The command to initialize
-   * @param requirements
-   *        The command requirements
+   * Runs a single iteration of the scheduler. The execution occurs in the
+   * following order:
+   * <ol>
+   * <li>Inputs are polled</li>
+   * <li>Subsystem periodic methods are called.</li>
+   * <li>Input-bound commands are scheduled.</li>
+   * <li>Scheduled commands are executed.</li>
+   * <li>End conditions are checked on scheduled commands, and finished commands
+   * have their end methods called and are removed.</li>
+   * <li>Any subsystems not being used as requirements have their default
+   * commands started.</li>
+   * </ol>
    */
-  private static void startCommand(DTCommand command, Set<DTSubsystem> requirements) {
-    SCHEDULED_COMMANDS.add(command);
-    for (DTSubsystem requirement : requirements) {
-      REQUIREMENTS.put(requirement, command);
-    }
+  public static void run() {
+    if (schedulerDisabled) return;
 
-    try {
-      command.initialize();
-    } catch (RuntimeException e) {
-      handleCommandException(command, e);
-    }
+    INPUT_ACTIONS.forEach(Runnable::run);
+    LOGIC_ACTIONS.forEach(Runnable::run);
 
-    for (Consumer<DTCommand> action : INIT_ACTIONS) {
-      try {
-        action.accept(command);
-      } catch (RuntimeException e) {
-        handleCommandException(command, e);
+    for (DTSubsystem subsystem : SUBSYSTEMS.keySet()) {
+      DTWatchdog.startEpoch();
+      subsystem.periodic();
+      DTWatchdog.addEpoch(subsystem.getName() + "." + "periodic()");
+      if (DTRobot.isSimulation()) {
+        DTWatchdog.startEpoch();
+        subsystem.simulationPeriodic();
+        DTWatchdog.addEpoch(subsystem.getName() + "." + "simulationPeriodic()");
       }
     }
 
-    addLoopOverrunEpoch(command.getName() + ".initialize()");
+    isRunning = true;
+    for (Iterator<DTCommand> iterator = SCHEDULED_COMMANDS.iterator(); iterator.hasNext();) {
+      DTCommand command = iterator.next();
+
+      if (!DTRobot.getCurrentMode().isEnabled && !command.runsWhenDisabled()) {
+        DTWatchdog.startEpoch();
+        try {
+          command.interrupt();
+        } catch (RuntimeException e) {
+          handleCommandException(command, e);
+        }
+        command.getRequirements()
+               .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
+        iterator.remove();
+        DTWatchdog.addEpoch(command.getName() + "." + "interrupt()");
+        continue;
+      }
+
+      DTWatchdog.startEpoch();
+      try {
+        command.execute();
+      } catch (RuntimeException e) {
+        handleCommandException(command, e);
+      }
+      DTWatchdog.addEpoch(command.getName() + "." + "execute()");
+
+      boolean finished = true;
+      try {
+        finished = command.isFinished();
+      } catch (RuntimeException e) {
+        handleCommandException(command, e);
+      }
+
+      if (finished) {
+        DTWatchdog.startEpoch();
+        try {
+          command.end();
+        } catch (RuntimeException e) {
+          handleCommandException(command, e);
+        }
+        iterator.remove();
+
+        command.getRequirements()
+               .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
+        DTWatchdog.addEpoch(command.getName() + "." + "end()");
+      }
+    }
+    isRunning = false;
+
+    COMMANDS_TO_SCHEDULE.forEach(DTCommandScheduler::schedule);
+    COMMANDS_TO_SCHEDULE.clear();
+
+    COMMANDS_TO_CANCEL.forEach(DTCommandScheduler::cancel);
+    COMMANDS_TO_CANCEL.clear();
+
+    for (DTSubsystemStatus status : SUBSYSTEMS.values()) {
+      if (status.requiringCommand == null && status.defaultCommand != null) {
+        schedule(status.defaultCommand);
+      }
+    }
   }
 
   /**
@@ -100,11 +159,12 @@ public final class DTCommandScheduler {
   }
 
   /**
-   * Schedules multiple commands for execution. Does nothing for commands
-   * already scheduled.
+   * Schedules multiple commands for execution.
    *
    * @param commands
    *        the commands to schedule. No-op on null.
+   *
+   * @see #schedule(DTCommand)
    */
   public static void schedule(DTCommand... commands) {
     for (DTCommand command : commands) {
@@ -112,56 +172,76 @@ public final class DTCommandScheduler {
     }
   }
 
+  /**
+   * Schedules a {@link DTCommand} for execution, provided all of the following
+   * conditions are met:
+   * <ul>
+   * <li>The command is not {@code null}</li>
+   * <li>The command does not belong to a composed command group</li>
+   * <li>The command is not already scheduled</li>
+   * <li>The robot is enabled, or the command runs when disabled</li>
+   * <li>The command's required subsystems aren't currently busy, or their
+   * commands can all be canceled</li>
+   * </ul>
+   *
+   * @param command
+   *        the command to schedule.
+   *
+   * @see DTCommandScheduler#isScheduled(DTCommand)
+   * @see DTCommand#isInterruptible()
+   * @see DTCommand#runsWhenDisabled()
+   * @see DTRobot#getCurrentMode()
+   */
   public static void schedule(DTCommand command) {
     if (command == null) {
-      DriverStation.reportWarning("Tried to schedule a null command", true);
+      warn("Tried to schedule a null command");
       return;
     } else if (COMPOSED_COMMANDS.contains(command)) {
-      DriverStation.reportWarning("Tried to schedule a composed command", true);
+      warn("Tried to schedule a composed command");
       return;
     }
 
     if (schedulerDisabled || isScheduled(command)
-        || (DriverStation.isDisabled() && !command.runsWhenDisabled())) {
+        || (!DTRobot.getCurrentMode().isEnabled && !command.runsWhenDisabled())) {
       return;
     }
 
     if (isRunning) {
       COMMANDS_TO_SCHEDULE.add(command);
+      COMMANDS_TO_CANCEL.remove(command);
       return;
     }
 
     Set<DTSubsystem> requirements = command.getRequirements();
-    if (Collections.disjoint(REQUIREMENTS.keySet(), requirements)) {
-      startCommand(command, requirements);
-      return;
-    }
 
     for (DTSubsystem requirement : requirements) {
-      DTCommand requiring = REQUIREMENTS.get(requirement);
-      if (requiring != null && !requiring.isInterruptible()) {
-        return;
-      }
+      DTCommand requiring = getRequiringCommand(requirement);
+      if (requiring != null && !requiring.isInterruptible()) return;
     }
     for (DTSubsystem requirement : requirements) {
-      DTCommand requiring = REQUIREMENTS.get(requirement);
+      DTCommand requiring = getRequiringCommand(requirement);
       if (requiring != null) {
         cancel(requiring);
       }
+      getSubsystemStatus(requirement).requiringCommand = command;
     }
-    startCommand(command, requirements);
+
+    SCHEDULED_COMMANDS.add(command);
+
+    try {
+      command.initialize();
+    } catch (RuntimeException e) {
+      handleCommandException(command, e);
+    }
   }
 
   /**
-   * Cancels commands. The scheduler will call the {@link DTCommand#interrupt()}
-   * method of the canceled commands, indicating they were canceled (as opposed
-   * to finishing normally).
-   * <p>
-   * Commands will be canceled regardless of {@link DTCommand#isInterruptible()
-   * interruption behavior}.
+   * Cancels commands.
    *
    * @param commands
    *        the commands to cancel
+   *
+   * @see #cancel(DTCommand)
    */
   public static void cancel(DTCommand... commands) {
     for (DTCommand command : commands) {
@@ -169,189 +249,79 @@ public final class DTCommandScheduler {
     }
   }
 
+  /**
+   * Cancels the given command. The scheduler will call the command's
+   * interrupt() method, indicating it was canceled (as opposed to finishing
+   * normally).
+   * <p>
+   * Commands will be canceled regardless of interruption behavior.
+   *
+   * @param command
+   *        the command to cancel
+   *
+   * @see DTCommand#interrupt()
+   */
   public static void cancel(DTCommand command) {
+    if (command == null) {
+      warn("Tried to cancel a null command");
+      return;
+    } else if (!isScheduled(command)) return;
+
     if (isRunning) {
       COMMANDS_TO_CANCEL.add(command);
-      return;
-    }
-
-    if (command == null) {
-      DriverStation.reportWarning("Tried to cancel a null command", true);
-      return;
-    } else if (!isScheduled(command)) {
+      COMMANDS_TO_SCHEDULE.remove(command);
       return;
     }
 
     SCHEDULED_COMMANDS.remove(command);
-    REQUIREMENTS.keySet()
-                .removeAll(command.getRequirements());
+    command.getRequirements()
+           .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
 
     try {
       command.interrupt();
     } catch (RuntimeException e) {
       handleCommandException(command, e);
     }
-
-    for (Consumer<DTCommand> action : INTERRUPT_ACTIONS) {
-      action.accept(command);
-    }
-    addLoopOverrunEpoch(command.getName() + ".end(true)");
   }
 
   /** Cancels all commands that are currently scheduled. */
   public static void cancelAll() {
-    // Copy to array to avoid concurrent modification.
-    cancel(SCHEDULED_COMMANDS.toArray(DTCommand[]::new));
-  }
-
-  /**
-   * Runs a single iteration of the scheduler. The execution occurs in the
-   * following order:
-   * <ol>
-   * <li>Inputs are polled</li>
-   * <li>Subsystem periodic methods are called.</li>
-   * <li>Input-bound commands are scheduled.</li>
-   * <li>Scheduled commands are executed.</li>
-   * <li>End conditions are checked on scheduled commands, and finished commands
-   * have their end methods called and are removed.</li>
-   * <li>Any subsystems not being used as requirements have their default
-   * commands started.</li>
-   * </ol>
-   */
-  public static void run() {
-    if (schedulerDisabled) {
+    if (isRunning) {
+      COMMANDS_TO_CANCEL.addAll(SCHEDULED_COMMANDS);
       return;
     }
 
-    if (loopOverrun != null) {
-      loopOverrun.reset();
-    }
-
-    inputLoop.poll();
-
-    for (DTSubsystem subsystem : SUBSYSTEMS.keySet()) {
-      subsystem.periodic();
-      if (DTRobot.isSimulation()) {
-        subsystem.simulationPeriodic();
-      }
-      addLoopOverrunEpoch(subsystem.getClass(), ".periodic()");
-    }
-
-    logicLoop.poll();
-
-    isRunning = true;
-    for (Iterator<DTCommand> iterator = SCHEDULED_COMMANDS.iterator(); iterator.hasNext();) {
-      DTCommand command = iterator.next();
-
-      if (!command.runsWhenDisabled() && RobotState.isDisabled()) {
-        try {
-          command.interrupt();
-        } catch (RuntimeException e) {
-          handleCommandException(command, e);
-        }
-        for (Consumer<DTCommand> action : INTERRUPT_ACTIONS) {
-          action.accept(command);
-        }
-        REQUIREMENTS.keySet()
-                    .removeAll(command.getRequirements());
-        iterator.remove();
-        addLoopOverrunEpoch(command.getName() + ".end(true)");
-        continue;
-      }
+    Iterator<DTCommand> itr = SCHEDULED_COMMANDS.iterator();
+    while (itr.hasNext()) {
+      DTCommand command = itr.next();
+      itr.remove();
+      command.getRequirements()
+             .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
 
       try {
-        command.execute();
+        command.interrupt();
       } catch (RuntimeException e) {
         handleCommandException(command, e);
-      }
-
-      for (Consumer<DTCommand> action : EXECUTE_ACTIONS) {
-        action.accept(command);
-      }
-      addLoopOverrunEpoch(command.getName() + ".execute()");
-
-      boolean finished = true;
-      try {
-        finished = command.isFinished();
-      } catch (RuntimeException e) {
-        handleCommandException(command, e);
-      }
-
-      if (finished) {
-        try {
-          command.end();
-        } catch (RuntimeException e) {
-          handleCommandException(command, e);
-        }
-
-        for (Consumer<DTCommand> action : FINISH_ACTIONS) {
-          action.accept(command);
-        }
-        iterator.remove();
-
-        REQUIREMENTS.keySet()
-                    .removeAll(command.getRequirements());
-        addLoopOverrunEpoch(command.getName() + ".end(false)");
-      }
-    }
-    isRunning = false;
-
-    COMMANDS_TO_SCHEDULE.forEach(DTCommandScheduler::schedule);
-    COMMANDS_TO_SCHEDULE.clear();
-
-    COMMANDS_TO_CANCEL.forEach(DTCommandScheduler::cancel);
-    COMMANDS_TO_CANCEL.clear();
-
-    for (Map.Entry<DTSubsystem, DTCommand> subsystemCommand : SUBSYSTEMS.entrySet()) {
-      if (!REQUIREMENTS.containsKey(subsystemCommand.getKey())
-          && subsystemCommand.getValue() != null) {
-        schedule(subsystemCommand.getValue());
-      }
-    }
-
-    if (loopOverrun != null) {
-      loopOverrun.disable();
-      if (loopOverrun.isExpired()) {
-        System.out.println("CommandScheduler loop overrun");
-        loopOverrun.printEpochs();
       }
     }
   }
 
   /**
-   * Registers subsystems with the scheduler. This must be called for the
-   * subsystem's periodic block to run when the scheduler is run, and for the
-   * subsystem's default command to be scheduled. It is recommended to call this
-   * from the constructor of your subsystem implementations.
+   * Registers a subsystem with the scheduler. This is called automatically by
+   * the {@link DTSubsystem} constructor.
    *
-   * @param subsystems
+   * @param subsystem
    *        the subsystem to register
-   */
-  public static void registerSubsystem(DTSubsystem... subsystems) {
-    for (DTSubsystem subsystem : subsystems) {
-      if (subsystem == null) {
-        DriverStation.reportWarning("Tried to register a null subsystem", true);
-        continue;
-      }
-      if (SUBSYSTEMS.containsKey(subsystem)) {
-        DriverStation.reportWarning("Tried to register an already-registered subsystem", true);
-        continue;
-      }
-      SUBSYSTEMS.put(subsystem, null);
-    }
-  }
-
-  /**
-   * Un-registers subsystems with the scheduler. The subsystem will no longer
-   * have its periodic block called, and will not have its default command
-   * scheduled.
    *
-   * @param subsystems
-   *        the subsystem to un-register
+   * @see DTSubsystem#DTSubsystem() DTSubsystem()
    */
-  public static void unregisterSubsystem(DTSubsystem... subsystems) {
-    SUBSYSTEMS.keySet()
-              .removeAll(Set.of(subsystems));
+  public static void registerSubsystem(DTSubsystem subsystem) {
+    if (subsystem == null) {
+      warn("Tried to register a null subsystem");
+      return;
+    }
+
+    getSubsystemStatus(subsystem);
   }
 
   /**
@@ -365,32 +335,32 @@ public final class DTCommandScheduler {
    *
    * @param subsystem
    *        the subsystem whose default command will be set
-   * @param defaultCommand
+   * @param command
    *        the default command to associate with the subsystem
    */
-  public static void setDefaultCommand(DTSubsystem subsystem, DTCommand defaultCommand) {
+  public static void setDefaultCommand(DTSubsystem subsystem, DTCommand command) {
     if (subsystem == null) {
-      DriverStation.reportWarning("Tried to set a default command for a null subsystem", true);
+      warn("Tried to set a default command for a null subsystem");
       return;
-    } else if (defaultCommand == null) {
-      DriverStation.reportWarning("Tried to set a null default command", true);
+    } else if (command == null) {
+      warn("Tried to set a null default command");
       return;
     }
 
-    requireNotComposed(defaultCommand);
+    requireNotComposed(command);
 
-    if (!defaultCommand.getRequirements()
-                       .contains(subsystem)) {
-      throw new DTIllegalArgumentException(defaultCommand,
-                                           "default commands must require their subsystem");
+    Set<DTSubsystem> requirements = command.getRequirements();
+    if (requirements.size() != 1 || !requirements.contains(subsystem)) {
+      throw new DTIllegalArgumentException(command,
+                                           "default commands must require only their subsystem");
     }
 
-    if (!defaultCommand.isInterruptible()) {
-      DriverStation.reportWarning("Registering a non-interruptible default command!\n"
-          + "This will likely prevent any other commands from requiring this subsystem.", true);
+    if (!command.isInterruptible()) {
+      warn("Registering a non-interruptible default command!\n"
+          + "This will likely prevent any other commands from requiring this subsystem.");
     }
 
-    SUBSYSTEMS.put(subsystem, defaultCommand);
+    getSubsystemStatus(subsystem).defaultCommand = command;
   }
 
   /**
@@ -403,11 +373,11 @@ public final class DTCommandScheduler {
    */
   public static void removeDefaultCommand(DTSubsystem subsystem) {
     if (subsystem == null) {
-      DriverStation.reportWarning("Tried to remove a default command for a null subsystem", true);
+      warn("Tried to remove a default command for a null subsystem");
       return;
     }
 
-    SUBSYSTEMS.put(subsystem, null);
+    getSubsystemStatus(subsystem).defaultCommand = null;
   }
 
   /**
@@ -420,7 +390,7 @@ public final class DTCommandScheduler {
    * @return the default command associated with the subsystem
    */
   public static DTCommand getDefaultCommand(DTSubsystem subsystem) {
-    return SUBSYSTEMS.get(subsystem);
+    return getSubsystemStatus(subsystem).defaultCommand;
   }
 
   /**
@@ -434,14 +404,12 @@ public final class DTCommandScheduler {
    *         command is currently scheduled
    */
   public static DTCommand getRequiringCommand(DTSubsystem subsystem) {
-    return REQUIREMENTS.get(subsystem);
+    return getSubsystemStatus(subsystem).requiringCommand;
   }
 
   /** Disables the command scheduler. */
   public static void disable() {
     schedulerDisabled = true;
-    CommandScheduler.getInstance()
-                    .enable();
   }
 
   /** Enables the command scheduler. */
@@ -450,45 +418,18 @@ public final class DTCommandScheduler {
   }
 
   /**
-   * Adds an action to perform on the initialization of any command by the
-   * scheduler.
+   * Register a command as composed. An exception will be thrown if these
+   * commands are scheduled directly or added to another composition.
    *
-   * @param action
-   *        the action to perform
-   */
-  public static void onCommandInitialize(Consumer<DTCommand> action) {
-    INIT_ACTIONS.add(Objects.requireNonNull(action));
-  }
-
-  /**
-   * Adds an action to perform on the execution of any command by the scheduler.
+   * @param command
+   *        the command to register
    *
-   * @param action
-   *        the action to perform
+   * @throws DTIllegalArgumentException
+   *         if the given command has already been composed
    */
-  public static void onCommandExecute(Consumer<DTCommand> action) {
-    EXECUTE_ACTIONS.add(Objects.requireNonNull(action));
-  }
-
-  /**
-   * Adds an action to perform on the interruption of any command by the
-   * scheduler.
-   *
-   * @param action
-   *        the action to perform
-   */
-  public static void onCommandInterrupt(Consumer<DTCommand> action) {
-    INTERRUPT_ACTIONS.add(Objects.requireNonNull(action));
-  }
-
-  /**
-   * Adds an action to perform on the finishing of any command by the scheduler.
-   *
-   * @param action
-   *        the action to perform
-   */
-  public static void onCommandFinish(Consumer<DTCommand> action) {
-    FINISH_ACTIONS.add(Objects.requireNonNull(action));
+  public static void registerComposed(DTCommand command) {
+    requireNotComposed(command);
+    COMPOSED_COMMANDS.add(command);
   }
 
   /**
@@ -498,50 +439,30 @@ public final class DTCommandScheduler {
    * @param commands
    *        the commands to register
    *
-   * @throws IllegalArgumentException
-   *         if the given commands have already been composed.
+   * @throws DTIllegalArgumentException
+   *         if the given commands have already been composed
    */
-  public static void registerComposedCommands(DTCommand... commands) {
-    Set<DTCommand> commandSet = Set.of(commands);
-    requireNotComposed(commandSet);
-    COMPOSED_COMMANDS.addAll(commandSet);
+  public static void registerComposed(DTCommand... commands) {
+    registerComposed(List.of(commands));
   }
 
   /**
-   * Clears the list of composed commands, allowing all commands to be freely
-   * used again.
-   * <p>
-   * WARNING: Using this haphazardly can result in unexpected/undesirable
-   * behavior. Do not use this unless you fully understand what you are doing.
-   */
-  public static void clearComposedCommands() {
-    COMPOSED_COMMANDS.clear();
-  }
-
-  /**
-   * Removes a single command from the list of composed commands, allowing it to
-   * be freely used again.
-   * <p>
-   * WARNING: Using this haphazardly can result in unexpected/undesirable
-   * behavior. Do not use this unless you fully understand what you are doing.
+   * Register commands as composed. An exception will be thrown if these
+   * commands are scheduled directly or added to a composition.
    *
-   * @param command
-   *        the command to remove from the list of grouped commands
+   * @param commands
+   *        the commands to register
+   *
+   * @throws DTIllegalArgumentException
+   *         if the given commands have already been composed
    */
-  public static void removeComposedCommand(DTCommand command) {
-    COMPOSED_COMMANDS.remove(command);
+  public static void registerComposed(Collection<DTCommand> commands) {
+    requireNotComposed(commands);
+    COMPOSED_COMMANDS.addAll(commands);
   }
 
-  public static void setLoopOverrunWatchdog(Watchdog watchdog) { loopOverrun = watchdog; }
-
-  private static void addLoopOverrunEpoch(String name) {
-    if (loopOverrun != null) {
-      loopOverrun.addEpoch(name);
-    }
-  }
-
-  private static void addLoopOverrunEpoch(Class<?> clazz, String name) {
-    addLoopOverrunEpoch(clazz.getSimpleName() + name);
+  private static DTSubsystemStatus getSubsystemStatus(DTSubsystem subsystem) {
+    return SUBSYSTEMS.computeIfAbsent(subsystem, s -> new DTSubsystemStatus());
   }
 
   private static void requireNotComposed(DTCommand command) {
@@ -559,14 +480,32 @@ public final class DTCommandScheduler {
   }
 
   private static void handleCommandException(DTCommand command, RuntimeException e) {
-    // TODO: handle exceptions thrown by commands
+    warn(command.getClass()
+                .getSimpleName()
+        + " threw an exception: " + e);
   }
 
+  private static void warn(String msg) {
+    DriverStation.reportWarning(msg, false);
+  }
+
+  /**
+   * Adds a callback that polls inputs.
+   *
+   * @param r
+   *        the task to run
+   */
   public static void bindInputCallback(Runnable r) {
-    inputLoop.bind(r);
+    INPUT_ACTIONS.add(r);
   }
 
+  /**
+   * Adds a callback to run automatically every cycle.
+   *
+   * @param r
+   *        the task to run
+   */
   public static void bindLogicCallback(Runnable r) {
-    logicLoop.bind(r);
+    LOGIC_ACTIONS.add(r);
   }
 }

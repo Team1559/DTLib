@@ -20,8 +20,7 @@ public class DTSelectCommand<T> extends DTCommandBase {
   public DTSelectCommand(Supplier<T> selector, Map<T, DTCommand> commands) {
     this.commandMap = Objects.requireNonNull(commands);
     this.selector = Objects.requireNonNull(selector);
-    DTCommandScheduler.registerComposedCommands(commands.values()
-                                                        .toArray(DTCommand[]::new));
+    DTCommandScheduler.registerComposed(commands.values());
 
     boolean runsWhenDisabled = true;
     boolean isInterruptible = false;
@@ -61,9 +60,7 @@ public class DTSelectCommand<T> extends DTCommandBase {
   }
 
   @Override
-  public boolean isFinished() {
-    return selectedCommand.isFinished();
-  }
+  public boolean isFinished() { return selectedCommand.isFinished(); }
 
   @Override
   public boolean runsWhenDisabled() {
@@ -71,13 +68,11 @@ public class DTSelectCommand<T> extends DTCommandBase {
   }
 
   @Override
-  public boolean isInterruptible() {
-    return isInterruptible;
-  }
+  public boolean isInterruptible() { return isInterruptible; }
 
   @SafeVarargs
   public static <T> DTSelectCommand<T> of(Supplier<T> selector,
-      Map.Entry<T, DTCommand>... entries) {
+                                          Map.Entry<T, DTCommand>... entries) {
     return new DTSelectCommand<>(selector, Map.ofEntries(entries));
   }
 }

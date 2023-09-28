@@ -4,9 +4,7 @@ import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.dtlib.log.DTLogRootNode;
 import org.victorrobotics.dtlib.log.DTLogger;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.victorrobotics.dtlib.log.DTWatchdog;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.hal.DriverStationJNI;
@@ -17,27 +15,23 @@ import edu.wpi.first.wpilibj.DSControlWord;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.RuntimeType;
-import edu.wpi.first.wpilibj.Watchdog;
 
 public abstract class DTRobot {
   public static final double PERIOD_SECONDS = 0.02;
   public static final long   PERIOD_MICROS  = (long) (PERIOD_SECONDS * 1e6);
 
-  private final int notifierHandle;
+  private static final DSControlWord MODE_CONTROL_WORD = new DSControlWord();
 
-  private final DSControlWord modeSupplier;
-  private final Watchdog      loopOverrun;
-
-  private final List<DTSubsystem> subsystems;
+  private static Mode currentMode  = Mode.DISABLED;
+  private static Mode previousMode = Mode.DISABLED;
 
   private final DTLogRootNode logRoot;
 
-  private Compressor compressor;
-  private boolean    compressorEnabled;
+  private final int notifierHandle;
 
-  private Mode currentMode;
-  private Mode previousMode;
+  private Compressor compressor;
 
   private DTCommand autoCommand;
 
@@ -45,50 +39,47 @@ public abstract class DTRobot {
     notifierHandle = NotifierJNI.initializeNotifier();
     NotifierJNI.setNotifierName(notifierHandle, "DTRobot");
 
-    modeSupplier = new DSControlWord();
-    currentMode = Mode.DISABLED;
-    previousMode = Mode.DISABLED;
-
-    loopOverrun = new Watchdog(PERIOD_SECONDS, () -> {});
-    loopOverrun.suppressTimeoutMessage(true);
-
-    subsystems = new ArrayList<>();
-    compressor = null;
-    compressorEnabled = true;
-
     logRoot = new DTLogRootNode(this);
   }
 
   /**
-   * When the robot boots up, this method will be executed to construct and initialize any robot
-   * hardware, subsystems, etc.
+   * When the robot boots up, this method will be executed to construct and
+   * initialize any robot hardware, subsystems, etc.
    */
   protected abstract void init();
 
   /**
-   * If the robot is a simulation, this method is where additional setup logic will be executed
+   * If the robot is a simulation, this method is where additional setup logic
+   * will be executed
    */
   protected abstract void simulationInit();
 
   /**
-   * This method will be called after initialization to bind any commands to triggers such as
-   * controller buttons
+   * This method will be called after initialization to bind any commands to
+   * triggers such as controller buttons
    */
   protected abstract void bindCommands();
 
   /**
-   * This method will be called every robot cycle before commands are executed, and can be used for
-   * purposes such as logging values to the console
+   * This method will be called every robot cycle before commands are executed,
+   * and can be used for purposes such as logging values to the console
    */
   protected abstract void periodic();
 
   /**
-   * @return the user-supplied command to be executed when autonomous mode is enabled
+   * @return the user-supplied command to be executed when autonomous mode is
+   *         enabled
    */
   protected abstract DTCommand getAutoCommand();
 
   /**
-   * Start the robot program. Replaces {@link RobotBase#runRobot RobotBase::runRobot()}.
+   * @return the user-supplied command to execute when the robot self-tests
+   */
+  protected abstract DTCommand getSelfTestCommand();
+
+  /**
+   * Start the robot program. Replaces {@link RobotBase#runRobot
+   * RobotBase::runRobot()}.
    */
   public final void start() {
     String className = getClass().getSimpleName();
@@ -124,9 +115,10 @@ public abstract class DTRobot {
       triggerTime += PERIOD_MICROS;
 
       // Load new input data
-      loopOverrun.enable();
+      DTWatchdog.reset();
       DriverStation.refreshData();
       refreshMode();
+      DTWatchdog.addEpoch("Refresh DS Data");
 
       // Execute code for this cycle
       runModeChange();
@@ -134,12 +126,10 @@ public abstract class DTRobot {
       runCurrentMode();
       log();
 
-      loopOverrun.disable();
-
-      if (loopOverrun.isExpired()) {
+      if (DTWatchdog.isExpired()) {
         DriverStation.reportWarning("Loop time of " + PERIOD_SECONDS + "s overrun by "
-            + (loopOverrun.getTime() - PERIOD_SECONDS) + "s", false);
-        loopOverrun.printEpochs();
+            + (DTWatchdog.getTime() - PERIOD_SECONDS) + "s", false);
+        DTWatchdog.printEpochs();
       }
     }
   }
@@ -148,36 +138,19 @@ public abstract class DTRobot {
     NotifierJNI.stopNotifier(notifierHandle);
   }
 
-  private void refreshMode() {
-    modeSupplier.refresh();
-    previousMode = currentMode;
-
-    if (modeSupplier.isEStopped()) {
-      currentMode = Mode.E_STOP;
-    } else if (!modeSupplier.isEnabled()) {
-      currentMode = Mode.DISABLED;
-    } else if (modeSupplier.isAutonomous()) {
-      currentMode = Mode.AUTO;
-    } else if (modeSupplier.isTest()) {
-      currentMode = Mode.TEST;
-    } else {
-      currentMode = Mode.TELEOP;
-    }
-    loopOverrun.addEpoch("DS refresh");
-  }
-
   private void runPeriodic() {
+    DTWatchdog.startEpoch();
     periodic();
-    loopOverrun.addEpoch("Periodic");
+    DTWatchdog.addEpoch("Periodic");
   }
 
   private void runModeChange() {
-    if (currentMode == previousMode) {
-      return;
-    }
+    if (currentMode == previousMode) return;
 
     if (currentMode == Mode.AUTO) {
+      DTWatchdog.startEpoch();
       autoCommand = getAutoCommand();
+      DTWatchdog.addEpoch("Get Auto Command");
       DTCommandScheduler.schedule(autoCommand);
     } else if (previousMode == Mode.AUTO) {
       DTCommandScheduler.cancel(autoCommand);
@@ -188,11 +161,9 @@ public abstract class DTRobot {
     } else if (!currentMode.isEnabled && previousMode.isEnabled) {
       disableCompressor();
     }
-
-    loopOverrun.addEpoch("Mode change");
   }
 
-  private void runCurrentMode() {
+  private static void runCurrentMode() {
     switch (currentMode) {
       case DISABLED:
       case E_STOP:
@@ -209,7 +180,7 @@ public abstract class DTRobot {
         break;
     }
     DTCommandScheduler.run();
-    loopOverrun.addEpoch("Execute " + currentMode);
+    DTWatchdog.addEpoch("Execute " + currentMode);
   }
 
   private void log() {
@@ -237,30 +208,37 @@ public abstract class DTRobot {
     }
     logRoot.log();
     DTLogger.flush();
-    loopOverrun.addEpoch("DTLog");
+    DTWatchdog.addEpoch("DTLog");
   }
 
-  public final Mode getCurrentMode() {
-    return currentMode;
+  private static void refreshMode() {
+    MODE_CONTROL_WORD.refresh();
+    previousMode = currentMode;
+
+    if (MODE_CONTROL_WORD.isEStopped()) {
+      currentMode = Mode.E_STOP;
+    } else if (!MODE_CONTROL_WORD.isEnabled()) {
+      currentMode = Mode.DISABLED;
+    } else if (MODE_CONTROL_WORD.isAutonomous()) {
+      currentMode = Mode.AUTO;
+    } else if (MODE_CONTROL_WORD.isTest()) {
+      currentMode = Mode.TEST;
+    } else {
+      currentMode = Mode.TELEOP;
+    }
   }
+
+  public static Mode getCurrentMode() { return currentMode; }
 
   public static boolean isSimulation() {
     return RuntimeType.getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation;
   }
 
-  public static boolean isReal() {
-    return !isSimulation();
-  }
+  public static boolean isReal() { return !isSimulation(); }
 
-  public Alliance getAlliance() {
+  public static Alliance getAlliance() {
     return Alliance.fromDS(DriverStationJNI.getAllianceStation());
   }
-
-  protected final void registerSubsystem(DTSubsystem subsystem) {
-    subsystems.add(subsystem);
-  }
-
-  protected abstract DTCommand getSelfTestCommand();
 
   protected final void configCompressor(int module, PneumaticsModuleType type) {
     if (compressor != null) {
@@ -269,15 +247,8 @@ public abstract class DTRobot {
     compressor = new Compressor(module, type);
   }
 
-  protected void configCompressorControl(boolean enable) {
-    compressorEnabled = enable;
-    if (!enable && compressor != null) {
-      compressor.disable();
-    }
-  }
-
   private void enableCompressor() {
-    if (compressor != null && compressorEnabled) {
+    if (compressor != null) {
       compressor.enableDigital();
     }
   }
@@ -286,6 +257,13 @@ public abstract class DTRobot {
     if (compressor != null) {
       compressor.disable();
     }
+  }
+
+  public static long currentTimeMicros() {
+    if (isSimulation()) {
+      return System.nanoTime() / 1000;
+    }
+    return RobotController.getFPGATime();
   }
 
   public enum Mode {

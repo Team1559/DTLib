@@ -34,7 +34,7 @@ public class DTParallelDeadlineGroup extends DTCommandBase {
       return;
     }
 
-    DTCommandScheduler.registerComposedCommands(commands);
+    DTCommandScheduler.registerComposed(commands);
 
     for (DTCommand command : commands) {
       if (!Collections.disjoint(command.getRequirements(), requirements)) {

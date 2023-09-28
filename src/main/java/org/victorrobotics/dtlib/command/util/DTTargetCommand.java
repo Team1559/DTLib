@@ -1,8 +1,8 @@
 package org.victorrobotics.dtlib.command.util;
 
-import org.victorrobotics.dtlib.DTSubsystem;
 import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Set;
 
@@ -11,7 +11,7 @@ public class DTTargetCommand implements DTCommand {
 
   public DTTargetCommand(DTCommand target) {
     this.target = target;
-    DTCommandScheduler.registerComposedCommands(target);
+    DTCommandScheduler.registerComposed(target);
   }
 
   @Override

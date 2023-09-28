@@ -14,13 +14,13 @@ public class DTConditionalCommand extends DTCommandBase {
   private DTCommand activeCommand;
 
   public DTConditionalCommand(DTCommand onTrue, DTCommand onFalse, BooleanSupplier condition) {
-    this.trueCommand = onTrue;
-    this.falseCommand = onFalse;
+    trueCommand = onTrue;
+    falseCommand = onFalse;
     this.condition = condition;
 
     requirements.addAll(trueCommand.getRequirements());
     requirements.addAll(falseCommand.getRequirements());
-    DTCommandScheduler.registerComposedCommands(onTrue, onFalse);
+    DTCommandScheduler.registerComposed(onTrue, onFalse);
 
     activeCommand = falseCommand;
   }
@@ -47,9 +47,7 @@ public class DTConditionalCommand extends DTCommandBase {
   }
 
   @Override
-  public boolean isFinished() {
-    return activeCommand.isFinished();
-  }
+  public boolean isFinished() { return activeCommand.isFinished(); }
 
   @Override
   public boolean wasSuccessful() {

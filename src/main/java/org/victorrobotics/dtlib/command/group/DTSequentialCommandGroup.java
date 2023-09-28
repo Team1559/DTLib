@@ -24,13 +24,13 @@ public class DTSequentialCommandGroup extends DTCommandBase {
     addCommands(sequentialCommands.size(), commands);
   }
 
-  public void addCommands(int index, DTCommand... commands) {
+  private void addCommands(int index, DTCommand... commands) {
     if (cmdIndex != -1) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (commands == null || commands.length == 0) {
       return;
     }
-    DTCommandScheduler.registerComposedCommands(commands);
+    DTCommandScheduler.registerComposed(commands);
 
     sequentialCommands.addAll(index, List.of(commands));
     for (DTCommand command : commands) {

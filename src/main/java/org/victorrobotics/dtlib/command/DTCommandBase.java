@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

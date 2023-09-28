@@ -14,6 +14,7 @@ public abstract class DTLogTreeNode {
   private final String              path;
   private final List<DTLogTreeNode> children;
 
+  @SuppressWarnings("rawtypes")
   private DTLogVar node;
 
   protected DTLogTreeNode(String path) {
@@ -26,6 +27,7 @@ public abstract class DTLogTreeNode {
 
   protected abstract Object getValue(Object parent);
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public void init(Deque<Class<?>> clazzTree, Set<Class<?>> clazzes,
       List<DTLogStaticVar<?>> staticVars) {
     Class<?> clazz = getType();
@@ -150,6 +152,7 @@ public abstract class DTLogTreeNode {
     }
   }
 
+  @SuppressWarnings("unchecked")
   void log(Object parent) {
     if (parent == null) {
       logNull();
@@ -166,6 +169,7 @@ public abstract class DTLogTreeNode {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private void logNull() {
     if (node != null) {
       node.logValue(null);

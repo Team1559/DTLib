@@ -1,10 +1,10 @@
 package org.victorrobotics.dtlib.command.group;
 
-import org.victorrobotics.dtlib.DTSubsystem;
 import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandBase;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +34,7 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
     } else if (commands == null || commands.length == 0) {
       return;
     }
-    DTCommandScheduler.registerComposedCommands(commands);
+    DTCommandScheduler.registerComposed(commands);
 
     for (DTCommand command : commands) {
       Set<DTSubsystem> commandReqs = command.getRequirements();
