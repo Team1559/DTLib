@@ -1,7 +1,6 @@
 package org.victorrobotics.dtlib.drivetrain;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
 public final class DTVelocityLimit {
   public final double maxVelocityTranslation;
@@ -17,8 +16,10 @@ public final class DTVelocityLimit {
     this(Double.NaN, translation, Double.NaN, rotation);
   }
 
-  public DTVelocityLimit(double minTranslation, double maxTranslation, double minRotation, double maxRotation) {
-    maxVelocityTranslation = Double.isFinite(maxTranslation) ? Math.abs(maxTranslation) : Double.NaN;
+  public DTVelocityLimit(double minTranslation, double maxTranslation, double minRotation,
+      double maxRotation) {
+    maxVelocityTranslation = Double.isFinite(maxTranslation) ? Math.abs(maxTranslation)
+      : Double.NaN;
     maximumAngularVelocity = Double.isFinite(maxRotation) ? Math.abs(maxRotation) : Double.NaN;
     minimumLinearVelocity = Double.isFinite(minTranslation) ? Math.abs(minTranslation) : Double.NaN;
     minimumAngularVelocity = Double.isFinite(minRotation) ? Math.abs(minRotation) : Double.NaN;
@@ -31,30 +32,21 @@ public final class DTVelocityLimit {
     }
   }
 
-  public boolean apply(ChassisSpeeds speeds) {
-    boolean changed = false;
+  public boolean apply(DTVector2dR speeds) {
+    boolean change = false;
 
-    if (!Double.isNaN(maxVelocityTranslation)) {
-      Translation2d translationVelocity = new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
-      double translationVelocityMagnitude = translationVelocity.getNorm();
-      if (translationVelocityMagnitude > maxVelocityTranslation) {
-        translationVelocity = translationVelocity.times(maxVelocityTranslation / translationVelocityMagnitude);
-        speeds.vxMetersPerSecond = translationVelocity.getX();
-        speeds.vyMetersPerSecond = translationVelocity.getY();
-        changed = true;
-      }
+    double translationVelocity = speeds.getNorm();
+    if (!Double.isNaN(maxVelocityTranslation) && translationVelocity > maxVelocityTranslation) {
+      speeds.multiply(maxVelocityTranslation / translationVelocity);
+      change = true;
     }
 
-    if (!Double.isNaN(maximumAngularVelocity)) {
-      if (speeds.omegaRadiansPerSecond > maximumAngularVelocity) {
-        speeds.omegaRadiansPerSecond = maximumAngularVelocity;
-        changed = true;
-      } else if (speeds.omegaRadiansPerSecond < -maximumAngularVelocity) {
-        speeds.omegaRadiansPerSecond = -maximumAngularVelocity;
-        changed = true;
-      }
+    double rotationVelocity = Math.abs(speeds.getR());
+    if (!Double.isNaN(maximumAngularVelocity) && rotationVelocity > maximumAngularVelocity) {
+      speeds.multiply(maximumAngularVelocity / rotationVelocity);
+      change = true;
     }
 
-    return changed;
+    return change;
   }
 }

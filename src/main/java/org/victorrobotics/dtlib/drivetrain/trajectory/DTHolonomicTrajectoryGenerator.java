@@ -2,31 +2,34 @@ package org.victorrobotics.dtlib.drivetrain.trajectory;
 
 import org.victorrobotics.dtlib.drivetrain.DTAccelerationLimit;
 import org.victorrobotics.dtlib.drivetrain.DTVelocityLimit;
+import org.victorrobotics.dtlib.drivetrain.trajectory.DTHolonomicTrajectory.Constraint;
 import org.victorrobotics.dtlib.drivetrain.trajectory.DTHolonomicTrajectory.Point;
-import org.victorrobotics.dtlib.math.geometry.DTVector2DR;
-import org.victorrobotics.dtlib.math.spline.DTLinearSpline;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.spline.DTCubicBezierSpline;
 import org.victorrobotics.dtlib.math.spline.DTSpline;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DTHolonomicTrajectoryGenerator {
-  private static final DTAccelerationLimit DEFAULT_ACCEL_LIMIT    = new DTAccelerationLimit(25, 20 * Math.PI, 0.02);
-  private static final DTVelocityLimit     DEFAULT_VELOCITY_LIMIT = new DTVelocityLimit(0.05, 5, 0.1, Math.PI * 4);
+  private static final DTAccelerationLimit DEFAULT_ACCEL_LIMIT    = new DTAccelerationLimit(25,
+      20 * Math.PI);
+  private static final DTVelocityLimit     DEFAULT_VELOCITY_LIMIT = new DTVelocityLimit(0.05, 5,
+      0.1, Math.PI * 4);
 
   private static final double DEFAULT_DISTANCE_BETWEEN_POINTS = 0.02;
-  private static final double DEFAULT_MAX_DELTA_T             = 0.126;
+  private static final int    DEFAULT_MIN_POINT_COUNT         = 8;
 
   private DTAccelerationLimit accelLimit;
   private DTVelocityLimit     velocityLimit;
-  private double              maxDistance;
-  private double              maxDeltaU;
+  private double              distanceBetweenPoints;
+  private double              deltaU;
 
   public DTHolonomicTrajectoryGenerator() {
     accelLimit = DEFAULT_ACCEL_LIMIT;
     velocityLimit = DEFAULT_VELOCITY_LIMIT;
-    maxDistance = DEFAULT_DISTANCE_BETWEEN_POINTS;
-    maxDeltaU = DEFAULT_MAX_DELTA_T;
+    distanceBetweenPoints = DEFAULT_DISTANCE_BETWEEN_POINTS;
+    deltaU = 1D / DEFAULT_MIN_POINT_COUNT;
   }
 
   public void setAccelLimit(DTAccelerationLimit limit) {
@@ -37,19 +40,26 @@ public class DTHolonomicTrajectoryGenerator {
     velocityLimit = limit;
   }
 
-  public void setMaxDistance(double distanceMeters) {
-    maxDistance = distanceMeters;
+  public void setDistanceBetweenPoints(double distanceMeters) {
+    distanceBetweenPoints = distanceMeters;
+  }
+
+  public void setMinPointCount(int count) {
+    deltaU = 1D / count;
   }
 
   public DTHolonomicTrajectory generate(DTSpline<?> spline) {
     Point[] points = generatePoints(spline);
-    computeDistances(points);
     maximizeVelocities(points);
-    applyCentripetalConstraint(points);
-    applyAccelerationConstraint(points);
-    applyDecelerationConstraint(points);
+    computeDistance(points);
+    computeCurvature(points);
+
+    constrainCentripetalAcceleration(points);
+    constrainLinearAcceleration(points);
+
     computeTimes(points);
     computeAccelerations(points);
+    computeJolts(points);
     return new DTHolonomicTrajectory(points);
   }
 
@@ -57,26 +67,27 @@ public class DTHolonomicTrajectoryGenerator {
     List<Point> pointList = new ArrayList<>();
     for (int i = 0; i < spline.length(); i++) {
       Point start = createPoint(spline, i);
-      Point end = createPoint(spline, i + 1);
       pointList.add(start);
-      recursiveSplit(pointList, spline, i, i + 1, start.position, end.position);
+
+      DTVector2dR endPos = spline.getPosition(i + 1);
+      recursiveSplit(pointList, spline, i, i + 1, start.position, endPos);
     }
     pointList.add(createPoint(spline, spline.length()));
     return pointList.toArray(Point[]::new);
   }
 
-  private void recursiveSplit(List<Point> pointList, DTSpline<?> spline, double minU, double maxU, DTVector2DR startPos,
-      DTVector2DR endPos) {
-    DTVector2DR displacement = endPos.clone();
-    displacement.subtract(startPos);
-    if (maxU - minU <= maxDeltaU && displacement.hypotenuse() <= maxDistance) {
-      // Points are close enough, stop splitting
+  private void recursiveSplit(List<Point> pointList, DTSpline<?> spline, double minU, double maxU,
+      DTVector2dR startPos, DTVector2dR endPos) {
+    if (maxU - minU <= deltaU && endPos.clone()
+                                       .subtract(startPos)
+                                       .getNorm() <= distanceBetweenPoints) {
       return;
     }
 
     // Split in half and repeat
     double midU = 0.5 * (minU + maxU);
     Point midPoint = createPoint(spline, midU);
+
     recursiveSplit(pointList, spline, minU, midU, startPos, midPoint.position);
     pointList.add(midPoint);
     recursiveSplit(pointList, spline, midU, maxU, midPoint.position, endPos);
@@ -84,63 +95,81 @@ public class DTHolonomicTrajectoryGenerator {
 
   private void maximizeVelocities(Point[] points) {
     for (Point point : points) {
-      point.velocity.scaleHypotenuse(velocityLimit.maxVelocityTranslation);
+      point.velocity.normalize(velocityLimit.maxVelocityTranslation);
       if (point.velocity.getR() > velocityLimit.maximumAngularVelocity) {
-        point.velocity.scaleR(velocityLimit.maximumAngularVelocity);
+        point.velocity.multiply(velocityLimit.maximumAngularVelocity / point.velocity.getR());
       }
+      point.limitingConstraint = Constraint.VELOCITY;
     }
   }
 
-  private void applyCentripetalConstraint(Point[] points) {
-    points[0].curvatureRadius = Double.NaN;
-    points[points.length - 1].curvatureRadius = Double.NaN;
+  private void constrainCentripetalAcceleration(Point[] points) {
     for (int i = 1; i < points.length - 1; i++) {
-      points[i].curvatureRadius = computeRadius(points[i - 1].position, points[i].position, points[i + 1].position);
-      if (Double.isNaN(points[i].curvatureRadius)) {
-        points[i].velocity.scaleHypotenuse(velocityLimit.minimumLinearVelocity);
-      } else if (Double.isFinite(points[i].curvatureRadius)) {
-        double maxVelocity = Math.sqrt(points[i].curvatureRadius * accelLimit.maxAccelTranslation);
-        points[i].velocity.scaleDownHypotenuse(maxVelocity);
+      if (Double.isInfinite(points[i].curvature)) {
+        points[i].velocity.multiply(0);
+        points[i].limitingConstraint = Constraint.CENTRIPETAL;
+        continue;
+      }
+
+      double maxVelocity = Math.max(Math.sqrt(accelLimit.maxTranslation / points[i].curvature),
+          velocityLimit.minimumLinearVelocity);
+      double currentVelocity = points[i].velocity.getNorm();
+      if (currentVelocity > maxVelocity) {
+        points[i].velocity.normalize(maxVelocity);
+        points[i].limitingConstraint = Constraint.CENTRIPETAL;
       }
     }
   }
 
-  private void applyAccelerationConstraint(Point[] points) {
+  private void constrainLinearAcceleration(Point[] points) {
+    int end = points.length - 1;
     points[0].velocity.set(points[1].position.clone()
-                                             .subtract(points[0].position));
-    points[0].velocity.scaleHypotenuse(velocityLimit.minimumLinearVelocity);
-    for (int i = 1; i < points.length; i++) {
-      // sqrt(v^2+2ad)
-      double prevVelT = points[i - 1].velocity.hypotenuse();
-      double prevMaxAccel = computeMaxAccel(points[i - 1]);
-      double maxVelT = Math.sqrt(
-          prevVelT * prevVelT + 2 * prevMaxAccel * (points[i].distance - points[i - 1].distance));
-      points[i].velocity.scaleDownHypotenuse(maxVelT);
+                                             .subtract(points[0].position))
+                      .normalize(velocityLimit.minimumLinearVelocity);
+    points[end].velocity.set(points[end].position.clone()
+                                                 .subtract(points[end - 1].position))
+                        .normalize(velocityLimit.minimumLinearVelocity);
+
+    for (int i = 1, j = end - 1; i < points.length; i++, j--) {
+      // Acceleration
+      double prevVelocity = points[i - 1].velocity.getNorm(); // 0
+      double maxAccel = computeMaxLinearAccel(points[i - 1]);
+      double distance = points[i].distance - points[i - 1].distance;
+      double maxVelocity = Math.max(velocityLimit.minimumLinearVelocity,
+          Math.sqrt(prevVelocity * prevVelocity + 2 * maxAccel * distance));
+
+      double currentVelocity = points[i].velocity.getNorm();
+      if (currentVelocity > maxVelocity) {
+        points[i].velocity.multiply(maxVelocity / currentVelocity);
+        points[i].limitingConstraint = Constraint.ACCELERATION;
+      }
+
+      // Deceleration
+      prevVelocity = points[j + 1].velocity.getNorm();
+      maxAccel = computeMaxLinearAccel(points[j + 1]);
+      distance = points[j + 1].distance - points[j].distance;
+      maxVelocity = Math.max(velocityLimit.minimumLinearVelocity,
+          Math.sqrt(prevVelocity * prevVelocity + 2 * maxAccel * distance));
+
+      currentVelocity = points[j].velocity.getNorm();
+      if (currentVelocity > maxVelocity) {
+        points[j].velocity.multiply(maxVelocity / currentVelocity);
+        points[j].limitingConstraint = Constraint.ACCELERATION;
+      }
     }
   }
 
-  private void applyDecelerationConstraint(Point[] points) {
-    int maxIndex = points.length - 1;
-    points[maxIndex].velocity.set(points[maxIndex].position.clone()
-                                                           .subtract(points[maxIndex - 1].position));
-    points[maxIndex].velocity.scaleHypotenuse(velocityLimit.minimumLinearVelocity);
-    for (int i = maxIndex - 1; i >= 0; i--) {
-      // sqrt(v^2-2ad)
-      double nextVel = points[i + 1].velocity.hypotenuse();
-      double nextMaxAccel = computeMaxAccel(points[i + 1]);
-      double maxVel = Math.sqrt(nextVel * nextVel + 2 * nextMaxAccel * (points[i + 1].distance - points[i].distance));
-      points[i].velocity.scaleDownHypotenuse(maxVel);
+  private double computeMaxLinearAccel(Point p) {
+    if (Double.isInfinite(p.curvature)) {
+      return accelLimit.maxTranslation;
     }
-  }
-
-  private double computeMaxAccel(Point p) {
-    double x2 = accelLimit.maxAccelTranslation;
-    double y2 = p.velocity.hypotenuse();
-    y2 *= y2 / p.curvatureRadius;
-    x2 *= x2;
-    y2 *= y2;
-    double maxAccel = Math.sqrt(x2 - y2);
-    return Double.isNaN(maxAccel) ? accelLimit.maxAccelTranslation : maxAccel;
+    double velocity = p.velocity.getNorm();
+    double centripetalAccel = velocity * velocity * p.curvature;
+    if (centripetalAccel >= accelLimit.maxTranslation) {
+      return 0;
+    }
+    return Math.sqrt(accelLimit.maxTranslation * accelLimit.maxTranslation
+        - centripetalAccel * centripetalAccel);
   }
 
   private static Point createPoint(DTSpline<?> spline, double u) {
@@ -151,74 +180,104 @@ public class DTHolonomicTrajectoryGenerator {
     return p;
   }
 
-  private static void computeDistances(Point[] points) {
+  private static void computeDistance(Point[] points) {
+    points[0].distance = 0;
+
     double distance = 0;
     for (int i = 1; i < points.length; i++) {
       distance += points[i].position.clone()
                                     .subtract(points[i - 1].position)
-                                    .hypotenuse();
+                                    .getNorm();
       points[i].distance = distance;
+    }
+  }
+
+  private static void computeCurvature(Point[] points) {
+    int end = points.length - 1;
+    points[0].curvature = 0;
+    points[end].curvature = 0;
+
+    for (int i = 1; i < end; i++) {
+      points[i].curvature = computeCurvature(points[i - 1], points[i], points[i + 1]);
+    }
+  }
+
+  private static double computeCurvature(Point before, Point current, Point after) {
+    double x2 = current.position.getX() - before.position.getX();
+    double y2 = current.position.getY() - before.position.getY();
+    double x3 = after.position.getX() - before.position.getX();
+    double y3 = after.position.getY() - before.position.getY();
+
+    double a = Math.abs(x2 * y3 - x3 * y2 * 2);
+    if (a > 1e-6) {
+      // Standard case
+      double x2s = x2 * x2;
+      double x3s = x3 * x3;
+      double y2s = y2 * y2;
+      double y3s = y3 * y3;
+      double s1 = (x2s + y2s) * y3 - (x3s + y3s) * y2;
+      double s2 = (x2s + y2s) * x3 - (x3s + y3s) * x2;
+      return a / Math.hypot(s1, s2);
+    }
+
+    // Points are collinear
+    double dTheta = Math.atan2(y2 - y3, x2 - x3) - Math.atan2(y2, x2);
+    if (Math.abs(dTheta) < 1e-6 || Math.abs(dTheta - Math.PI * 2) < 1e-6) {
+      // 180º cusp (reverse direction)
+      return Double.POSITIVE_INFINITY;
+    } else {
+      // Straight line
+      return 0;
     }
   }
 
   private static void computeTimes(Point[] points) {
     double time = 0;
-    for (int i = 1; i < points.length; i++) {
-      time += (points[i].distance - points[i - 1].distance) * 2
-          / (points[i].velocity.hypotenuse() + points[i - 1].velocity.hypotenuse());
+    for (int i = 1; i < points.length - 1; i++) {
+      double distance = points[i + 1].distance - points[i - 1].distance;
+      double avgVelocity = (points[i + 1].velocity.getNorm() + points[i - 1].velocity.getNorm());
+      time += distance / avgVelocity;
       points[i].time = time;
     }
+    double distance = points[points.length - 1].distance - points[points.length - 2].distance;
+    double avgVelocity = 0.5 * (points[points.length - 1].velocity.getNorm()
+        + points[points.length - 2].velocity.getNorm());
+    time += distance / avgVelocity;
+    points[points.length - 1].time = time;
   }
 
   private static void computeAccelerations(Point[] points) {
-    points[0].acceleration = new DTVector2DR();
-    for (int i = 1; i < points.length; i++) {
-      points[i].acceleration = points[i].velocity.clone()
-                                                 .subtract(points[i - 1].velocity)
-                                                 .multiply(1 / (points[i].time - points[i - 1].time));
+    for (int i = 1; i < points.length - 1; i++) {
+      points[i].acceleration = points[i + 1].velocity.clone()
+                                                     .subtract(points[i - 1].velocity)
+                                                     .divide(
+                                                         points[i + 1].time - points[i - 1].time);
     }
+    points[0].acceleration = points[1].acceleration.clone();
+    points[points.length - 1].acceleration = points[points.length - 2].acceleration.clone();
   }
 
-  private static double computeRadius(DTVector2DR before, DTVector2DR current, DTVector2DR after) {
-    double x2 = current.getX() - before.getX();
-    double x3 = after.getX() - before.getX();
-    double y2 = current.getY() - before.getY();
-    double y3 = after.getY() - before.getY();
-
-    double a = x2 * y3 - x3 * y2;
-    if (Math.abs(a) >= 1e-9) {
-      // Standard case
-      double x2y2 = (x2 * x2 + y2 * y2);
-      double x3y3 = (x3 * x3 + y3 * y3);
-      double x = x3 * x2y2 - x2 * x3y3;
-      double y = y3 * x2y2 - y2 * x3y3;
-      return Math.hypot(x, y) / Math.abs(2 * a);
+  private static void computeJolts(Point[] points) {
+    for (int i = 1; i < points.length - 1; i++) {
+      points[i].jolt = points[i + 1].acceleration.clone()
+                                                 .subtract(points[i - 1].acceleration)
+                                                 .divide(points[i + 1].time - points[i - 1].time)
+                                                 .getNorm();
     }
-
-    double d1 = current.clone()
-                       .subtract(before)
-                       .theta();
-    double d3 = current.clone()
-                       .subtract(after)
-                       .theta();
-    if (Math.abs(d3 - d1) < 1e-3) {
-      // 2 is beyond 1 or 3
-      // 1----3--2
-      return Double.NaN;
-    } else {
-      // Current is between others
-      // 1---2---3
-      return Double.POSITIVE_INFINITY;
-    }
+    points[0].jolt = points[1].jolt;
+    points[points.length - 1].jolt = points[points.length - 2].jolt;
   }
 
   public static void main(String... args) {
     DTHolonomicTrajectoryGenerator generator = new DTHolonomicTrajectoryGenerator();
-    DTLinearSpline spline1 = new DTLinearSpline(new DTVector2DR(), new DTVector2DR(0, 1, 0));
-    spline1.appendSegment(new DTVector2DR());
+    double d = 0.5;
+    double d2 = 1;
+    DTCubicBezierSpline spline1 = new DTCubicBezierSpline(new DTVector2dR(), new DTVector2dR(),
+        new DTVector2dR(d2 - d, -d, 0), new DTVector2dR(d2, 0, 0));
+    spline1.appendSegment(new DTVector2dR(d2 + d, d2 - d, 0), new DTVector2dR(d2, d2, 0));
+    spline1.appendSegment(new DTVector2dR(d, d2 + d, 0), new DTVector2dR(0, d2, 0));
+    spline1.appendSegment(new DTVector2dR(), new DTVector2dR());
     DTHolonomicTrajectory traj1 = generator.generate(spline1);
-    for (Point p : traj1) {
-      System.out.println(p);
-    }
+    System.out.println(traj1);
   }
 }

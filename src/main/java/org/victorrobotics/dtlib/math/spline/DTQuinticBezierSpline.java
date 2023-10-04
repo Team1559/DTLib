@@ -1,14 +1,14 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2DR;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
 public class DTQuinticBezierSpline extends DTSpline<DTQuinticBezierCurve> {
   public DTQuinticBezierSpline() {
     super();
   }
 
-  public DTQuinticBezierSpline(DTVector2DR p0, DTVector2DR v0, DTVector2DR a0, DTVector2DR p1, DTVector2DR v1,
-      DTVector2DR a1) {
+  public DTQuinticBezierSpline(DTVector2dR p0, DTVector2dR v0, DTVector2dR a0, DTVector2dR p1, DTVector2dR v1,
+      DTVector2dR a1) {
     super(new DTQuinticBezierCurve(p0, v0, a0, p1, v1, a1));
   }
 
@@ -16,7 +16,7 @@ public class DTQuinticBezierSpline extends DTSpline<DTQuinticBezierCurve> {
     super(segment);
   }
 
-  public DTQuinticBezierCurve appendSegment(DTVector2DR p3, DTVector2DR p4, DTVector2DR p5) {
+  public DTQuinticBezierCurve appendSegment(DTVector2dR p3, DTVector2dR p4, DTVector2dR p5) {
     DTQuinticBezierControl prevControl;
     if (segments.isEmpty()) {
       prevControl = new DTQuinticBezierControl();
@@ -31,7 +31,7 @@ public class DTQuinticBezierSpline extends DTSpline<DTQuinticBezierCurve> {
     return newSegment;
   }
 
-  public DTQuinticBezierCurve prependSegment(DTVector2DR p0, DTVector2DR p1, DTVector2DR p2) {
+  public DTQuinticBezierCurve prependSegment(DTVector2dR p0, DTVector2dR p1, DTVector2dR p2) {
     DTQuinticBezierControl nextControl;
     if (segments.isEmpty()) {
       nextControl = new DTQuinticBezierControl();
@@ -49,13 +49,13 @@ public class DTQuinticBezierSpline extends DTSpline<DTQuinticBezierCurve> {
   @Override
   public DTQuinticBezierCurve splitSegment(int index, double t) {
     DTQuinticBezierCurve toSplit = segments.get(index);
-    DTVector2DR p0 = toSplit.getPosition(t);
-    DTVector2DR vel = toSplit.getVelocity(t);
-    DTVector2DR acc = toSplit.getAcceleration(t);
-    DTVector2DR p1 = p0.clone()
+    DTVector2dR p0 = toSplit.getPosition(t);
+    DTVector2dR vel = toSplit.getVelocity(t);
+    DTVector2dR acc = toSplit.getAcceleration(t);
+    DTVector2dR p1 = p0.clone()
                        .add(vel.clone()
                                .multiply(0.2D));
-    DTVector2DR p2 = p0.clone()
+    DTVector2dR p2 = p0.clone()
                        .add(vel.multiply(0.4D))
                        .add(acc.multiply(0.5D));
     DTQuinticBezierControl splitControl = DTQuinticBezierControl.createStart(p0, p1, p2);

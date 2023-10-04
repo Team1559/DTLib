@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2DR;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
@@ -21,17 +21,17 @@ public abstract class DTCurve {
     tMatrix = new DMatrixRMaj(1, pointCount);
   }
 
-  public abstract DTVector2DR getControlPoint(int index);
+  public abstract DTVector2dR getControlPoint(int index);
 
   public abstract DTCurveControl getStartControl();
 
   public abstract DTCurveControl getEndControl();
 
-  public abstract void setControlPoint(int index, DTVector2DR control);
+  public abstract void setControlPoint(int index, DTVector2dR control);
 
   protected void fillControlMatrix() {
     for (int i = 0; i <= degree; i++) {
-      DTVector2DR controlPoint = getControlPoint(i);
+      DTVector2dR controlPoint = getControlPoint(i);
       controlMatrix.set(i, 0, controlPoint.getX());
       controlMatrix.set(i, 1, controlPoint.getY());
       controlMatrix.set(i, 2, controlPoint.getR());
@@ -44,20 +44,20 @@ public abstract class DTCurve {
     }
   }
 
-  protected DTVector2DR compute(double t, DMatrixRMaj coefficients) {
+  protected DTVector2dR compute(double t, DMatrixRMaj coefficients) {
     fillControlMatrix();
     fillTMatrix(t);
 
     CommonOps_DDRM.mult(tMatrix, coefficients, coefficientMatrix);
     CommonOps_DDRM.mult(coefficientMatrix, controlMatrix, resultMatrix);
-    return new DTVector2DR(resultMatrix.get(0), resultMatrix.get(1), resultMatrix.get(2));
+    return new DTVector2dR(resultMatrix.get(0), resultMatrix.get(1), resultMatrix.get(2));
   }
 
-  public abstract DTVector2DR getPosition(double t);
+  public abstract DTVector2dR getPosition(double t);
 
-  public abstract DTVector2DR getVelocity(double t);
+  public abstract DTVector2dR getVelocity(double t);
 
-  public abstract DTVector2DR getAcceleration(double t);
+  public abstract DTVector2dR getAcceleration(double t);
 
-  public abstract DTVector2DR getJolt(double t);
+  public abstract DTVector2dR getJolt(double t);
 }

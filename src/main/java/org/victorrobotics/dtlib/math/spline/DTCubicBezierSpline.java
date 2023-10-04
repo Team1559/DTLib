@@ -1,13 +1,13 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2DR;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
 public class DTCubicBezierSpline extends DTSpline<DTCubicBezierCurve> {
   public DTCubicBezierSpline() {
     super();
   }
 
-  public DTCubicBezierSpline(DTVector2DR p0, DTVector2DR p1, DTVector2DR p2, DTVector2DR p3) {
+  public DTCubicBezierSpline(DTVector2dR p0, DTVector2dR p1, DTVector2dR p2, DTVector2dR p3) {
     super(new DTCubicBezierCurve(p0, p1, p2, p3));
   }
 
@@ -15,7 +15,7 @@ public class DTCubicBezierSpline extends DTSpline<DTCubicBezierCurve> {
     super(segment);
   }
 
-  public DTCubicBezierCurve appendSegment(DTVector2DR p2, DTVector2DR p3) {
+  public DTCubicBezierCurve appendSegment(DTVector2dR p2, DTVector2dR p3) {
     DTCubicBezierControl prevControl;
     if (segments.isEmpty()) {
       prevControl = new DTCubicBezierControl();
@@ -30,7 +30,7 @@ public class DTCubicBezierSpline extends DTSpline<DTCubicBezierCurve> {
     return newSegment;
   }
 
-  public DTCubicBezierCurve prependSegment(DTVector2DR p0, DTVector2DR p1) {
+  public DTCubicBezierCurve prependSegment(DTVector2dR p0, DTVector2dR p1) {
     DTCubicBezierControl nextControl;
     if (segments.isEmpty()) {
       nextControl = new DTCubicBezierControl();
@@ -48,8 +48,8 @@ public class DTCubicBezierSpline extends DTSpline<DTCubicBezierCurve> {
   @Override
   public DTCubicBezierCurve splitSegment(int index, double t) {
     DTCubicBezierCurve toSplit = segments.get(index);
-    DTVector2DR p0 = toSplit.getPosition(t);
-    DTVector2DR p1 = toSplit.getVelocity(t)
+    DTVector2dR p0 = toSplit.getPosition(t);
+    DTVector2dR p1 = toSplit.getVelocity(t)
                             .multiply(1 / 3D);
     DTCubicBezierControl splitControl = DTCubicBezierControl.createStart(p0, p1);
 

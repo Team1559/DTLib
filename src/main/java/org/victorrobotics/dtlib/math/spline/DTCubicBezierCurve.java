@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2DR;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
 import org.ejml.data.DMatrixRMaj;
 
@@ -51,7 +51,7 @@ public class DTCubicBezierCurve extends DTCurve {
   private int                        startModCount;
   private int                        endModCount;
 
-  protected DTCubicBezierCurve(DTVector2DR p0, DTVector2DR p1, DTVector2DR p2, DTVector2DR p3) {
+  protected DTCubicBezierCurve(DTVector2dR p0, DTVector2dR p1, DTVector2dR p2, DTVector2dR p3) {
     this(DTCubicBezierControl.createStart(p0, p1), DTCubicBezierControl.createEnd(p2, p3));
   }
 
@@ -64,27 +64,27 @@ public class DTCubicBezierCurve extends DTCurve {
   }
 
   @Override
-  public DTVector2DR getPosition(double t) {
+  public DTVector2dR getPosition(double t) {
     return compute(t, POSITION_MATRIX);
   }
 
   @Override
-  public DTVector2DR getVelocity(double t) {
+  public DTVector2dR getVelocity(double t) {
     return compute(t, VELOCITY_MATRIX);
   }
 
   @Override
-  public DTVector2DR getAcceleration(double t) {
+  public DTVector2dR getAcceleration(double t) {
     return compute(t, ACCELERATION_MATRIX);
   }
 
   @Override
-  public DTVector2DR getJolt(double t) {
+  public DTVector2dR getJolt(double t) {
     return compute(t, JOLT_MATRIX);
   }
 
   @Override
-  public DTVector2DR getControlPoint(int index) {
+  public DTVector2dR getControlPoint(int index) {
     switch (index) {
       case 0:
         return startControl.getP0();
@@ -100,7 +100,7 @@ public class DTCubicBezierCurve extends DTCurve {
   }
 
   @Override
-  public void setControlPoint(int index, DTVector2DR control) {
+  public void setControlPoint(int index, DTVector2dR control) {
     switch (index) {
       case 0:
         startControl.setP0(control);
@@ -124,8 +124,8 @@ public class DTCubicBezierCurve extends DTCurve {
     int startMod = startControl.getModCount();
     if (startMod != startModCount) {
       startModCount = startMod;
-      DTVector2DR p0 = startControl.getP0Raw();
-      DTVector2DR p1 = startControl.getP1Raw();
+      DTVector2dR p0 = startControl.getP0Raw();
+      DTVector2dR p1 = startControl.getP1Raw();
       controlMatrix.set(0, 0, p0.getX());
       controlMatrix.set(0, 1, p0.getY());
       controlMatrix.set(0, 2, p0.getR());
@@ -136,8 +136,8 @@ public class DTCubicBezierCurve extends DTCurve {
     int endMod = startControl.getModCount();
     if (endMod != endModCount) {
       endModCount = endMod;
-      DTVector2DR p2 = endControl.getP2();
-      DTVector2DR p3 = endControl.getP3Raw();
+      DTVector2dR p2 = endControl.getP2();
+      DTVector2dR p3 = endControl.getP3Raw();
       controlMatrix.set(2, 0, p2.getX());
       controlMatrix.set(2, 1, p2.getY());
       controlMatrix.set(2, 2, p2.getR());

@@ -1,66 +1,54 @@
 package org.victorrobotics.dtlib.drivetrain;
 
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import org.victorrobotics.dtlib.DTRobot;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
 public final class DTAccelerationLimit {
   // These are in standard units
-  public final double maxAccelTranslation;
-  public final double maxAccelRotation;
+  public final double maxTranslation;
+  public final double maxRotation;
 
   // These are in meters per second per robot cycle
-  private final double maxAccelTranslationPerCycle;
-  private final double maxAccelRotationPerCycle;
+  private final double maxTranslationPerCycle;
+  private final double maxRotationPerCycle;
 
   public DTAccelerationLimit() {
-    maxAccelTranslation = Double.NaN;
-    maxAccelRotation = Double.NaN;
-    maxAccelTranslationPerCycle = Double.NaN;
-    maxAccelRotationPerCycle = Double.NaN;
+    maxTranslation = Double.NaN;
+    maxRotation = Double.NaN;
+    maxTranslationPerCycle = Double.NaN;
+    maxRotationPerCycle = Double.NaN;
   }
 
-  public DTAccelerationLimit(double translation, double rotation, double cycleLength) {
-    if (!Double.isFinite(cycleLength)) {
-      throw new DTIllegalArgumentException(cycleLength, "cycleLength must be finite");
-    }
-    cycleLength = Math.abs(cycleLength);
-
-    maxAccelTranslation = Double.isFinite(translation) ? Math.abs(translation) : Double.NaN;
-    maxAccelRotation = Double.isFinite(rotation) ? Math.abs(rotation) : Double.NaN;
-    maxAccelTranslationPerCycle = maxAccelTranslation * cycleLength;
-    maxAccelRotationPerCycle = maxAccelRotation * cycleLength;
+  public DTAccelerationLimit(double translation, double rotation) {
+    maxTranslation = Double.isFinite(translation) ? Math.abs(translation) : Double.NaN;
+    maxRotation = Double.isFinite(rotation) ? Math.abs(rotation) : Double.NaN;
+    maxTranslationPerCycle = maxTranslation * DTRobot.PERIOD_SECONDS;
+    maxRotationPerCycle = maxRotation * DTRobot.PERIOD_SECONDS;
   }
 
-  public boolean apply(ChassisSpeeds newSpeeds, ChassisSpeeds previousSpeeds) {
-    boolean changed = false;
+  public boolean apply(DTVector2dR newSpeeds, DTVector2dR previousSpeeds) {
+    boolean change = false;
 
-    if (!Double.isNaN(maxAccelTranslationPerCycle)) {
-      Translation2d oldTranslation = new Translation2d(previousSpeeds.vxMetersPerSecond,
-          previousSpeeds.vyMetersPerSecond);
-      Translation2d newTranslation = new Translation2d(newSpeeds.vxMetersPerSecond, newSpeeds.vyMetersPerSecond);
-      Translation2d translationAccel = newTranslation.minus(oldTranslation);
-      double translationAccelMagnitude = translationAccel.getNorm();
-      if (translationAccelMagnitude > maxAccelTranslationPerCycle) {
-        translationAccel = translationAccel.times(maxAccelTranslationPerCycle / translationAccelMagnitude);
-        newSpeeds.vxMetersPerSecond = previousSpeeds.vxMetersPerSecond + translationAccel.getX();
-        newSpeeds.vyMetersPerSecond = previousSpeeds.vyMetersPerSecond + translationAccel.getY();
-        changed = true;
-      }
+    DTVector2dR cycleAcceleration = newSpeeds.clone()
+                                             .subtract(previousSpeeds);
+
+    double translationAccel = cycleAcceleration.getNorm();
+    if (!Double.isNaN(maxTranslationPerCycle) && translationAccel > maxTranslationPerCycle) {
+      cycleAcceleration.multiply(maxTranslationPerCycle / translationAccel);
+      change = true;
     }
 
-    if (!Double.isNaN(maxAccelRotationPerCycle)) {
-      double rotationAccelMagnitude = newSpeeds.omegaRadiansPerSecond - previousSpeeds.omegaRadiansPerSecond;
-      if (rotationAccelMagnitude > maxAccelRotationPerCycle) {
-        newSpeeds.omegaRadiansPerSecond = previousSpeeds.omegaRadiansPerSecond + maxAccelRotationPerCycle;
-        changed = true;
-      } else if (rotationAccelMagnitude < -maxAccelRotationPerCycle) {
-        newSpeeds.omegaRadiansPerSecond = previousSpeeds.omegaRadiansPerSecond - maxAccelRotationPerCycle;
-        changed = true;
-      }
+    double rotationAccel = Math.abs(cycleAcceleration.getR());
+    if (!Double.isNaN(maxRotationPerCycle) && rotationAccel > maxRotationPerCycle) {
+      cycleAcceleration.multiply(maxRotationPerCycle / rotationAccel);
+      change = true;
     }
 
-    return changed;
+    if (change) {
+      newSpeeds.set(previousSpeeds.clone()
+                                  .add(cycleAcceleration.normalize(maxTranslationPerCycle)));
+    }
+
+    return change;
   }
 }
