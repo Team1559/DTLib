@@ -13,9 +13,9 @@ public final class DTWatchdog {
     private final String label;
     private final long   duration;
 
-    Epoch(String name, long timeMicros) {
-      this.label = name;
-      this.duration = timeMicros;
+    Epoch(String label, long durationMicros) {
+      this.label = label;
+      this.duration = durationMicros;
     }
   }
 
@@ -46,8 +46,7 @@ public final class DTWatchdog {
 
   public static void addEpoch(String label) {
     long time = DTRobot.currentTimeMicros();
-    long epochDuration = time - epochStartTime;
-    EPOCHS.add(new Epoch(label, epochDuration));
+    EPOCHS.add(new Epoch(label, time - epochStartTime));
     epochStartTime = time;
   }
 

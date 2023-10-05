@@ -18,7 +18,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
 
@@ -45,9 +44,7 @@ public class DTLogger {
 
   private DTLogger() {}
 
-  public static DTLogWriter getWriter() {
-    return dataWriter;
-  }
+  public static DTLogWriter getWriter() { return dataWriter; }
 
   public static int newHandle(int typeID, String path) {
     dataWriter.writeShort(typeID);
@@ -76,28 +73,23 @@ public class DTLogger {
     return true;
   }
 
-  public static boolean init() {
-    if (!isTimeSynchronized()) {
-      return false;
-    }
-
-    try {
-      openCapture();
-      writeHeader();
-      return true;
-    } catch (IOException e) {
-      try {
-        if (dataWriter != null) {
-          dataWriter.close();
-        }
-      } catch (IOException e2) {
+  public static void initialize() {
+    while (true) {
+      if (isTimeSynchronized()) {
+        try {
+          openWriter();
+          writeHeader();
+          return;
+        } catch (IOException e) {}
       }
-      dataWriter = null;
-      return false;
+
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {}
     }
   }
 
-  private static void openCapture() throws IOException {
+  private static void openWriter() throws IOException {
     Instant now = Clock.systemUTC()
                        .instant();
     lastTimestamp = DTRobot.currentTimeMicros() / 1_000;
@@ -126,8 +118,9 @@ public class DTLogger {
   }
 
   private static boolean isTimeSynchronized() {
-    return DriverStation.isDSAttached() && LocalDate.now(Clock.systemUTC())
-                                                    .getYear() >= 2000;
+    return DTRobot.isDSConnected() && LocalDate.now(Clock.systemUTC())
+                                               .getYear()
+        >= 2000;
   }
 
   public static void logDebug(String msg) {
