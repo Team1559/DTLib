@@ -56,4 +56,9 @@ public class DTTargetCommand implements DTCommand {
   public boolean runsWhenDisabled() {
     return target.runsWhenDisabled();
   }
+
+  @Override
+  public String getName() {
+    return target.getName();
+  }
 }

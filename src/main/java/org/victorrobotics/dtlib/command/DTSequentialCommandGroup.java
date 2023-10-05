@@ -30,7 +30,7 @@ public class DTSequentialCommandGroup extends DTCommandBase {
 
     sequentialCommands.addAll(index, List.of(commands));
     for (DTCommand command : commands) {
-      requirements.addAll(command.getRequirements());
+      addRequirements(command.getRequirements());
       runsWhenDisabled &= command.runsWhenDisabled();
       isInterruptible |= command.isInterruptible();
     }

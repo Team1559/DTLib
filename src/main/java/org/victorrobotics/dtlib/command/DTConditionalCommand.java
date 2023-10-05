@@ -14,8 +14,8 @@ public class DTConditionalCommand extends DTCommandBase {
     falseCommand = onFalse;
     this.condition = condition;
 
-    requirements.addAll(trueCommand.getRequirements());
-    requirements.addAll(falseCommand.getRequirements());
+    addRequirements(trueCommand.getRequirements());
+    addRequirements(falseCommand.getRequirements());
     DTCommandScheduler.registerComposed(onTrue, onFalse);
 
     activeCommand = falseCommand;

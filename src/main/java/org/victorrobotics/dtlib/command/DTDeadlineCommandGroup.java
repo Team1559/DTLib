@@ -1,11 +1,13 @@
 package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class DTDeadlineCommandGroup extends DTCommandBase {
   private final Map<DTCommand, Boolean> commands;
@@ -34,11 +36,12 @@ public class DTDeadlineCommandGroup extends DTCommandBase {
     DTCommandScheduler.registerComposed(commands);
 
     for (DTCommand command : commands) {
-      if (!Collections.disjoint(command.getRequirements(), requirements)) {
+      Set<DTSubsystem> commandReqs = command.getRequirements();
+      if (!Collections.disjoint(getRequirements(), commandReqs)) {
         throw new DTIllegalArgumentException(command, "parallel commands may not share requirements");
       }
       this.commands.put(command, false);
-      requirements.addAll(command.getRequirements());
+      addRequirements(commandReqs);
       runsWhenDisabled &= command.runsWhenDisabled();
       isInterruptible |= command.isInterruptible();
     }

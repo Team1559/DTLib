@@ -22,18 +22,20 @@ public interface DTCommand {
    *
    * @return the set of required subsystems (may be empty)
    */
-  Set<DTSubsystem> getRequirements();
+  default Set<DTSubsystem> getRequirements() {
+    return Set.of();
+  }
 
   /**
    * The initialization of a command. Called once each time a command is
    * started.
    */
-  void initialize();
+  default void initialize() {}
 
   /**
    * The main body of a command. Called every loop iteration while scheduled.
    */
-  void execute();
+  default void execute() {}
 
   /**
    * Whether the command has finished. Once a command finishes, the scheduler
@@ -41,13 +43,15 @@ public interface DTCommand {
    *
    * @return whether the command has finished
    */
-  boolean isFinished();
+  default boolean isFinished() {
+    return true;
+  }
 
   /**
    * The action to take when the command ends. Called once {@link #isFinished()}
    * returns true.
    */
-  void end();
+  default void end() {}
 
   /**
    * The action to take when the scheduler interrupts the command. By default,

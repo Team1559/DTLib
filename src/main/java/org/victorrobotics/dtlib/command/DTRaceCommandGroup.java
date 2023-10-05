@@ -35,11 +35,11 @@ public class DTRaceCommandGroup extends DTCommandBase {
 
     for (DTCommand command : commands) {
       Set<DTSubsystem> commandReqs = command.getRequirements();
-      if (!Collections.disjoint(requirements, commandReqs)) {
+      if (!Collections.disjoint(getRequirements(), commandReqs)) {
         throw new DTIllegalArgumentException(command, "parallel commands may not share requirements");
       }
       raceCommands.put(command, false);
-      requirements.addAll(commandReqs);
+      addRequirements(commandReqs);
       runsWhenDisabled &= command.runsWhenDisabled();
       isInterruptible |= command.isInterruptible();
     }

@@ -20,7 +20,7 @@ public class DTSelectCommand<T> extends DTCommandBase {
     boolean runsWhenDisabled = true;
     boolean isInterruptible = false;
     for (DTCommand command : commands.values()) {
-      requirements.addAll(command.getRequirements());
+      addRequirements(command.getRequirements());
       runsWhenDisabled &= command.runsWhenDisabled();
       isInterruptible |= command.isInterruptible();
     }
