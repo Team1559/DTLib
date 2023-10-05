@@ -1,6 +1,5 @@
-package org.victorrobotics.dtlib.command.util;
+package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.command.DTCommandBase;
 import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Objects;

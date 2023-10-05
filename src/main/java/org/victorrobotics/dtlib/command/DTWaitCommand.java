@@ -1,7 +1,6 @@
-package org.victorrobotics.dtlib.command.util;
+package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.DTRobot;
-import org.victorrobotics.dtlib.command.DTCommandBase;
 
 public class DTWaitCommand extends DTCommandBase {
   private final long duration;

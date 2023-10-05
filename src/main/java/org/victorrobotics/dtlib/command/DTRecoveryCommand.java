@@ -1,6 +1,4 @@
-package org.victorrobotics.dtlib.command.util;
-
-import org.victorrobotics.dtlib.command.DTCommand;
+package org.victorrobotics.dtlib.command;
 
 public class DTRecoveryCommand extends DTTargetCommand {
   private boolean threwException;

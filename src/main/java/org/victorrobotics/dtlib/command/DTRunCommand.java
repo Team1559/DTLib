@@ -1,4 +1,4 @@
-package org.victorrobotics.dtlib.command.util;
+package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 

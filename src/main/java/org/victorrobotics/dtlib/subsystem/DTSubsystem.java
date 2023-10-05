@@ -2,7 +2,7 @@ package org.victorrobotics.dtlib.subsystem;
 
 import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
-import org.victorrobotics.dtlib.command.util.DTNullCommand;
+import org.victorrobotics.dtlib.command.DTNullCommand;
 import org.victorrobotics.dtlib.dashboard.DTDash;
 import org.victorrobotics.dtlib.network.DTSendable;
 

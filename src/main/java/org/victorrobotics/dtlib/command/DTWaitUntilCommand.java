@@ -1,6 +1,4 @@
-package org.victorrobotics.dtlib.command.util;
-
-import org.victorrobotics.dtlib.command.DTCommandBase;
+package org.victorrobotics.dtlib.command;
 
 import java.util.function.BooleanSupplier;
 

@@ -1,6 +1,4 @@
-package org.victorrobotics.dtlib.command.util;
-
-import org.victorrobotics.dtlib.command.DTCommand;
+package org.victorrobotics.dtlib.command;
 
 public class DTRepeatCommand extends DTTargetCommand {
   private boolean wasSuccessful;

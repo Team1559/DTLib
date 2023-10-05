@@ -1,8 +1,4 @@
-package org.victorrobotics.dtlib.command.group;
-
-import org.victorrobotics.dtlib.command.DTCommand;
-import org.victorrobotics.dtlib.command.DTCommandBase;
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
+package org.victorrobotics.dtlib.command;
 
 import java.util.ArrayList;
 import java.util.List;
