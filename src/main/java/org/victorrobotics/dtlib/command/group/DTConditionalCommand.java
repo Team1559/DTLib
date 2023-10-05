@@ -47,7 +47,9 @@ public class DTConditionalCommand extends DTCommandBase {
   }
 
   @Override
-  public boolean isFinished() { return activeCommand.isFinished(); }
+  public boolean isFinished() {
+    return activeCommand.isFinished();
+  }
 
   @Override
   public boolean wasSuccessful() {

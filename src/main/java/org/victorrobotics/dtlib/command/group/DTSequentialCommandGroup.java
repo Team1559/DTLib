@@ -109,7 +109,7 @@ public class DTSequentialCommandGroup extends DTCommandBase {
   }
 
   @Override
-  public DTSequentialCommandGroup beforeStarting(DTCommand before) {
+  public DTSequentialCommandGroup beforeStarting(DTCommand... before) {
     addCommands(0, before);
     return this;
   }

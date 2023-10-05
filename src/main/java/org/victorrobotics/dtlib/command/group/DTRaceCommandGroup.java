@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class DTParallelRaceCommandGroup extends DTCommandBase {
+public class DTRaceCommandGroup extends DTCommandBase {
   private final Map<DTCommand, Boolean> raceCommands;
 
   private boolean runsWhenDisabled;
@@ -20,7 +20,7 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
   private boolean isInterruptible;
   private boolean success;
 
-  public DTParallelRaceCommandGroup(DTCommand... commands) {
+  public DTRaceCommandGroup(DTCommand... commands) {
     raceCommands = new HashMap<>(commands.length);
     isInterruptible = false;
     runsWhenDisabled = true;
@@ -66,6 +66,7 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
         command.end();
         success &= command.wasSuccessful();
         commandEntry.setValue(true);
+        isFinished = true;
       }
     }
   }
@@ -103,7 +104,7 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
   }
 
   @Override
-  public DTParallelRaceCommandGroup raceWith(DTCommand... parallel) {
+  public DTRaceCommandGroup raceWith(DTCommand... parallel) {
     addCommands(parallel);
     return this;
   }

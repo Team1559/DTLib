@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class DTParallelDeadlineGroup extends DTCommandBase {
+public class DTDeadlineCommandGroup extends DTCommandBase {
   private final Map<DTCommand, Boolean> commands;
   private final DTCommand               deadline;
 
@@ -18,7 +18,7 @@ public class DTParallelDeadlineGroup extends DTCommandBase {
   private boolean isFinished;
   private boolean isInterruptible;
 
-  public DTParallelDeadlineGroup(DTCommand deadline, DTCommand... commands) {
+  public DTDeadlineCommandGroup(DTCommand deadline, DTCommand... commands) {
     this.deadline = Objects.requireNonNull(deadline);
     this.commands = new HashMap<>(commands.length + 1);
     runsWhenDisabled = true;

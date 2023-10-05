@@ -177,8 +177,8 @@ public final class DTCommandScheduler {
    * conditions are met:
    * <ul>
    * <li>The command is not {@code null}</li>
-   * <li>The command does not belong to a composed command group</li>
    * <li>The command is not already scheduled</li>
+   * <li>The command does not belong to a composed command group</li>
    * <li>The robot is enabled, or the command runs when disabled</li>
    * <li>The command's required subsystems aren't currently busy, or their
    * commands can all be canceled</li>

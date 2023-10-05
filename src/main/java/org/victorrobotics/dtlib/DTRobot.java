@@ -116,7 +116,9 @@ public abstract class DTRobot {
    */
   protected abstract DTCommand getSelfTestCommand();
 
-  public String getName() { return getClass().getSimpleName(); }
+  public String getName() {
+    return getClass().getSimpleName();
+  }
 
   private void runModeChange() {
     if (currentMode == previousMode) return;
@@ -289,15 +291,25 @@ public abstract class DTRobot {
     DTWatchdog.addEpoch("refreshDriverStation()");
   }
 
-  public static Mode getCurrentMode() { return currentMode; }
+  public static Mode getCurrentMode() {
+    return currentMode;
+  }
 
-  public static AllianceStation getAlliance() { return alliance; }
+  public static AllianceStation getAlliance() {
+    return alliance;
+  }
 
-  public static boolean isSimulation() { return IS_SIMULATION; }
+  public static boolean isSimulation() {
+    return IS_SIMULATION;
+  }
 
-  public static boolean isReal() { return !IS_SIMULATION; }
+  public static boolean isReal() {
+    return !IS_SIMULATION;
+  }
 
-  public static boolean isDSConnected() { return CONTROL_WORD.isDSAttached(); }
+  public static boolean isDSConnected() {
+    return CONTROL_WORD.isDSAttached();
+  }
 
   public static long currentTimeMicros() {
     return HALUtil.getFPGATime();
