@@ -4,44 +4,73 @@ import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/**
+ * A command composition that runs a set of commands in parallel, ending when
+ * the last command ends.
+ * <p>
+ * The rules for command compositions apply: command instances that are passed
+ * to it cannot be added to any other composition or scheduled individually, and
+ * the composition requires all subsystems its components require.
+ */
 public class DTParallelCommandGroup extends DTCommandBase {
   private final Map<DTCommand, Boolean> parallelCommands;
 
-  private boolean runsWhenDisabled; // if all run when disabled
-  private boolean isInterruptible;  // if one is interruptible
+  private boolean runsWhenDisabled = true;
+  private boolean isInterruptible  = true;
+
   private boolean isRunning;
   private boolean success;
 
+  /**
+   * Constructs a DTParallelCommandGroup
+   *
+   * @param commands
+   *        the commands to run in parallel
+   */
   public DTParallelCommandGroup(DTCommand... commands) {
-    parallelCommands = new HashMap<>(commands.length);
-    runsWhenDisabled = true;
-    isInterruptible = false;
+    parallelCommands = new LinkedHashMap<>();
     success = true;
     addCommands(commands);
   }
 
+  /**
+   * Adds additional commands to the composition, which will run parallel to
+   * current commands.
+   *
+   * @param commands
+   *        the commands to add
+   *
+   * @throws IllegalStateException
+   *         if the composition is currently scheduled
+   * @throws DTIllegalArgumentException
+   *         if a given command is already part of another composition, or if
+   *         commands share requirements
+   */
   public void addCommands(DTCommand... commands) {
     if (isRunning) {
       throw new IllegalStateException("Cannot add commands to a running composition");
-    } else if (commands == null || commands.length == 0) {
-      return;
-    }
+    } else if (commands == null || commands.length == 0) return;
+
     DTCommandScheduler.registerComposed(commands);
 
     for (DTCommand command : commands) {
+      if (command == null) continue;
+
       Set<DTSubsystem> commandReqs = command.getRequirements();
       if (!Collections.disjoint(getRequirements(), commandReqs)) {
-        throw new DTIllegalArgumentException(command, "parallel commands may not share requirements");
+        throw new DTIllegalArgumentException(command,
+                                             "parallel commands may not share requirements");
       }
-      parallelCommands.put(command, false);
       addRequirements(commandReqs);
+
+      parallelCommands.put(command, false);
       runsWhenDisabled &= command.runsWhenDisabled();
-      isInterruptible |= command.isInterruptible();
+      isInterruptible &= command.isInterruptible();
     }
   }
 
@@ -59,10 +88,8 @@ public class DTParallelCommandGroup extends DTCommandBase {
   @Override
   public void execute() {
     for (Entry<DTCommand, Boolean> commandEntry : parallelCommands.entrySet()) {
-      if (!commandEntry.getValue()) {
-        // Already complete
-        continue;
-      }
+      if (!commandEntry.getValue()) continue;
+
       DTCommand command = commandEntry.getKey();
       command.execute();
       if (command.isFinished()) {

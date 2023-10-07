@@ -9,39 +9,68 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/**
+ * A composition that runs a set of commands in parallel, ending when any one of
+ * the commands ends and interrupting all the others.
+ * <p>
+ * The rules for command compositions apply: command instances that are passed
+ * to it cannot be added to any other composition or scheduled individually, and
+ * the composition requires all subsystems its components require.
+ */
 public class DTRaceCommandGroup extends DTCommandBase {
   private final Map<DTCommand, Boolean> raceCommands;
 
-  private boolean runsWhenDisabled;
+  private boolean runsWhenDisabled = true;
+  private boolean isInterruptible  = true;
+
   private boolean isFinished;
-  private boolean isInterruptible;
   private boolean success;
 
+  /**
+   * Constructs a DTRaceCommandGroup
+   *
+   * @param commands
+   *        the commands to race in parallel
+   */
   public DTRaceCommandGroup(DTCommand... commands) {
     raceCommands = new HashMap<>(commands.length);
-    isInterruptible = false;
-    runsWhenDisabled = true;
     isFinished = true;
     addCommands(commands);
   }
 
+  /**
+   * Adds additional commands to the composition, which will run parallel to
+   * current commands.
+   *
+   * @param commands
+   *        the commands to add
+   *
+   * @throws IllegalStateException
+   *         if the composition is currently scheduled
+   * @throws DTIllegalArgumentException
+   *         if a given command is already part of another composition, or if
+   *         commands share requirements
+   */
   public void addCommands(DTCommand... commands) {
     if (!isFinished) {
       throw new IllegalStateException("Cannot add commands to a running composition");
-    } else if (commands == null || commands.length == 0) {
-      return;
-    }
+    } else if (commands == null || commands.length == 0) return;
+
     DTCommandScheduler.registerComposed(commands);
 
     for (DTCommand command : commands) {
+      if (command == null) continue;
+
       Set<DTSubsystem> commandReqs = command.getRequirements();
       if (!Collections.disjoint(getRequirements(), commandReqs)) {
-        throw new DTIllegalArgumentException(command, "parallel commands may not share requirements");
+        throw new DTIllegalArgumentException(command,
+                                             "parallel commands may not share requirements");
       }
-      raceCommands.put(command, false);
       addRequirements(commandReqs);
+
+      raceCommands.put(command, false);
       runsWhenDisabled &= command.runsWhenDisabled();
-      isInterruptible |= command.isInterruptible();
+      isInterruptible &= command.isInterruptible();
     }
   }
 
@@ -71,9 +100,8 @@ public class DTRaceCommandGroup extends DTCommandBase {
   @Override
   public void end() {
     for (Entry<DTCommand, Boolean> commandEntry : raceCommands.entrySet()) {
-      if (commandEntry.getValue()) {
-        continue;
-      }
+      if (commandEntry.getValue()) continue;
+
       DTCommand command = commandEntry.getKey();
       command.interrupt();
       success &= command.wasSuccessful();

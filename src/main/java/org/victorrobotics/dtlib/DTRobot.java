@@ -78,7 +78,7 @@ public abstract class DTRobot {
   private DTCommand autoCommand;
 
   protected DTRobot() {
-    this.logRoot = new DTLogRootNode(this);
+    logRoot = new DTLogRootNode(this);
   }
 
   /**
@@ -181,6 +181,9 @@ public abstract class DTRobot {
     if (!HAL.initialize(500, 0)) {
       throw new IllegalStateException("Failed to initialize HAL");
     }
+    if (!NotifierJNI.setHALThreadPriority(true, 40)) {
+      System.err.println("Failed to update HAL Notifier thread priority");
+    }
 
     startNTServer();
     refreshDriverStation();
@@ -238,8 +241,6 @@ public abstract class DTRobot {
       log(robot);
 
       if (DTWatchdog.isExpired()) {
-        DriverStation.reportWarning("Loop time of " + PERIOD_SECONDS + "s overrun by "
-            + (DTWatchdog.getTime() - PERIOD_SECONDS) + "s", false);
         DTWatchdog.printEpochs();
       }
     }
@@ -248,8 +249,9 @@ public abstract class DTRobot {
   }
 
   private static void startNTServer() {
+    String persistFilename = isReal() ? "/home/lvuser/networktables.json" : "networktables.json";
     NetworkTableInstance.getDefault()
-                        .startServer();
+                        .startServer(persistFilename);
     int count = 0;
     while (NetworkTableInstance.getDefault()
                                .getNetworkMode()

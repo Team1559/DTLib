@@ -29,9 +29,7 @@ public final class DTCommandScheduler {
     private DTCommand defaultCommand;
     private DTCommand requiringCommand;
 
-    DTSubsystemStatus() {
-      // nothing
-    }
+    DTSubsystemStatus() {}
   }
 
   private static final Set<DTCommand> COMPOSED_COMMANDS  =
@@ -43,8 +41,7 @@ public final class DTCommandScheduler {
 
   private static final Map<DTSubsystem, DTSubsystemStatus> SUBSYSTEMS = new LinkedHashMap<>();
 
-  private static final List<Runnable> INPUT_ACTIONS = new LinkedList<>();
-  private static final List<Runnable> LOGIC_ACTIONS = new LinkedList<>();
+  private static final List<Runnable> CALLBACKS = new LinkedList<>();
 
   private static boolean schedulerDisabled;
   private static boolean isRunning;
@@ -55,9 +52,8 @@ public final class DTCommandScheduler {
    * Runs a single iteration of the scheduler. The execution occurs in the
    * following order:
    * <ol>
-   * <li>Inputs are polled</li>
+   * <li>Inputs are polled, and input-bound actions are run</li>
    * <li>Subsystem periodic methods are called.</li>
-   * <li>Input-bound commands are scheduled.</li>
    * <li>Scheduled commands are executed.</li>
    * <li>End conditions are checked on scheduled commands, and finished commands
    * have their end methods called and are removed.</li>
@@ -68,17 +64,16 @@ public final class DTCommandScheduler {
   public static void run() {
     if (schedulerDisabled) return;
 
-    INPUT_ACTIONS.forEach(Runnable::run);
-    LOGIC_ACTIONS.forEach(Runnable::run);
+    CALLBACKS.forEach(Runnable::run);
 
     for (DTSubsystem subsystem : SUBSYSTEMS.keySet()) {
       DTWatchdog.startEpoch();
       subsystem.periodic();
-      DTWatchdog.addEpoch(subsystem.getName() + "." + "periodic()");
+      DTWatchdog.addEpoch(subsystem.getName() + ".periodic()");
       if (DTRobot.isSimulation()) {
         DTWatchdog.startEpoch();
         subsystem.simulationPeriodic();
-        DTWatchdog.addEpoch(subsystem.getName() + "." + "simulationPeriodic()");
+        DTWatchdog.addEpoch(subsystem.getName() + ".simulationPeriodic()");
       }
     }
 
@@ -96,7 +91,7 @@ public final class DTCommandScheduler {
         command.getRequirements()
                .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
         iterator.remove();
-        DTWatchdog.addEpoch(command.getName() + "." + "interrupt()");
+        DTWatchdog.addEpoch(command.getName() + ".interrupt()");
         continue;
       }
 
@@ -106,7 +101,7 @@ public final class DTCommandScheduler {
       } catch (RuntimeException e) {
         handleCommandException(command, e);
       }
-      DTWatchdog.addEpoch(command.getName() + "." + "execute()");
+      DTWatchdog.addEpoch(command.getName() + ".execute()");
 
       boolean finished = true;
       try {
@@ -126,7 +121,7 @@ public final class DTCommandScheduler {
 
         command.getRequirements()
                .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
-        DTWatchdog.addEpoch(command.getName() + "." + "end()");
+        DTWatchdog.addEpoch(command.getName() + ".end()");
       }
     }
     isRunning = false;
@@ -192,46 +187,50 @@ public final class DTCommandScheduler {
    * @see DTCommand#runsWhenDisabled()
    * @see DTRobot#getCurrentMode()
    */
-  public static void schedule(DTCommand command) {
+  public static boolean schedule(DTCommand command) {
     if (command == null) {
       warn("Tried to schedule a null command");
-      return;
+      return false;
     } else if (COMPOSED_COMMANDS.contains(command)) {
       warn("Tried to schedule a composed command");
-      return;
+      return false;
     }
 
     if (schedulerDisabled || isScheduled(command)
         || (!DTRobot.getCurrentMode().isEnabled && !command.runsWhenDisabled())) {
-      return;
+      return false;
     }
 
     if (isRunning) {
       COMMANDS_TO_SCHEDULE.add(command);
       COMMANDS_TO_CANCEL.remove(command);
-      return;
+      return true;
     }
 
     Set<DTSubsystem> requirements = command.getRequirements();
 
+    Map<DTSubsystem, DTCommand> map = new LinkedHashMap<>(requirements.size());
     for (DTSubsystem requirement : requirements) {
       DTCommand requiring = getRequiringCommand(requirement);
-      if (requiring != null && !requiring.isInterruptible()) return;
+      if (requiring == null) continue;
+      if (!requiring.isInterruptible()) return false;
+      map.put(requirement, requiring);
     }
-    for (DTSubsystem requirement : requirements) {
-      DTCommand requiring = getRequiringCommand(requirement);
-      if (requiring != null) {
-        cancel(requiring);
-      }
-      getSubsystemStatus(requirement).requiringCommand = command;
+
+    for (Map.Entry<DTSubsystem, DTCommand> entry : map.entrySet()) {
+      cancel(entry.getValue());
+      getSubsystemStatus(entry.getKey()).requiringCommand = command;
     }
 
     SCHEDULED_COMMANDS.add(command);
 
     try {
       command.initialize();
+      return true;
     } catch (RuntimeException e) {
       handleCommandException(command, e);
+      SCHEDULED_COMMANDS.remove(command);
+      return false;
     }
   }
 
@@ -443,7 +442,7 @@ public final class DTCommandScheduler {
    *         if the given commands have already been composed
    */
   public static void registerComposed(DTCommand... commands) {
-    registerComposed(List.of(commands));
+    registerComposed(Set.of(commands));
   }
 
   /**
@@ -480,23 +479,11 @@ public final class DTCommandScheduler {
   }
 
   private static void handleCommandException(DTCommand command, RuntimeException e) {
-    warn(command.getClass()
-                .getSimpleName()
-        + " threw an exception: " + e);
+    warn(command.getName() + " threw an exception: " + e);
   }
 
   private static void warn(String msg) {
     DriverStation.reportWarning(msg, false);
-  }
-
-  /**
-   * Adds a callback that polls inputs.
-   *
-   * @param r
-   *        the task to run
-   */
-  public static void bindInputCallback(Runnable r) {
-    INPUT_ACTIONS.add(r);
   }
 
   /**
@@ -505,7 +492,7 @@ public final class DTCommandScheduler {
    * @param r
    *        the task to run
    */
-  public static void bindLogicCallback(Runnable r) {
-    LOGIC_ACTIONS.add(r);
+  public static void bindCallback(Runnable r) {
+    CALLBACKS.add(r);
   }
 }

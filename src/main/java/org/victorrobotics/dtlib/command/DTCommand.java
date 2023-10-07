@@ -75,9 +75,9 @@ public interface DTCommand {
 
   /**
    * Whether the command is permitted to be interrupted by the scheduler. If
-   * true, scheduling another command that requires one or more of the
-   * command's requirements will result in interruption. Regardless
-   * of interruption behavior, commands may still be canceled explicitly.
+   * true, scheduling another command that requires one or more of the command's
+   * requirements will result in interruption. Regardless of interruption
+   * behavior, commands may still be canceled explicitly.
    * <p>
    * By default, commands are interruptible unless overriden.
    *
@@ -197,7 +197,7 @@ public interface DTCommand {
 
   /**
    * If the condition is true when this command is scheduled, ignores this
-   * command's exeecution.
+   * command's execution.
    *
    * @param condition
    *        the condition
@@ -309,7 +309,7 @@ public interface DTCommand {
    * @see DTRaceCommandGroup
    */
   default DTRaceCommandGroup repeatUntil(BooleanSupplier condition) {
-    return new DTRepeatCommand(this).raceWith(new DTWaitUntilCommand(condition));
+    return repeatedly().until(condition);
   }
 
   /**
@@ -356,7 +356,7 @@ public interface DTCommand {
   }
 
   /**
-   * Decorates this command to have the given inteerruption behavior.
+   * Decorates this command to have the given interruption behavior.
    *
    * @param isInterruptible
    *        whether the command should be interruptible
