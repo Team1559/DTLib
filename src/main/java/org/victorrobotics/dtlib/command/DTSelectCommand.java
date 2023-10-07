@@ -55,7 +55,9 @@ public class DTSelectCommand<T> extends DTCommandBase {
   }
 
   @Override
-  public boolean isFinished() { return selectedCommand.isFinished(); }
+  public boolean isFinished() {
+    return selectedCommand.isFinished();
+  }
 
   @Override
   public boolean runsWhenDisabled() {
@@ -63,7 +65,9 @@ public class DTSelectCommand<T> extends DTCommandBase {
   }
 
   @Override
-  public boolean isInterruptible() { return isInterruptible; }
+  public boolean isInterruptible() {
+    return isInterruptible;
+  }
 
   @SafeVarargs
   public static <T> DTSelectCommand<T> of(Supplier<T> selector,

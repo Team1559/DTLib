@@ -67,7 +67,6 @@ public class DTNavX implements DTInertialMeasurementUnit {
   @Override
   public double[] getAccelerations() {
     return new double[] { internal.getWorldLinearAccelX(), internal.getWorldLinearAccelY(),
-        internal.getWorldLinearAccelZ() };
+                          internal.getWorldLinearAccelZ() };
   }
-
 }

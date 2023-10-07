@@ -101,8 +101,8 @@ public class DTTalonFX implements DTMotor {
   }
 
   @Override
-  public void configPID(int slot, double proportional, double integral, double derivative, double velocityFF,
-      double staticFF, double integralZone) {
+  public void configPID(int slot, double proportional, double integral, double derivative,
+                        double velocityFF, double staticFF, double integralZone) {
     // integralZone is deprecated in v6, windup prevented automatically
     if (slot == 0) {
       Slot0Configs configs = new Slot0Configs();
@@ -177,7 +177,8 @@ public class DTTalonFX implements DTMotor {
     configCurrentLimit(maxSupplyCurrent, maxSupplyCurrent, 0);
   }
 
-  public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit, double peakDuration) {
+  public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit,
+                                 double peakDuration) {
     CurrentLimitsConfigs configs = new CurrentLimitsConfigs();
     internal.getConfigurator()
             .refresh(configs);
@@ -399,7 +400,8 @@ public class DTTalonFX implements DTMotor {
     @Override
     public boolean hasAnyFault() {
       return allFaults.getValue()
-                      .intValue() != 0;
+                      .intValue()
+          != 0;
     }
 
     @Override

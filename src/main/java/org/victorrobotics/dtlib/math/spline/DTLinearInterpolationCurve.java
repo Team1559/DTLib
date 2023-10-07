@@ -11,7 +11,7 @@ public class DTLinearInterpolationCurve extends DTCurve {
   }
 
   public DTLinearInterpolationCurve(DTLinearInterpolationControl startControl,
-      DTLinearInterpolationControl endControl) {
+                                    DTLinearInterpolationControl endControl) {
     super(1);
     this.startControl = startControl;
     this.endControl = endControl;

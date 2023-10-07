@@ -26,11 +26,17 @@ public abstract class DTSubsystem implements DTSendable {
     DTCommandScheduler.registerSubsystem(this);
   }
 
-  public final NetworkTable getDashboardTable() { return dashboardTable; }
+  public final NetworkTable getDashboardTable() {
+    return dashboardTable;
+  }
 
-  public DTCommand getSelfTestCommand() { return new DTNullCommand(); }
+  public DTCommand getSelfTestCommand() {
+    return new DTNullCommand();
+  }
 
-  public String getName() { return identifier; }
+  public String getName() {
+    return identifier;
+  }
 
   public void periodic() {}
 

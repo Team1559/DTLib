@@ -36,14 +36,15 @@ public interface DTAbsoluteEncoder extends DTSendable {
   @Override
   default void initSendable(SendableBuilder builder) {
     builder.addDoubleProperty("Position",
-        limitRate(() -> getPosition().getDegrees(), UPDATE_RATE_FAST_HZ),
-        d -> setPosition(Rotation2d.fromDegrees(d)));
-    builder.addDoubleProperty("Absolute",
-        limitRate(() -> getAbsolutePosition().getDegrees(), UPDATE_RATE_FAST_HZ), null);
+                              limitRate(() -> getPosition().getDegrees(), UPDATE_RATE_FAST_HZ),
+                              d -> setPosition(Rotation2d.fromDegrees(d)));
+    builder.addDoubleProperty("Absolute", limitRate(() -> getAbsolutePosition().getDegrees(),
+                                                    UPDATE_RATE_FAST_HZ),
+                              null);
 
     builder.addBooleanProperty("Inverted", limitRate(this::isInverted, UPDATE_RATE_SLOW_HZ),
-        this::setInverted);
+                               this::setInverted);
     builder.addStringProperty("Firmware", limitRate(this::getFirmwareVersion, UPDATE_RATE_FAST_HZ),
-        null);
+                              null);
   }
 }

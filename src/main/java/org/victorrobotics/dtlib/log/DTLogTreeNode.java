@@ -29,7 +29,7 @@ public abstract class DTLogTreeNode {
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public void init(Deque<Class<?>> clazzTree, Set<Class<?>> clazzes,
-      List<DTLogStaticVar<?>> staticVars) {
+                   List<DTLogStaticVar<?>> staticVars) {
     Class<?> clazz = getType();
     if (clazzTree.contains(clazz)) {
       // Prevent infinite recursion
@@ -120,7 +120,7 @@ public abstract class DTLogTreeNode {
               try {
                 return method.invoke(null);
               } catch (IllegalAccessException | IllegalArgumentException
-                  | InvocationTargetException e) {
+                       | InvocationTargetException e) {
                 e.printStackTrace();
                 return null;
               }

@@ -159,8 +159,8 @@ public class DTSendableBuilder implements NTSendableBuilder {
     }
 
     if (setter != null) {
-      property.subscriber = topic.subscribe(false,
-          PubSubOption.excludePublisher(property.publisher));
+      property.subscriber =
+          topic.subscribe(false, PubSubOption.excludePublisher(property.publisher));
       property.subscriberCallback = (BooleanSubscriber sub) -> {
         for (boolean val : sub.readQueueValues()) {
           setter.accept(val);
@@ -297,14 +297,15 @@ public class DTSendableBuilder implements NTSendableBuilder {
 
   @Override
   public void addBooleanArrayProperty(String key, Supplier<boolean[]> getter,
-      Consumer<boolean[]> setter) {
+                                      Consumer<boolean[]> setter) {
     Property<BooleanArrayPublisher, BooleanArraySubscriber> property = new Property<>();
     BooleanArrayTopic topic = table.getBooleanArrayTopic(key);
 
     if (getter != null) {
       property.publisher = topic.publish();
       if (getter instanceof DTConditionalSupplier) {
-        DTConditionalSupplier<boolean[]> conditionalGetter = (DTConditionalSupplier<boolean[]>) getter;
+        DTConditionalSupplier<boolean[]> conditionalGetter =
+            (DTConditionalSupplier<boolean[]>) getter;
         property.publisherCallback = (BooleanArrayPublisher pub, long time) -> {
           if (conditionalGetter.update()) {
             pub.set(conditionalGetter.get(), time);
@@ -316,8 +317,8 @@ public class DTSendableBuilder implements NTSendableBuilder {
     }
 
     if (setter != null) {
-      property.subscriber = topic.subscribe(new boolean[0],
-          PubSubOption.excludePublisher(property.publisher));
+      property.subscriber =
+          topic.subscribe(new boolean[0], PubSubOption.excludePublisher(property.publisher));
       property.subscriberCallback = (BooleanArraySubscriber sub) -> {
         for (boolean[] val : sub.readQueueValues()) {
           setter.accept(val);
@@ -330,7 +331,7 @@ public class DTSendableBuilder implements NTSendableBuilder {
 
   @Override
   public void addIntegerArrayProperty(String key, Supplier<long[]> getter,
-      Consumer<long[]> setter) {
+                                      Consumer<long[]> setter) {
     Property<IntegerArrayPublisher, IntegerArraySubscriber> property = new Property<>();
     IntegerArrayTopic topic = table.getIntegerArrayTopic(key);
 
@@ -349,8 +350,8 @@ public class DTSendableBuilder implements NTSendableBuilder {
     }
 
     if (setter != null) {
-      property.subscriber = topic.subscribe(new long[0],
-          PubSubOption.excludePublisher(property.publisher));
+      property.subscriber =
+          topic.subscribe(new long[0], PubSubOption.excludePublisher(property.publisher));
       property.subscriberCallback = (IntegerArraySubscriber sub) -> {
         for (long[] val : sub.readQueueValues()) {
           setter.accept(val);
@@ -363,7 +364,7 @@ public class DTSendableBuilder implements NTSendableBuilder {
 
   @Override
   public void addFloatArrayProperty(String key, Supplier<float[]> getter,
-      Consumer<float[]> setter) {
+                                    Consumer<float[]> setter) {
     Property<FloatArrayPublisher, FloatArraySubscriber> property = new Property<>();
     FloatArrayTopic topic = table.getFloatArrayTopic(key);
 
@@ -382,8 +383,8 @@ public class DTSendableBuilder implements NTSendableBuilder {
     }
 
     if (setter != null) {
-      property.subscriber = topic.subscribe(new float[0],
-          PubSubOption.excludePublisher(property.publisher));
+      property.subscriber =
+          topic.subscribe(new float[0], PubSubOption.excludePublisher(property.publisher));
       property.subscriberCallback = (FloatArraySubscriber sub) -> {
         for (float[] val : sub.readQueueValues()) {
           setter.accept(val);
@@ -396,14 +397,15 @@ public class DTSendableBuilder implements NTSendableBuilder {
 
   @Override
   public void addDoubleArrayProperty(String key, Supplier<double[]> getter,
-      Consumer<double[]> setter) {
+                                     Consumer<double[]> setter) {
     Property<DoubleArrayPublisher, DoubleArraySubscriber> property = new Property<>();
     DoubleArrayTopic topic = table.getDoubleArrayTopic(key);
 
     if (getter != null) {
       property.publisher = topic.publish();
       if (getter instanceof DTConditionalSupplier) {
-        DTConditionalSupplier<double[]> conditionalGetter = (DTConditionalSupplier<double[]>) getter;
+        DTConditionalSupplier<double[]> conditionalGetter =
+            (DTConditionalSupplier<double[]>) getter;
         property.publisherCallback = (DoubleArrayPublisher pub, long time) -> {
           if (conditionalGetter.update()) {
             pub.set(conditionalGetter.get(), time);
@@ -415,8 +417,8 @@ public class DTSendableBuilder implements NTSendableBuilder {
     }
 
     if (setter != null) {
-      property.subscriber = topic.subscribe(new double[0],
-          PubSubOption.excludePublisher(property.publisher));
+      property.subscriber =
+          topic.subscribe(new double[0], PubSubOption.excludePublisher(property.publisher));
       property.subscriberCallback = (DoubleArraySubscriber sub) -> {
         for (double[] val : sub.readQueueValues()) {
           setter.accept(val);
@@ -429,14 +431,15 @@ public class DTSendableBuilder implements NTSendableBuilder {
 
   @Override
   public void addStringArrayProperty(String key, Supplier<String[]> getter,
-      Consumer<String[]> setter) {
+                                     Consumer<String[]> setter) {
     Property<StringArrayPublisher, StringArraySubscriber> property = new Property<>();
     StringArrayTopic topic = table.getStringArrayTopic(key);
 
     if (getter != null) {
       property.publisher = topic.publish();
       if (getter instanceof DTConditionalSupplier) {
-        DTConditionalSupplier<String[]> conditionalGetter = (DTConditionalSupplier<String[]>) getter;
+        DTConditionalSupplier<String[]> conditionalGetter =
+            (DTConditionalSupplier<String[]>) getter;
         property.publisherCallback = (StringArrayPublisher pub, long time) -> {
           if (conditionalGetter.update()) {
             pub.set(conditionalGetter.get(), time);
@@ -448,8 +451,8 @@ public class DTSendableBuilder implements NTSendableBuilder {
     }
 
     if (setter != null) {
-      property.subscriber = topic.subscribe(new String[0],
-          PubSubOption.excludePublisher(property.publisher));
+      property.subscriber =
+          topic.subscribe(new String[0], PubSubOption.excludePublisher(property.publisher));
       property.subscriberCallback = (StringArraySubscriber sub) -> {
         for (String[] val : sub.readQueueValues()) {
           setter.accept(val);
@@ -462,7 +465,7 @@ public class DTSendableBuilder implements NTSendableBuilder {
 
   @Override
   public void addRawProperty(String key, String typeString, Supplier<byte[]> getter,
-      Consumer<byte[]> setter) {
+                             Consumer<byte[]> setter) {
     Property<RawPublisher, RawSubscriber> property = new Property<>();
     RawTopic topic = table.getRawTopic(key);
 
@@ -482,7 +485,7 @@ public class DTSendableBuilder implements NTSendableBuilder {
 
     if (setter != null) {
       property.subscriber = topic.subscribe(typeString, new byte[0],
-          PubSubOption.excludePublisher(property.publisher));
+                                            PubSubOption.excludePublisher(property.publisher));
       property.subscriberCallback = (RawSubscriber sub) -> {
         for (byte[] val : sub.readQueueValues()) {
           setter.accept(val);

@@ -59,12 +59,14 @@ public class DTQuinticBezierCurve extends DTCurve {
   private int                          startModCount;
   private int                          endModCount;
 
-  protected DTQuinticBezierCurve(DTVector2DR p0, DTVector2DR p1, DTVector2DR p2, DTVector2DR p3, DTVector2DR p4,
-      DTVector2DR p5) {
-    this(DTQuinticBezierControl.createStart(p0, p1, p2), DTQuinticBezierControl.createEnd(p3, p4, p5));
+  protected DTQuinticBezierCurve(DTVector2DR p0, DTVector2DR p1, DTVector2DR p2, DTVector2DR p3,
+                                 DTVector2DR p4, DTVector2DR p5) {
+    this(DTQuinticBezierControl.createStart(p0, p1, p2),
+         DTQuinticBezierControl.createEnd(p3, p4, p5));
   }
 
-  protected DTQuinticBezierCurve(DTQuinticBezierControl startControl, DTQuinticBezierControl endControl) {
+  protected DTQuinticBezierCurve(DTQuinticBezierControl startControl,
+                                 DTQuinticBezierControl endControl) {
     super(5);
     this.startControl = startControl;
     this.endControl = endControl;

@@ -44,7 +44,9 @@ public class DTLogger {
 
   private DTLogger() {}
 
-  public static DTLogWriter getWriter() { return dataWriter; }
+  public static DTLogWriter getWriter() {
+    return dataWriter;
+  }
 
   public static int newHandle(int typeID, String path) {
     dataWriter.writeShort(typeID);

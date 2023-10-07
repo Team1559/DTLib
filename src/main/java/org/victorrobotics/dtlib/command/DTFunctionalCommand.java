@@ -12,7 +12,7 @@ public class DTFunctionalCommand extends DTCommandBase {
   protected final BooleanSupplier isFinished;
 
   public DTFunctionalCommand(Runnable init, Runnable execute, Runnable onEnd, Runnable onInterrupt,
-      BooleanSupplier isFinished, DTSubsystem... requirements) {
+                             BooleanSupplier isFinished, DTSubsystem... requirements) {
     addRequirements(requirements);
     this.init = init;
     this.execute = execute;

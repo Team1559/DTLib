@@ -33,9 +33,13 @@ public final class DTWatchdog {
 
   private DTWatchdog() {}
 
-  public static double getTime() { return (DTRobot.currentTimeMicros() - loopStartTime) * 1e-6; }
+  public static double getTime() {
+    return (DTRobot.currentTimeMicros() - loopStartTime) * 1e-6;
+  }
 
-  public static double getPeriod() { return period * 1e-6; }
+  public static double getPeriod() {
+    return period * 1e-6;
+  }
 
   public static void reset() {
     loopStartTime = DTRobot.currentTimeMicros();
@@ -82,7 +86,11 @@ public final class DTWatchdog {
     epochStartTime = DTRobot.currentTimeMicros();
   }
 
-  public static boolean isExpired() { return DTRobot.currentTimeMicros() >= loopExpireTime; }
+  public static boolean isExpired() {
+    return DTRobot.currentTimeMicros() >= loopExpireTime;
+  }
 
-  public static void setPeriod(double periodSeconds) { period = (long) (periodSeconds * 1e6); }
+  public static void setPeriod(double periodSeconds) {
+    period = (long) (periodSeconds * 1e6);
+  }
 }

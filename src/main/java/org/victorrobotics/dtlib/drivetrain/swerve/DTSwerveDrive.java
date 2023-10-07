@@ -62,9 +62,13 @@ public abstract class DTSwerveDrive extends DTSubsystem {
     centerOfRotation = newCenterOfRotation;
   }
 
-  public void setAccelerationLimit(DTAccelerationLimit limit) { accelerationLimit = limit; }
+  public void setAccelerationLimit(DTAccelerationLimit limit) {
+    accelerationLimit = limit;
+  }
 
-  public void setVelocityLimit(DTVelocityLimit limit) { velocityLimit = limit; }
+  public void setVelocityLimit(DTVelocityLimit limit) {
+    velocityLimit = limit;
+  }
 
   public void setFieldRelative() {
     isFieldRelative = true;
