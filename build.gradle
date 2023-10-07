@@ -59,15 +59,15 @@ java {
   targetCompatibility = JavaVersion.VERSION_11
 }
 
+javadoc {
+  options.addBooleanOption('html5', true)
+}
+
 jar {
   dependsOn javadoc
   from sourceSets.main.allJava
   from javadoc.destinationDir
   archiveFileName = 'dtlib.jar'
-}
-
-task classesJar(type: Jar) {
-  from sourceSets.main.output
 }
 
 task sourcesJar(type: Jar) {
@@ -81,12 +81,6 @@ task javadocJar(type: Jar) {
   archiveClassifier = 'javadoc'
 }
 
-artifacts {
-  archives sourcesJar
-  archives javadocJar
-  archives classesJar
-}
-
 publishing {
   publications {
     mavenCentral(MavenPublication) {
@@ -94,9 +88,18 @@ publishing {
       artifactId = 'dtlib-java'
       version = '0.1'
 
-      artifact classesJar
+      from components.java
       artifact sourcesJar
       artifact javadocJar
+
+      versionMapping {
+        usage('java-api') {
+          fromResolutionOf('runtimeClasspath')
+        }
+        usage('java-runtime') {
+          fromResolutionResult()
+        }
+      }
 
       pom {
         name = 'DTLib'
