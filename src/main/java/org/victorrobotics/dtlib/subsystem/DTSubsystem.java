@@ -18,12 +18,16 @@ public abstract class DTSubsystem implements DTSendable {
   private final NetworkTable dashboardTable;
   private final String       identifier;
 
+  private DTCommand defaultCommand;
+
   protected DTSubsystem() {
     identifier = getClass().getSimpleName() + "-"
         + SUBSYSTEM_COUUNTS.compute(getClass(), (c, i) -> i == null ? 1 : (i + 1));
     dashboardTable = DTDash.getMainTable()
                            .getSubTable(identifier);
     DTCommandScheduler.registerSubsystem(this);
+
+    defaultCommand = new DTNullCommand();
   }
 
   public final NetworkTable getDashboardTable() {
@@ -41,4 +45,12 @@ public abstract class DTSubsystem implements DTSendable {
   public void periodic() {}
 
   public void simulationPeriodic() {}
+
+  public DTCommand getDefaultCommand() {
+    return defaultCommand;
+  }
+
+  public void setDefaultCommand(DTCommand command) {
+    defaultCommand = command;
+  }
 }

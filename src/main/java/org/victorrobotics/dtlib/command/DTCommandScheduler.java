@@ -13,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -25,13 +26,6 @@ import edu.wpi.first.wpilibj.DriverStation;
  * @see DTSubsystem
  */
 public final class DTCommandScheduler {
-  private static class DTSubsystemStatus {
-    private DTCommand defaultCommand;
-    private DTCommand requiringCommand;
-
-    DTSubsystemStatus() {}
-  }
-
   private static final Set<DTCommand> COMPOSED_COMMANDS  =
       Collections.newSetFromMap(new WeakHashMap<>());
   private static final Set<DTCommand> SCHEDULED_COMMANDS = new LinkedHashSet<>();
@@ -39,7 +33,7 @@ public final class DTCommandScheduler {
   private static final Set<DTCommand> COMMANDS_TO_SCHEDULE = new LinkedHashSet<>();
   private static final Set<DTCommand> COMMANDS_TO_CANCEL   = new LinkedHashSet<>();
 
-  private static final Map<DTSubsystem, DTSubsystemStatus> SUBSYSTEMS = new LinkedHashMap<>();
+  private static final Map<DTSubsystem, DTCommand> REQUIRING_COMMANDS = new LinkedHashMap<>();
 
   private static final List<Runnable> CALLBACKS = new LinkedList<>();
 
@@ -66,7 +60,7 @@ public final class DTCommandScheduler {
 
     CALLBACKS.forEach(Runnable::run);
 
-    for (DTSubsystem subsystem : SUBSYSTEMS.keySet()) {
+    for (DTSubsystem subsystem : REQUIRING_COMMANDS.keySet()) {
       DTWatchdog.startEpoch();
       subsystem.periodic();
       DTWatchdog.addEpoch(subsystem.getName() + ".periodic()");
@@ -89,7 +83,7 @@ public final class DTCommandScheduler {
           handleCommandException(command, e);
         }
         command.getRequirements()
-               .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
+               .forEach(s -> REQUIRING_COMMANDS.put(s, null));
         iterator.remove();
         DTWatchdog.addEpoch(command.getName() + ".interrupt()");
         continue;
@@ -120,7 +114,7 @@ public final class DTCommandScheduler {
         iterator.remove();
 
         command.getRequirements()
-               .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
+               .forEach(s -> REQUIRING_COMMANDS.put(s, null));
         DTWatchdog.addEpoch(command.getName() + ".end()");
       }
     }
@@ -132,9 +126,10 @@ public final class DTCommandScheduler {
     COMMANDS_TO_CANCEL.forEach(DTCommandScheduler::cancel);
     COMMANDS_TO_CANCEL.clear();
 
-    for (DTSubsystemStatus status : SUBSYSTEMS.values()) {
-      if (status.requiringCommand == null && status.defaultCommand != null) {
-        schedule(status.defaultCommand);
+    for (Entry<DTSubsystem, DTCommand> entry : REQUIRING_COMMANDS.entrySet()) {
+      if (entry.getValue() == null) {
+        schedule(entry.getKey()
+                      .getDefaultCommand());
       }
     }
   }
@@ -219,7 +214,7 @@ public final class DTCommandScheduler {
 
     for (Map.Entry<DTSubsystem, DTCommand> entry : map.entrySet()) {
       cancel(entry.getValue());
-      getSubsystemStatus(entry.getKey()).requiringCommand = command;
+      REQUIRING_COMMANDS.put(entry.getKey(), command);
     }
 
     SCHEDULED_COMMANDS.add(command);
@@ -274,7 +269,7 @@ public final class DTCommandScheduler {
 
     SCHEDULED_COMMANDS.remove(command);
     command.getRequirements()
-           .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
+           .forEach(s -> REQUIRING_COMMANDS.put(s, null));
 
     try {
       command.interrupt();
@@ -295,7 +290,7 @@ public final class DTCommandScheduler {
       DTCommand command = itr.next();
       itr.remove();
       command.getRequirements()
-             .forEach(subsystem -> getSubsystemStatus(subsystem).requiringCommand = null);
+             .forEach(s -> REQUIRING_COMMANDS.put(s, null));
 
       try {
         command.interrupt();
@@ -320,76 +315,7 @@ public final class DTCommandScheduler {
       return;
     }
 
-    getSubsystemStatus(subsystem);
-  }
-
-  /**
-   * Sets the default command for a subsystem. Registers that subsystem if it is
-   * not already registered. Default commands will run whenever there is no
-   * other command currently scheduled that requires the subsystem. Default
-   * commands should be written to never end (i.e. their
-   * {@link DTCommand#isFinished()} method should return false), as they would
-   * simply be re-scheduled if they do. Default commands must also require their
-   * subsystem.
-   *
-   * @param subsystem
-   *        the subsystem whose default command will be set
-   * @param command
-   *        the default command to associate with the subsystem
-   */
-  public static void setDefaultCommand(DTSubsystem subsystem, DTCommand command) {
-    if (subsystem == null) {
-      warn("Tried to set a default command for a null subsystem");
-      return;
-    } else if (command == null) {
-      warn("Tried to set a null default command");
-      return;
-    }
-
-    requireNotComposed(command);
-
-    Set<DTSubsystem> requirements = command.getRequirements();
-    if (requirements.size() != 1 || !requirements.contains(subsystem)) {
-      throw new DTIllegalArgumentException(command,
-                                           "default commands must require only their subsystem");
-    }
-
-    if (!command.isInterruptible()) {
-      warn("Registering a non-interruptible default command!\n"
-          + "This will likely prevent any other commands from requiring this subsystem.");
-    }
-
-    getSubsystemStatus(subsystem).defaultCommand = command;
-  }
-
-  /**
-   * Removes the default command for a subsystem. The current default command
-   * will run until another command is scheduled that requires the subsystem, at
-   * which point the current default command will not be re-scheduled.
-   *
-   * @param subsystem
-   *        the subsystem whose default command will be removed
-   */
-  public static void removeDefaultCommand(DTSubsystem subsystem) {
-    if (subsystem == null) {
-      warn("Tried to remove a default command for a null subsystem");
-      return;
-    }
-
-    getSubsystemStatus(subsystem).defaultCommand = null;
-  }
-
-  /**
-   * Gets the default command associated with this subsystem. Null if this
-   * subsystem has no default command associated with it.
-   *
-   * @param subsystem
-   *        the subsystem to inquire about
-   *
-   * @return the default command associated with the subsystem
-   */
-  public static DTCommand getDefaultCommand(DTSubsystem subsystem) {
-    return getSubsystemStatus(subsystem).defaultCommand;
+    REQUIRING_COMMANDS.putIfAbsent(subsystem, null);
   }
 
   /**
@@ -403,7 +329,7 @@ public final class DTCommandScheduler {
    *         command is currently scheduled
    */
   public static DTCommand getRequiringCommand(DTSubsystem subsystem) {
-    return getSubsystemStatus(subsystem).requiringCommand;
+    return REQUIRING_COMMANDS.get(subsystem);
   }
 
   /** Disables the command scheduler. */
@@ -458,10 +384,6 @@ public final class DTCommandScheduler {
   public static void registerComposed(Collection<DTCommand> commands) {
     requireNotComposed(commands);
     COMPOSED_COMMANDS.addAll(commands);
-  }
-
-  private static DTSubsystemStatus getSubsystemStatus(DTSubsystem subsystem) {
-    return SUBSYSTEMS.computeIfAbsent(subsystem, s -> new DTSubsystemStatus());
   }
 
   private static void requireNotComposed(DTCommand command) {
