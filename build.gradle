@@ -11,7 +11,6 @@ repositories {
   maven { url 'https://frcmaven.wpi.edu/artifactory/release/' }
   maven { url 'https://maven.ctr-electronics.com/release/' }
   maven { url 'https://maven.revrobotics.com/' }
-  maven { url 'https://maven.photonvision.org/repository/internal' }
 }
 
 dependencies {
