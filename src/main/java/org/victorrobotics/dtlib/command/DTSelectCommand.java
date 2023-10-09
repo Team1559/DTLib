@@ -4,28 +4,49 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+/**
+ * A command that executes a command obtained from a map. Upon initialization,
+ * the command corresponding to the selector's return value will begin
+ * execution.
+ * <p>
+ * The rules for command compositions apply: command instances that are passed
+ * to it cannot be added to any other composition or scheduled individually, and
+ * the composition requires all subsystems its components require.
+ */
 public class DTSelectCommand<T> extends DTCommandBase {
   private final Map<T, DTCommand> commandMap;
   private final Supplier<T>       selector;
 
   private DTCommand selectedCommand;
-  private boolean   runsWhenDisabled;
-  private boolean   isInterruptible;
 
+  /**
+   * Constructs a new DTSelectCommand.
+   *
+   * @param selector
+   *        the key supplier that decides which command to execute
+   * @param entries
+   *        the key and command pairs to select from
+   */
+  @SafeVarargs
+  public DTSelectCommand(Supplier<T> selector, Map.Entry<T, DTCommand>... entries) {
+    this(selector, Map.ofEntries(entries));
+  }
+
+  /**
+   * Constructs a new DTSelectCommand.
+   *
+   * @param selector
+   *        the key supplier that decides which command to execute
+   * @param commands
+   *        the map of commands to select from
+   */
   public DTSelectCommand(Supplier<T> selector, Map<T, DTCommand> commands) {
     this.commandMap = Objects.requireNonNull(commands);
     this.selector = Objects.requireNonNull(selector);
     DTCommandScheduler.registerComposed(commands.values());
 
-    boolean runsWhenDisabled = true;
-    boolean isInterruptible = false;
-    for (DTCommand command : commands.values()) {
-      addRequirements(command.getRequirements());
-      runsWhenDisabled &= command.runsWhenDisabled();
-      isInterruptible |= command.isInterruptible();
-    }
-    this.runsWhenDisabled = runsWhenDisabled;
-    this.isInterruptible = isInterruptible;
+    commands.values()
+            .forEach(command -> addRequirements(command.getRequirements()));
   }
 
   @Override
@@ -61,17 +82,11 @@ public class DTSelectCommand<T> extends DTCommandBase {
 
   @Override
   public boolean runsWhenDisabled() {
-    return runsWhenDisabled;
+    return selectedCommand.runsWhenDisabled();
   }
 
   @Override
   public boolean isInterruptible() {
-    return isInterruptible;
-  }
-
-  @SafeVarargs
-  public static <T> DTSelectCommand<T> of(Supplier<T> selector,
-                                          Map.Entry<T, DTCommand>... entries) {
-    return new DTSelectCommand<>(selector, Map.ofEntries(entries));
+    return selectedCommand.isInterruptible();
   }
 }

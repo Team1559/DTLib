@@ -9,9 +9,21 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 
+/**
+ * A command that provides a compatibility layer between WPILib's commands and
+ * DTLib's commands.
+ *
+ * @see DTTargetCommand
+ */
 public class DTWrapperCommand extends DTCommandBase {
   private final Command target;
 
+  /**
+   * Constructs a new DTWrapperCommand.
+   *
+   * @param command
+   *        the command to execute
+   */
   public DTWrapperCommand(Command command) {
     this.target = Objects.requireNonNull(command);
     CommandScheduler.getInstance()

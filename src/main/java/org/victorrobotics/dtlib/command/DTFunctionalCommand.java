@@ -4,20 +4,48 @@ import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.function.BooleanSupplier;
 
+/**
+ * A command that accepts functions for each of the basic command methods.
+ * Useful for inline definitions of commands - note, however, that if a command
+ * is too complex, it is better practice to write a proper command class than to
+ * inline it.
+ */
 public class DTFunctionalCommand extends DTCommandBase {
-  protected final Runnable        init;
-  protected final Runnable        execute;
-  protected final Runnable        onEnd;
-  protected final Runnable        onInterrupt;
-  protected final BooleanSupplier isFinished;
+  private final Runnable        init;
+  private final Runnable        execute;
+  private final Runnable        end;
+  private final Runnable        interrupt;
+  private final BooleanSupplier isFinished;
 
-  public DTFunctionalCommand(Runnable init, Runnable execute, Runnable onEnd, Runnable onInterrupt,
+  /**
+   * Constructs a new DTFunctionalCommand.
+   *
+   * @param init
+   *        the initialization function
+   * @param execute
+   *        the execution function
+   * @param end
+   *        the end function
+   * @param interrupt
+   *        the interrupt handler
+   * @param isFinished
+   *        the condition to end this command
+   * @param requirements
+   *        the subsystems required by this command
+   *
+   * @see DTCommand#initialize()
+   * @see DTCommand#execute()
+   * @see DTCommand#end()
+   * @see DTCommand#interrupt()
+   * @see DTCommand#isFinished()
+   */
+  public DTFunctionalCommand(Runnable init, Runnable execute, Runnable end, Runnable interrupt,
                              BooleanSupplier isFinished, DTSubsystem... requirements) {
     addRequirements(requirements);
     this.init = init;
     this.execute = execute;
-    this.onEnd = onEnd;
-    this.onInterrupt = onInterrupt;
+    this.end = end;
+    this.interrupt = interrupt;
     this.isFinished = isFinished;
   }
 
@@ -33,12 +61,12 @@ public class DTFunctionalCommand extends DTCommandBase {
 
   @Override
   public void end() {
-    onEnd.run();
+    end.run();
   }
 
   @Override
   public void interrupt() {
-    onInterrupt.run();
+    interrupt.run();
   }
 
   @Override

@@ -1,7 +1,13 @@
 package org.victorrobotics.dtlib.command;
 
-// Explicitly does nothing when called (cleaner code)
+/**
+ * A command that explicitly does nothing and finishes immediately. Useful for
+ * temporarily disabling behavior or selective schedulling.
+ */
 public class DTNullCommand extends DTInstantCommand {
+  /**
+   * Constructs a new DTNullCommand.
+   */
   public DTNullCommand() {
     super(() -> {});
   }

@@ -75,9 +75,9 @@ public interface DTCommand {
 
   /**
    * Whether the command is permitted to be interrupted by the scheduler. If
-   * true, scheduling another command that requires one or more of the command's
-   * requirements will result in interruption. Regardless of interruption
-   * behavior, commands may still be canceled explicitly.
+   * true (default), scheduling another command that requires one or more of the
+   * command's requirements will result in interruption. Regardless of
+   * interruption behavior, commands may still be canceled explicitly.
    * <p>
    * By default, commands are interruptible unless overriden.
    *
@@ -91,9 +91,11 @@ public interface DTCommand {
   }
 
   /**
-   * Whether the command is permitted to remain scheduled when the robot is
+   * Whether the command is permitted to remain scheduled while the robot is
    * disabled. Certain command types, for example {@link DTPrintCommand}, should
-   * not be hindered based on enable status.
+   * not be hindered based on enable status. If false (default), commands will
+   * be canceled when the robot becomes disabled, and must be rescheduled to run
+   * again.
    *
    * @return whether the command runs when the robot is disabled
    *
