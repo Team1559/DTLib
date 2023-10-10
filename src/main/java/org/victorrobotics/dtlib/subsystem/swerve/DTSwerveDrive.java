@@ -1,12 +1,12 @@
-package org.victorrobotics.dtlib.drivetrain.swerve;
+package org.victorrobotics.dtlib.subsystem.swerve;
 
 import org.victorrobotics.dtlib.DTHardwareComponent;
 import org.victorrobotics.dtlib.DTSubsystem;
-import org.victorrobotics.dtlib.drivetrain.DTAccelerationLimit;
-import org.victorrobotics.dtlib.drivetrain.DTVelocityLimit;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.math.geometry.DTVector2d;
 import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.trajectory.DTAccelerationLimit;
+import org.victorrobotics.dtlib.math.trajectory.DTVelocityLimit;
 
 import java.util.Objects;
 
@@ -58,8 +58,8 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
     }
 
     kinematics = new SwerveDriveKinematics(wheelLocations);
-    poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions,
-        new Pose2d());
+    poseEstimator =
+        new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions, new Pose2d());
 
     centerOfRotation = new DTVector2d();
     accelerationLimit = new DTAccelerationLimit();
@@ -113,15 +113,16 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
     velocityLimit.apply(currentSpeeds);
     accelerationLimit.apply(currentSpeeds, previousSpeeds);
 
-    SwerveModuleState[] newStates = kinematics.toSwerveModuleStates(currentSpeeds.toChassisSpeeds(),
-        centerOfRotation.toTranslation2d());
+    SwerveModuleState[] newStates =
+        kinematics.toSwerveModuleStates(currentSpeeds.toChassisSpeeds(),
+                                        centerOfRotation.toTranslation2d());
     setStates(newStates);
   }
 
   public final void setStates(SwerveModuleState... states) {
     if (states.length != modules.length) {
-      throw new DTIllegalArgumentException(states,
-          "received " + states.length + " module states for " + modules.length + " modules");
+      throw new DTIllegalArgumentException(states, "received " + states.length
+          + " module states for " + modules.length + " modules");
     }
 
     double minCosine = 1;

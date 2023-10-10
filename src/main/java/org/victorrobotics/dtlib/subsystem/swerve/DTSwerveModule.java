@@ -1,4 +1,4 @@
-package org.victorrobotics.dtlib.drivetrain.swerve;
+package org.victorrobotics.dtlib.subsystem.swerve;
 
 import org.victorrobotics.dtlib.DTHardwareComponent;
 

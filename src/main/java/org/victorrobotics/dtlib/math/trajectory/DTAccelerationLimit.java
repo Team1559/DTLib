@@ -1,4 +1,4 @@
-package org.victorrobotics.dtlib.drivetrain;
+package org.victorrobotics.dtlib.math.trajectory;
 
 import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.math.geometry.DTVector2dR;

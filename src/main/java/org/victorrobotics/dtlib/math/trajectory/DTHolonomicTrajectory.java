@@ -1,4 +1,4 @@
-package org.victorrobotics.dtlib.drivetrain.trajectory;
+package org.victorrobotics.dtlib.math.trajectory;
 
 import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
@@ -17,25 +17,25 @@ public class DTHolonomicTrajectory implements Iterable<DTHolonomicTrajectory.Poi
     JOLT;
   }
 
-  public static class Point  {
+  public static class Point {
     public DTVector2dR position;
     public DTVector2dR velocity;
     public DTVector2dR acceleration;
     public double      jolt;
 
-    public double      distance;
-    public double      time;
-    public double      u;
-    public double      curvature;
+    public double distance;
+    public double time;
+    public double u;
+    public double curvature;
 
-    public Constraint  limitingConstraint;
+    public Constraint limitingConstraint;
 
     @Override
     public String toString() {
-      return String.format(
-          "Point[t=%.2f d=%.3f x=%.3f y=%.3f r=%.1f v=%.3f a=%.3f j=%.0f c=%.0f %s]", time,
-          distance, position.getX(), position.getY(), position.getR(), velocity.getNorm(),
-          acceleration.getNorm(), jolt, curvature, limitingConstraint);
+      return String.format("Point[t=%.2f d=%.3f x=%.3f y=%.3f r=%.1f v=%.3f a=%.3f j=%.0f c=%.0f %s]",
+                           time, distance, position.getX(), position.getY(), position.getR(),
+                           velocity.getNorm(), acceleration.getNorm(), jolt, curvature,
+                           limitingConstraint);
     }
   }
 
@@ -54,7 +54,7 @@ public class DTHolonomicTrajectory implements Iterable<DTHolonomicTrajectory.Poi
     for (int i = 0; i < points.length; i++) {
       Point p = points[i];
       states.add(new Trajectory.State(p.time, p.velocity.getNorm(), p.acceleration.getNorm(),
-          p.position.toPose2d(), 1 / p.curvature));
+                                      p.position.toPose2d(), 1 / p.curvature));
     }
     return new Trajectory(states);
   }

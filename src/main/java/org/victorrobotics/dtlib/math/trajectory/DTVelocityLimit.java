@@ -1,4 +1,4 @@
-package org.victorrobotics.dtlib.drivetrain;
+package org.victorrobotics.dtlib.math.trajectory;
 
 import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
@@ -17,9 +17,9 @@ public final class DTVelocityLimit {
   }
 
   public DTVelocityLimit(double minTranslation, double maxTranslation, double minRotation,
-      double maxRotation) {
-    maxVelocityTranslation = Double.isFinite(maxTranslation) ? Math.abs(maxTranslation)
-      : Double.NaN;
+                         double maxRotation) {
+    maxVelocityTranslation =
+        Double.isFinite(maxTranslation) ? Math.abs(maxTranslation) : Double.NaN;
     maximumAngularVelocity = Double.isFinite(maxRotation) ? Math.abs(maxRotation) : Double.NaN;
     minimumLinearVelocity = Double.isFinite(minTranslation) ? Math.abs(minTranslation) : Double.NaN;
     minimumAngularVelocity = Double.isFinite(minRotation) ? Math.abs(minRotation) : Double.NaN;
