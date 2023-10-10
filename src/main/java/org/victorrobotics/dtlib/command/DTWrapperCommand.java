@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.subsystem.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.DTWrapperSubsystem;
 
 import java.util.Objects;
 
@@ -29,13 +29,20 @@ public class DTWrapperCommand extends DTCommandBase {
     CommandScheduler.getInstance()
                     .registerComposedCommands(command);
 
-    for (Subsystem s : command.getRequirements()) {
-      if (s instanceof DTSubsystem) {
-        addRequirements((DTSubsystem) s);
-      } else {
-        // TODO: handle Subsystem -> DTSubsystem conversion
-      }
+    for (Subsystem subsystem : command.getRequirements()) {
+      addRequirements(DTWrapperSubsystem.of(subsystem));
     }
+  }
+
+  /**
+   * Gets the corresponding WPILib Command object.
+   *
+   * @return the WPILib command run by this command
+   *
+   * @see Command
+   */
+  public Command getWPILibCommand() {
+    return target;
   }
 
   @Override
