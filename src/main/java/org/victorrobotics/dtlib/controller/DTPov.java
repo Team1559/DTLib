@@ -63,40 +63,22 @@ public class DTPov implements IntSupplier {
   }
 
   public DTAxis xAxis() {
-    return new DTAxis(() -> {
-      switch (supplier.getAsInt()) {
-        case 90:
-          return 1D;
-        case 45:
-        case 135:
-          return SQRT_2_DIV_2;
-        case 225:
-        case 315:
-          return -SQRT_2_DIV_2;
-        case 270:
-          return -1D;
-        default:
-          return 0D;
-      }
+    return new DTAxis(() -> switch (supplier.getAsInt()) {
+      case 90 -> 1D;
+      case 45, 135 -> SQRT_2_DIV_2;
+      case 225, 315 -> -SQRT_2_DIV_2;
+      case 270 -> -1D;
+      default -> 0D;
     });
   }
 
   public DTAxis yAxis() {
-    return new DTAxis(() -> {
-      switch (supplier.getAsInt()) {
-        case 0:
-          return 1D;
-        case 315:
-        case 45:
-          return SQRT_2_DIV_2;
-        case 135:
-        case 225:
-          return -SQRT_2_DIV_2;
-        case 180:
-          return -1D;
-        default:
-          return 0D;
-      }
+    return new DTAxis(() -> switch (supplier.getAsInt()) {
+      case 0 -> 1D;
+      case 315, 45 -> SQRT_2_DIV_2;
+      case 135, 225 -> -SQRT_2_DIV_2;
+      case 180 -> -1D;
+      default -> 0D;
     });
   }
 }

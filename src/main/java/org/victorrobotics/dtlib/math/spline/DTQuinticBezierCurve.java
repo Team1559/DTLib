@@ -96,47 +96,27 @@ public class DTQuinticBezierCurve extends DTCurve {
 
   @Override
   public DTVector2DR getControlPoint(int index) {
-    switch (index) {
-      case 0:
-        return startControl.getP0();
-      case 1:
-        return startControl.getP1();
-      case 2:
-        return startControl.getP2();
-      case 3:
-        return endControl.getP3();
-      case 4:
-        return endControl.getP4();
-      case 5:
-        return endControl.getP5();
-      default:
-        throw new IndexOutOfBoundsException(index);
-    }
+    return switch (index) {
+      case 0 -> startControl.getP0();
+      case 1 -> startControl.getP1();
+      case 2 -> startControl.getP2();
+      case 3 -> endControl.getP3();
+      case 4 -> endControl.getP4();
+      case 5 -> endControl.getP5();
+      default -> throw new IndexOutOfBoundsException(index);
+    };
   }
 
   @Override
   public void setControlPoint(int index, DTVector2DR control) {
     switch (index) {
-      case 0:
-        startControl.setP0(control);
-        break;
-      case 1:
-        startControl.setP1(control);
-        break;
-      case 2:
-        startControl.setP2(control);
-        break;
-      case 3:
-        endControl.setP3(control);
-        break;
-      case 4:
-        endControl.setP4(control);
-        break;
-      case 5:
-        endControl.setP5(control);
-        break;
-      default:
-        throw new IndexOutOfBoundsException(index);
+      case 0 -> startControl.setP0(control);
+      case 1 -> startControl.setP1(control);
+      case 2 -> startControl.setP2(control);
+      case 3 -> endControl.setP3(control);
+      case 4 -> endControl.setP4(control);
+      case 5 -> endControl.setP5(control);
+      default -> throw new IndexOutOfBoundsException(index);
     }
   }
 
