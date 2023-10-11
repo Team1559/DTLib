@@ -6,7 +6,6 @@ import org.victorrobotics.dtlib.command.DTWrapperCommand;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 
 public class DTWrapperSubsystem extends DTSubsystem {
@@ -17,14 +16,6 @@ public class DTWrapperSubsystem extends DTSubsystem {
   protected DTWrapperSubsystem(Subsystem internal) {
     this.internal = internal;
   }
-
-  @Override
-  public void initSendable(SendableBuilder builder) {
-    internal.initSendable(builder);
-  }
-
-  @Override
-  public void close() {}
 
   @Override
   public void periodic() {
@@ -49,4 +40,7 @@ public class DTWrapperSubsystem extends DTSubsystem {
   public static DTSubsystem of(Subsystem subsystem) {
     return INSTANCES.computeIfAbsent(subsystem, DTWrapperSubsystem::new);
   }
+
+  @Override
+  public void close() {}
 }

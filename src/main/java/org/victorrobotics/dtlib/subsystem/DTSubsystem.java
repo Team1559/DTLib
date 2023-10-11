@@ -4,14 +4,13 @@ import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.dtlib.command.DTNullCommand;
 import org.victorrobotics.dtlib.dashboard.DTDash;
-import org.victorrobotics.dtlib.network.DTSendable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import edu.wpi.first.networktables.NetworkTable;
 
-public abstract class DTSubsystem implements DTSendable {
+public abstract class DTSubsystem implements AutoCloseable {
   private static final Map<Class<? extends DTSubsystem>, Integer> SUBSYSTEM_COUUNTS =
       new HashMap<>();
 
