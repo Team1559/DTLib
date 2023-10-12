@@ -384,6 +384,7 @@ public final class DTCommandScheduler {
   public static void registerComposed(Collection<DTCommand> commands) {
     requireNotComposed(commands);
     COMPOSED_COMMANDS.addAll(commands);
+
   }
 
   private static void requireNotComposed(DTCommand command) {
