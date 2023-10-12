@@ -65,7 +65,7 @@ public class DTDeadlineCommandGroup extends DTCommandBase {
    *         commands share requirements
    */
   public void addCommands(DTCommand... commands) {
-    if (!isFinished) {
+    if (isScheduled()) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (commands == null || commands.length == 0) return;
 

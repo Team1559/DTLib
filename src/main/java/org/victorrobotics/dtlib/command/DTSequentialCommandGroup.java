@@ -45,7 +45,7 @@ public class DTSequentialCommandGroup extends DTCommandBase {
    *         if a given command is already part of another composition
    */
   public void addCommands(DTCommand... commands) {
-    if (cmdIndex != -1) {
+    if (isScheduled()) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (commands == null || commands.length == 0) return;
 

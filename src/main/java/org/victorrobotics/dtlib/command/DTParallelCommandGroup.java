@@ -23,7 +23,6 @@ public class DTParallelCommandGroup extends DTCommandBase {
   private boolean runsWhenDisabled = true;
   private boolean isInterruptible  = true;
 
-  private boolean isRunning;
   private boolean success;
 
   /**
@@ -52,7 +51,7 @@ public class DTParallelCommandGroup extends DTCommandBase {
    *         commands share requirements
    */
   public void addCommands(DTCommand... commands) {
-    if (isRunning) {
+    if (isScheduled()) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (commands == null || commands.length == 0) return;
 
@@ -76,7 +75,6 @@ public class DTParallelCommandGroup extends DTCommandBase {
 
   @Override
   public void initialize() {
-    isRunning = true;
     success = true;
     for (Entry<DTCommand, Boolean> commandEntry : parallelCommands.entrySet()) {
       commandEntry.getKey()
@@ -101,13 +99,10 @@ public class DTParallelCommandGroup extends DTCommandBase {
   }
 
   @Override
-  public void end() {
-    isRunning = false;
-  }
+  public void end() {}
 
   @Override
   public void interrupt() {
-    isRunning = false;
     for (Entry<DTCommand, Boolean> commandEntry : parallelCommands.entrySet()) {
       if (commandEntry.getValue()) {
         DTCommand command = commandEntry.getKey();
