@@ -3,9 +3,10 @@ package org.victorrobotics.dtlib;
 import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.dtlib.log.DTLogRootNode;
-import org.victorrobotics.dtlib.log.DTLogger;
+import org.victorrobotics.dtlib.log.DTLogWriter;
 import org.victorrobotics.dtlib.log.DTWatchdog;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -24,16 +25,18 @@ import edu.wpi.first.wpilibj.RuntimeType;
 
 public abstract class DTRobot {
   public enum Mode {
-    DISABLED(false),
-    E_STOP(false),
-    AUTO(true),
-    TELEOP(true),
-    TEST(true);
+    E_STOP(false, 0x3),
+    DISABLED(false, 0x4),
+    TEST(true, 0x5),
+    TELEOP(true, 0x6),
+    AUTO(true, 0x7);
 
     public final boolean isEnabled;
+    private final short  identifier;
 
-    Mode(boolean isEnabled) {
+    Mode(boolean isEnabled, int identifier) {
       this.isEnabled = isEnabled;
+      this.identifier = (short) identifier;
     }
   }
 
@@ -71,14 +74,14 @@ public abstract class DTRobot {
 
   private static AllianceStation alliance;
 
-  private final DTLogRootNode logRoot;
+  private final DTLogRootNode logTreeRoot;
 
   private Compressor compressor;
 
   private DTCommand autoCommand;
 
   protected DTRobot() {
-    logRoot = new DTLogRootNode(this);
+    logTreeRoot = new DTLogRootNode(this, getName());
   }
 
   /**
@@ -123,6 +126,9 @@ public abstract class DTRobot {
   private void runModeChange() {
     if (currentMode == previousMode) return;
 
+    DTLogWriter.getInstance()
+               .writeShort(currentMode.identifier);
+
     if (currentMode == Mode.AUTO) {
       DTWatchdog.startEpoch();
       autoCommand = getAutoCommand();
@@ -143,30 +149,17 @@ public abstract class DTRobot {
 
   private static void log(DTRobot robot) {
     DTWatchdog.startEpoch();
-    DTLogger.logNewTimestamp();
+    DTLogWriter.getInstance()
+               .logNewTimestamp();
     if (currentMode != previousMode) {
-      switch (currentMode) {
-        case DISABLED:
-        case E_STOP:
-          DTLogger.getWriter()
-                  .writeShort(0x04);
-          break;
-        case AUTO:
-          DTLogger.getWriter()
-                  .writeShort(0x05);
-          break;
-        case TELEOP:
-          DTLogger.getWriter()
-                  .writeShort(0x06);
-          break;
-        case TEST:
-          DTLogger.getWriter()
-                  .writeShort(0x07);
-          break;
-      }
+      DTLogWriter.getInstance()
+                 .writeShort(currentMode.identifier);
     }
-    robot.logRoot.log();
-    DTLogger.flush();
+    robot.logTreeRoot.log();
+    try {
+      DTLogWriter.getInstance()
+                 .flush();
+    } catch (IOException e) {}
     DTWatchdog.addEpoch("DTLog");
   }
 
@@ -187,7 +180,7 @@ public abstract class DTRobot {
 
     startNTServer();
     refreshDriverStation();
-    DTLogger.initialize();
+    DTLogWriter.init();
 
     DTRobot robot;
     try {

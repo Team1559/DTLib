@@ -1,38 +1,38 @@
 package org.victorrobotics.dtlib.log;
 
-import java.util.Objects;
+public class DTLogVar {
+  private final DTLogType type;
+  private final String    path;
 
-public class DTLogVar<T> {
-  private final DTLogType<T> type;
-  private final String       path;
+  private Object prevValue;
+  private int    handle;
 
-  private T   prevValue;
-  private int handle;
-
-  DTLogVar(DTLogType<T> type, String path) {
+  DTLogVar(DTLogType type, String path) {
     this.type = type;
     this.path = path;
     this.handle = -1;
   }
 
-  void logValue(T obj) {
-    if (Objects.equals(prevValue, obj)) {
+  @SuppressWarnings("unchecked")
+  void logValue(Object value) {
+    if (type.equals.test(prevValue, value)) {
       return;
     }
-    prevValue = obj;
+    prevValue = value;
 
     if (handle < 0) {
-      handle = DTLogger.newHandle(type.id, path);
+      handle = DTLogWriter.getInstance()
+                          .declareNewVariableHandle(type.id, path);
     }
 
-    if (obj == null) {
-      DTLogger.getWriter()
-              .writeShort(0x0000)
-              .writeShort(handle);
+    if (value == null) {
+      DTLogWriter.getInstance()
+                 .writeShort(0x0000)
+                 .writeShort(handle);
     } else {
-      DTLogger.getWriter()
-              .writeShort(handle);
-      type.writer.accept(obj);
+      DTLogWriter.getInstance()
+                 .writeShort(handle);
+      type.writer.accept(value);
     }
   }
 

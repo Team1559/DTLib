@@ -6,35 +6,23 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 public class DTLogRootNode extends DTLogTreeNode {
-  private final Object                  robot;
-  private final Class<?>                clazz;
-  private final List<DTLogStaticVar<?>> staticVars;
+  private final Object           root;
+  private final DTLogStaticVar[] staticVars;
 
-  public DTLogRootNode(Object robot) {
-    super(robot.getClass()
-               .getSimpleName());
-    this.robot = robot;
-    this.clazz = robot.getClass();
-    this.staticVars = new ArrayList<>();
+  public DTLogRootNode(Object root, String name) {
+    super("", name, root.getClass(), dummy -> root);
+    this.root = root;
 
-    init(new ArrayDeque<>(), new LinkedHashSet<>(), staticVars);
-  }
-
-  @Override
-  protected Class<?> getType() {
-    return clazz;
-  }
-
-  @Override
-  protected Object getValue(Object parent) {
-    return robot;
+    List<DTLogStaticVar> staticVarList = new ArrayList<>();
+    init(new ArrayDeque<>(), new LinkedHashSet<>(), staticVarList);
+    staticVars = staticVarList.toArray(DTLogStaticVar[]::new);
   }
 
   public void log() {
     // Input is discarded, but cannot be null
-    log(robot);
-    for (DTLogStaticVar<?> v : staticVars) {
-      v.log();
+    log(root);
+    for (DTLogStaticVar staticVar : staticVars) {
+      staticVar.log();
     }
   }
 }

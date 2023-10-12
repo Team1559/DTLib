@@ -9,189 +9,213 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
-public abstract class DTLogTreeNode {
-  private final String              path;
-  private final List<DTLogTreeNode> children;
+public class DTLogTreeNode {
+  private final String                path;
+  private final Class<?>              type;
+  private final UnaryOperator<Object> getter;
 
-  @SuppressWarnings("rawtypes")
-  private DTLogVar node;
+  private DTLogTreeNode[] children;
+  private DTLogVar        variable;
 
-  protected DTLogTreeNode(String path) {
-    this.path = path;
-    children = new ArrayList<>();
-    node = null;
+  public DTLogTreeNode(String path, String name, Class<?> type, UnaryOperator<Object> getter) {
+    this.path = path + "/" + name;
+    this.type = type;
+    this.getter = getter;
   }
 
-  protected abstract Class<?> getType();
-
-  protected abstract Object getValue(Object parent);
-
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  public void init(Deque<Class<?>> clazzTree, Set<Class<?>> clazzes,
-                   List<DTLogStaticVar<?>> staticVars) {
-    Class<?> clazz = getType();
-    if (clazzTree.contains(clazz)) {
+  protected final void init(Deque<Class<?>> stack, Set<Class<?>> clazzes,
+      List<DTLogStaticVar> staticVars) {
+    if (stack.contains(type)) {
       // Prevent infinite recursion
       return;
     }
 
-    boolean includeStatic = clazzes.add(clazz);
-    boolean foundValidAnnotation = false;
-    while (clazz != null) {
-      if (!foundValidAnnotation) {
-        // Check if type is registered as directly encodeable
-        DTLogType<?> type = DTLogger.LOGGABLE_TYPES.get(clazz);
-        if (type != null) {
-          // Terminal node
-          node = new DTLogVar<>(type, path);
+    List<DTLogTreeNode> childList = new ArrayList<>();
+    Class<?> clazz = type;
+    do {
+      if (childList.isEmpty()) {
+        DTLogType logType = DTLogWriter.LOG_TYPES.get(clazz);
+        if (logType != null) {
+          variable = new DTLogVar(logType, path);
           return;
         }
       }
 
-      // Check methods and fields for eligibility
+      boolean includeStatic = clazzes.add(clazz);
+
       for (Field field : clazz.getDeclaredFields()) {
-        DTLog annotation = field.getAnnotation(DTLog.class);
-        if (annotation == null) {
-          continue;
-        }
-
-        boolean isStatic = Modifier.isStatic(field.getModifiers());
-        if (isStatic && !includeStatic) {
-          continue;
-        }
-
-        if (!field.trySetAccessible()) {
-          continue;
-        }
-
-        String name = annotation.value();
-        if (!isValidName(name)) {
-          name = field.getName();
-        }
-
-        if (isStatic) {
-          DTLogType<?> type = DTLogger.LOGGABLE_TYPES.get(field.getType());
-          if (type != null) {
-            staticVars.add(new DTLogStaticVar(type, field.getDeclaringClass(), name, () -> {
-              try {
-                return field.get(null);
-              } catch (IllegalAccessException | IllegalArgumentException e) {
-                e.printStackTrace();
-                return null;
-              }
-            }));
-          }
-        } else {
-          foundValidAnnotation = true;
-          children.add(new DTLogFieldNode(field, path + "/" + name));
-        }
+        initField(field, childList, staticVars, includeStatic);
       }
 
       for (Method method : clazz.getDeclaredMethods()) {
-        DTLog annotation = method.getAnnotation(DTLog.class);
-        if (annotation == null) {
-          continue;
-        }
-
-        if (method.getParameterCount() != 0 || method.getReturnType() == void.class) {
-          // Not a getter method
-          continue;
-        }
-
-        boolean isStatic = Modifier.isStatic(method.getModifiers());
-        if (isStatic && !includeStatic) {
-          continue;
-        }
-
-        if (!method.trySetAccessible()) {
-          continue;
-        }
-
-        String name = annotation.value();
-        if (!isValidName(name)) {
-          name = method.getName() + "()";
-        }
-
-        if (isStatic) {
-          DTLogType<?> type = DTLogger.LOGGABLE_TYPES.get(method.getReturnType());
-          if (type != null) {
-            staticVars.add(new DTLogStaticVar(type, method.getDeclaringClass(), name, () -> {
-              try {
-                return method.invoke(null);
-              } catch (IllegalAccessException | IllegalArgumentException
-                       | InvocationTargetException e) {
-                e.printStackTrace();
-                return null;
-              }
-            }));
-          }
-        } else {
-          foundValidAnnotation = true;
-          children.add(new DTLogMethodNode(method, path + "/" + name));
-        }
+        initMethod(method, childList, staticVars, includeStatic);
       }
 
       clazz = clazz.getSuperclass();
-    }
+    } while (clazz != null);
 
-    // Init children
-    clazzTree.addFirst(getType());
-    for (DTLogTreeNode child : children) {
-      child.init(clazzTree, clazzes, staticVars);
-    }
-    clazzTree.removeFirst();
+    stack.addFirst(type);
+    initChildren(stack, clazzes, staticVars, childList);
+    stack.removeFirst();
 
-    // Prune empty branches
-    Iterator<DTLogTreeNode> itr = children.iterator();
-    while (itr.hasNext()) {
-      DTLogTreeNode child = itr.next();
-      if (child.node == null && child.children.isEmpty()) {
-        itr.remove();
-      }
-    }
+    children = childList.isEmpty() ? null : childList.toArray(DTLogTreeNode[]::new);
   }
 
-  @SuppressWarnings("unchecked")
-  void log(Object parent) {
+  private void initField(Field field, List<DTLogTreeNode> childList,
+      List<DTLogStaticVar> staticVars, boolean includeStatic) {
+    DTLog annotation = field.getAnnotation(DTLog.class);
+    if (annotation == null) {
+      return;
+    }
+
+    boolean isStatic = Modifier.isStatic(field.getModifiers());
+    if (isStatic && !includeStatic) {
+      return;
+    }
+
+    if (!field.trySetAccessible()) {
+      return;
+    }
+
+    String name = annotation.value();
+    if (!isValidName(name)) {
+      name = field.getName();
+    }
+
+    if (isStatic) {
+      DTLogType logType = DTLogWriter.LOG_TYPES.get(field.getType());
+      if (logType == null) {
+        return;
+      }
+
+      staticVars.add(new DTLogStaticVar(logType, field.getDeclaringClass(), name, () -> {
+        try {
+          return field.get(null);
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+          return null;
+        }
+      }));
+      return;
+    }
+
+    childList.add(new DTLogTreeNode(path, name, field.getType(), parent -> {
+      try {
+        return field.get(parent);
+      } catch (IllegalAccessException | IllegalArgumentException e) {
+        return null;
+      }
+    }));
+  }
+
+  private void initMethod(Method method, List<DTLogTreeNode> childList,
+      List<DTLogStaticVar> staticVars, boolean includeStatic) {
+    DTLog annotation = method.getAnnotation(DTLog.class);
+    if (annotation == null) {
+      return;
+    }
+
+    if (method.getParameterCount() != 0 || method.getReturnType() == void.class) {
+      return;
+    }
+
+    boolean isStatic = Modifier.isStatic(method.getModifiers());
+    if (isStatic && !includeStatic) {
+      return;
+    }
+
+    if (!method.trySetAccessible()) {
+      return;
+    }
+
+    String name = annotation.value();
+    if (!isValidName(name)) {
+      name = method.getName() + "()";
+    }
+
+    if (isStatic) {
+      DTLogType logType = DTLogWriter.LOG_TYPES.get(method.getReturnType());
+      if (logType == null) {
+        return;
+      }
+
+      staticVars.add(new DTLogStaticVar(logType, method.getDeclaringClass(), name, () -> {
+        try {
+          return method.invoke(null, (Object[]) null);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+          return null;
+        }
+      }));
+      return;
+    }
+
+    childList.add(new DTLogTreeNode(path, name, method.getReturnType(), parent -> {
+      try {
+        return method.invoke(parent, (Object[]) null);
+      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        return null;
+      }
+    }));
+  }
+
+  protected void log(Object parent) {
     if (parent == null) {
       logNull();
       return;
     }
 
-    Object me = getValue(parent);
-    if (node != null) {
-      node.logValue(me);
-    } else {
-      for (DTLogTreeNode child : children) {
-        child.log(me);
-      }
+    Object value = getter.apply(parent);
+    if (variable != null) {
+      variable.logValue(value);
+      return;
+    }
+
+    for (DTLogTreeNode child : children) {
+      child.log(value);
     }
   }
 
   @SuppressWarnings("unchecked")
   private void logNull() {
-    if (node != null) {
-      node.logValue(null);
-    } else {
-      for (DTLogTreeNode child : children) {
-        child.logNull();
-      }
+    if (variable != null) {
+      variable.logValue(null);
+      return;
+    }
+
+    for (DTLogTreeNode child : children) {
+      child.logNull();
     }
   }
 
   @Override
   public String toString() {
-    if (node != null) {
-      return node.toString();
-    } else {
-      return children.stream()
-                     .map(DTLogTreeNode::toString)
-                     .reduce("", (s1, s2) -> s1 + "\n" + s2);
+    if (variable != null) {
+      return path;
+    }
+
+    StringBuilder builder = new StringBuilder(path);
+    builder.append(children[0]);
+    for (int i = 1; i < children.length; i++) {
+      builder.append('\n')
+             .append(children[i]);
+    }
+    return builder.toString();
+  }
+
+  private static void initChildren(Deque<Class<?>> stack, Set<Class<?>> clazzes,
+      List<DTLogStaticVar> staticVars, List<DTLogTreeNode> childList) {
+    Iterator<DTLogTreeNode> itr = childList.iterator();
+    while (itr.hasNext()) {
+      DTLogTreeNode child = itr.next();
+      child.init(stack, clazzes, staticVars);
+      if (child.variable == null && child.children == null) {
+        itr.remove();
+      }
     }
   }
 
   private static boolean isValidName(String name) {
-    return !"".equals(name) && name.indexOf('/') == -1;
+    return name != null && name.length() > 0 && name.indexOf('/') == -1;
   }
 }

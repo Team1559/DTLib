@@ -2,15 +2,15 @@ package org.victorrobotics.dtlib.log;
 
 import java.util.function.Supplier;
 
-public class DTLogStaticVar<T> extends DTLogVar<T> {
-  final Supplier<T> accessor;
+public class DTLogStaticVar extends DTLogVar {
+  private final Supplier<?> accessor;
 
-  DTLogStaticVar(DTLogType<T> type, Class<?> clazz, String name, Supplier<T> accessor) {
-    super(type, "static/" + clazz.getSimpleName() + "/" + name);
+  protected DTLogStaticVar(DTLogType type, Class<?> enclosingClazz, String name, Supplier<?> accessor) {
+    super(type, "static/" + enclosingClazz.getSimpleName() + "/" + name);
     this.accessor = accessor;
   }
 
-  void log() {
+  protected void log() {
     logValue(accessor.get());
   }
 }
