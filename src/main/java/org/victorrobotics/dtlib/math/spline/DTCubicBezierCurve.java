@@ -85,37 +85,23 @@ public class DTCubicBezierCurve extends DTCurve {
 
   @Override
   public DTVector2dR getControlPoint(int index) {
-    switch (index) {
-      case 0:
-        return startControl.getP0();
-      case 1:
-        return startControl.getP1();
-      case 2:
-        return endControl.getP2();
-      case 3:
-        return endControl.getP3();
-      default:
-        throw new IndexOutOfBoundsException(index);
-    }
+    return switch (index) {
+      case 0 -> startControl.getP0();
+      case 1 -> startControl.getP1();
+      case 2 -> endControl.getP2();
+      case 3 -> endControl.getP3();
+      default -> throw new IndexOutOfBoundsException(index);
+    };
   }
 
   @Override
   public void setControlPoint(int index, DTVector2dR control) {
     switch (index) {
-      case 0:
-        startControl.setP0(control);
-        break;
-      case 1:
-        startControl.setP1(control);
-        break;
-      case 2:
-        endControl.setP2(control);
-        break;
-      case 3:
-        endControl.setP3(control);
-        break;
-      default:
-        throw new IndexOutOfBoundsException(index);
+      case 0 -> startControl.setP0(control);
+      case 1 -> startControl.setP1(control);
+      case 2 -> endControl.setP2(control);
+      case 3 -> endControl.setP3(control);
+      default -> throw new IndexOutOfBoundsException(index);
     }
   }
 

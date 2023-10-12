@@ -1,10 +1,7 @@
-package org.victorrobotics.dtlib.command.group;
+package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.DTSubsystem;
-import org.victorrobotics.dtlib.command.DTCommand;
-import org.victorrobotics.dtlib.command.DTCommandBase;
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,39 +9,68 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class DTParallelRaceCommandGroup extends DTCommandBase {
+/**
+ * A composition that runs a set of commands in parallel, ending when any one of
+ * the commands ends and interrupting all the others.
+ * <p>
+ * The rules for command compositions apply: command instances that are passed
+ * to it cannot be added to any other composition or scheduled individually, and
+ * the composition requires all subsystems its components require.
+ */
+public class DTRaceCommandGroup extends DTCommandBase {
   private final Map<DTCommand, Boolean> raceCommands;
 
-  private boolean runsWhenDisabled;
+  private boolean runsWhenDisabled = true;
+  private boolean isInterruptible  = true;
+
   private boolean isFinished;
-  private boolean isInterruptible;
   private boolean success;
 
-  public DTParallelRaceCommandGroup(DTCommand... commands) {
+  /**
+   * Constructs a DTRaceCommandGroup
+   *
+   * @param commands
+   *        the commands to race in parallel
+   */
+  public DTRaceCommandGroup(DTCommand... commands) {
     raceCommands = new HashMap<>(commands.length);
-    isInterruptible = false;
-    runsWhenDisabled = true;
     isFinished = true;
     addCommands(commands);
   }
 
+  /**
+   * Adds additional commands to the composition, which will run parallel to
+   * current commands.
+   *
+   * @param commands
+   *        the commands to add
+   *
+   * @throws IllegalStateException
+   *         if the composition is currently scheduled
+   * @throws DTIllegalArgumentException
+   *         if a given command is already part of another composition, or if
+   *         commands share requirements
+   */
   public void addCommands(DTCommand... commands) {
-    if (!isFinished) {
+    if (isScheduled()) {
       throw new IllegalStateException("Cannot add commands to a running composition");
-    } else if (commands == null || commands.length == 0) {
-      return;
-    }
-    DTCommandScheduler.registerComposedCommands(commands);
+    } else if (commands == null || commands.length == 0) return;
+
+    DTCommandScheduler.registerComposed(commands);
 
     for (DTCommand command : commands) {
+      if (command == null) continue;
+
       Set<DTSubsystem> commandReqs = command.getRequirements();
-      if (!Collections.disjoint(requirements, commandReqs)) {
-        throw new DTIllegalArgumentException(command, "parallel commands may not share requirements");
+      if (!Collections.disjoint(getRequirements(), commandReqs)) {
+        throw new DTIllegalArgumentException(command,
+                                             "parallel commands may not share requirements");
       }
+      addRequirements(commandReqs);
+
       raceCommands.put(command, false);
-      requirements.addAll(commandReqs);
       runsWhenDisabled &= command.runsWhenDisabled();
-      isInterruptible |= command.isInterruptible();
+      isInterruptible &= command.isInterruptible();
     }
   }
 
@@ -66,6 +92,7 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
         command.end();
         success &= command.wasSuccessful();
         commandEntry.setValue(true);
+        isFinished = true;
       }
     }
   }
@@ -73,9 +100,8 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
   @Override
   public void end() {
     for (Entry<DTCommand, Boolean> commandEntry : raceCommands.entrySet()) {
-      if (commandEntry.getValue()) {
-        continue;
-      }
+      if (commandEntry.getValue()) continue;
+
       DTCommand command = commandEntry.getKey();
       command.interrupt();
       success &= command.wasSuccessful();
@@ -103,7 +129,7 @@ public class DTParallelRaceCommandGroup extends DTCommandBase {
   }
 
   @Override
-  public DTParallelRaceCommandGroup raceWith(DTCommand... parallel) {
+  public DTRaceCommandGroup raceWith(DTCommand... parallel) {
     addCommands(parallel);
     return this;
   }

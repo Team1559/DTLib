@@ -40,7 +40,8 @@ public class DTLinearSpline extends DTSpline<DTLinearInterpolationCurve> {
     }
 
     DTLinearInterpolationControl startControl = new DTLinearInterpolationControl(p0);
-    DTLinearInterpolationCurve newSegment = new DTLinearInterpolationCurve(startControl, nextControl);
+    DTLinearInterpolationCurve newSegment =
+        new DTLinearInterpolationCurve(startControl, nextControl);
     segments.add(0, newSegment);
     return newSegment;
   }
@@ -51,8 +52,10 @@ public class DTLinearSpline extends DTSpline<DTLinearInterpolationCurve> {
     DTVector2dR pos = toSplit.getPosition(t);
     DTLinearInterpolationControl splitControl = new DTLinearInterpolationControl(pos);
 
-    DTLinearInterpolationCurve before = new DTLinearInterpolationCurve(toSplit.getStartControl(), splitControl);
-    DTLinearInterpolationCurve after = new DTLinearInterpolationCurve(splitControl, toSplit.getEndControl());
+    DTLinearInterpolationCurve before =
+        new DTLinearInterpolationCurve(toSplit.getStartControl(), splitControl);
+    DTLinearInterpolationCurve after =
+        new DTLinearInterpolationCurve(splitControl, toSplit.getEndControl());
     segments.set(index, before);
     segments.add(index + 1, after);
 

@@ -7,8 +7,8 @@ public class DTQuinticBezierSpline extends DTSpline<DTQuinticBezierCurve> {
     super();
   }
 
-  public DTQuinticBezierSpline(DTVector2dR p0, DTVector2dR v0, DTVector2dR a0, DTVector2dR p1, DTVector2dR v1,
-      DTVector2dR a1) {
+  public DTQuinticBezierSpline(DTVector2dR p0, DTVector2dR v0, DTVector2dR a0, DTVector2dR p1,
+                               DTVector2dR v1, DTVector2dR a1) {
     super(new DTQuinticBezierCurve(p0, v0, a0, p1, v1, a1));
   }
 

@@ -14,7 +14,8 @@ public class DTAxis implements DoubleSupplier {
 
   public DTAxis(DoubleSupplier input) {
     this.supplier = input;
-    DTCommandScheduler.bindInputCallback(this::refresh);
+    DTCommandScheduler.bindCallback(this::refresh);
+    refresh();
   }
 
   private void refresh() {

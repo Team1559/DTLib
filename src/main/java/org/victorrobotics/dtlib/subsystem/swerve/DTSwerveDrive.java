@@ -1,12 +1,11 @@
 package org.victorrobotics.dtlib.subsystem.swerve;
 
-import org.victorrobotics.dtlib.DTHardwareComponent;
-import org.victorrobotics.dtlib.DTSubsystem;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.math.geometry.DTVector2d;
 import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 import org.victorrobotics.dtlib.math.trajectory.DTAccelerationLimit;
 import org.victorrobotics.dtlib.math.trajectory.DTVelocityLimit;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Objects;
 
@@ -20,7 +19,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
-public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareComponent {
+public abstract class DTSwerveDrive extends DTSubsystem {
   private final DTSwerveModule[]         modules;
   private final SwerveDriveKinematics    kinematics;
   private final SwerveDrivePoseEstimator poseEstimator;
@@ -36,19 +35,14 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
   private DTVector2dR currentSpeeds;
 
   protected DTSwerveDrive(DTSwerveModule... modules) {
-    Objects.requireNonNull(modules);
-    if (modules.length < 2) {
+    if (modules == null || modules.length < 2) {
       throw new IllegalArgumentException("Swerve drive requires at least 2 wheels");
     }
-    for (DTSwerveModule m : modules) {
-      Objects.requireNonNull(m);
+
+    this.modules = new DTSwerveModule[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      this.modules[i] = Objects.requireNonNull(modules[i]);
     }
-    this.modules = modules.clone();
-
-    setSubsystem("Swerve Drive");
-    setName(getSubsystem());
-
-    initializeHardware();
 
     Translation2d[] wheelLocations = new Translation2d[modules.length];
     positions = new SwerveModulePosition[modules.length];
@@ -66,11 +60,7 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
     currentSpeeds = new DTVector2dR();
   }
 
-  public void initializeHardware() {
-    for (DTSwerveModule module : modules) {
-      module.initializeHardware();
-    }
-  }
+  public void initializeHardware() {}
 
   public final void setCenterOfRotation(DTVector2d newCenterOfRotation) {
     centerOfRotation = newCenterOfRotation;
@@ -152,9 +142,5 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
   }
 
   @Override
-  public void close() {
-    for (DTSwerveModule module : modules) {
-      module.close();
-    }
-  }
+  public void close() {}
 }

@@ -54,8 +54,8 @@ public class DTTalonSRX implements DTMotor {
   }
 
   @Override
-  public void configPID(int slot, double proportional, double integral, double derivative, double velocityFF,
-      double staticFF, double integralZone) {
+  public void configPID(int slot, double proportional, double integral, double derivative,
+                        double velocityFF, double staticFF, double integralZone) {
     if (slot < 0 || slot > 3) {
       throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
     }
@@ -91,7 +91,8 @@ public class DTTalonSRX implements DTMotor {
 
   @Override
   public void configCurrentLimit(int maxSupplyCurrent) {
-    internal.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, maxSupplyCurrent, maxSupplyCurrent, 0));
+    internal.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, maxSupplyCurrent,
+                                                                          maxSupplyCurrent, 0));
   }
 
   @Override
