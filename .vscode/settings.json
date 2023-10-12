@@ -1,36 +1,38 @@
 {
-    "editor.detectIndentation": false,
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2,
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "java.format.settings.url": "./java-formatter.xml",
-    "java.test.config": [
-        {
-            "env": {
-                "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
-                "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
-            },
-            "name": "WPIlibUnitTests",
-            "vmargs": [
-                "-Djava.library.path=${workspaceFolder}/build/jni/release"
-            ],
-            "workingDirectory": "${workspaceFolder}/build/jni/release"
-        }
-    ],
-    "java.test.defaultConfig": "WPIlibUnitTests",
-    "java.completion.importOrder": [
-        "#org.victorrobotics",
-        "org.victorrobotics",
-        "#",
-        "java",
-        "edu.wpi.first",
-        "com.ctre.phoenix",
-        "com.kauailabs.navx.frc",
-        "com.revrobotics.frc",
-        "org.photonvision",
-        "",
-    ],
-    "[java]": {
-      "editor.insertSpaces": true
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.format.settings.url": "./java-formatter.xml",
+  "java.test.config": [
+    {
+      "env": {
+        "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
+        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
+      },
+      "name": "WPIlibUnitTests",
+      "vmargs": [
+        "-Djava.library.path=${workspaceFolder}/build/jni/release"
+      ],
+      "workingDirectory": "${workspaceFolder}/build/jni/release"
     }
+  ],
+  "java.test.defaultConfig": "WPIlibUnitTests",
+  "java.completion.importOrder": [
+    "#",
+    "org.victorrobotics",
+    "java",
+    "edu.wpi.first",
+    "com.ctre.phoenix",
+    "com.ctre.phoenix6",
+    "com.kauailabs.navx.frc",
+    "com.revrobotics.frc",
+    "org.ejml",
+    "",
+    "#org.junit.jupiter",
+    "org.junit.jupiter",
+  ],
+  "[java]": {
+    "editor.insertSpaces": true
+  }
 }

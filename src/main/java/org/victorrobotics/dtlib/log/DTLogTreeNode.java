@@ -176,6 +176,7 @@ public class DTLogTreeNode {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private void logNull() {
     if (variable != null) {
       variable.logValue(null);

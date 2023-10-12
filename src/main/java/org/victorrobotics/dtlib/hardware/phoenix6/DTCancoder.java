@@ -183,7 +183,8 @@ public class DTCancoder implements DTAbsoluteEncoder {
     @Override
     public boolean hasAnyFault() {
       return allFaults.getValue()
-                      .intValue() != 0;
+                      .intValue()
+          != 0;
     }
 
     @Override

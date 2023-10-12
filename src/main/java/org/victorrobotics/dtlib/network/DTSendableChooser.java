@@ -87,7 +87,7 @@ public class DTSendableChooser<T> implements NTSendable, AutoCloseable {
     builder.addStringProperty(DEFAULT, () -> defaultOptionName, null);
     builder.addStringArrayProperty(OPTIONS, () -> options.keySet()
                                                          .toArray(String[]::new),
-        null);
+                                   null);
     builder.addStringProperty(ACTIVE, () -> {
       mutex.lock();
       try {

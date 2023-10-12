@@ -1,67 +1,61 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2DR;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
 public class DTLinearInterpolationCurve extends DTCurve {
   private final DTLinearInterpolationControl startControl;
   private final DTLinearInterpolationControl endControl;
 
-  public DTLinearInterpolationCurve(DTVector2DR p0, DTVector2DR p1) {
+  public DTLinearInterpolationCurve(DTVector2dR p0, DTVector2dR p1) {
     this(new DTLinearInterpolationControl(p0), new DTLinearInterpolationControl(p1));
   }
 
   public DTLinearInterpolationCurve(DTLinearInterpolationControl startControl,
-      DTLinearInterpolationControl endControl) {
+                                    DTLinearInterpolationControl endControl) {
     super(1);
     this.startControl = startControl;
     this.endControl = endControl;
   }
 
   @Override
-  public DTVector2DR getPosition(double t) {
-    return startControl.getPosRaw()
-                       .interpolate(endControl.getPosRaw(), t);
+  public DTVector2dR getPosition(double t) {
+    DTVector2dR start = startControl.getPosition();
+    return start.add(endControl.getPosition()
+                               .subtract(start)
+                               .multiply(t));
   }
 
   @Override
-  public DTVector2DR getVelocity(double t) {
+  public DTVector2dR getVelocity(double t) {
     return endControl.getPosition()
                      .subtract(startControl.getPosRaw());
   }
 
   @Override
-  public DTVector2DR getAcceleration(double t) {
-    return new DTVector2DR();
+  public DTVector2dR getAcceleration(double t) {
+    return new DTVector2dR();
   }
 
   @Override
-  public DTVector2DR getJolt(double t) {
-    return new DTVector2DR();
+  public DTVector2dR getJolt(double t) {
+    return new DTVector2dR();
   }
 
   @Override
-  public DTVector2DR getControlPoint(int index) {
+  public DTVector2dR getControlPoint(int index) {
+    return switch (index) {
+      case 0 -> startControl.getPosition();
+      case 1 -> endControl.getPosition();
+      default -> throw new IndexOutOfBoundsException(index);
+    };
+  }
+
+  @Override
+  public void setControlPoint(int index, DTVector2dR control) {
     switch (index) {
-      case 0:
-        return startControl.getPosition();
-      case 1:
-        return endControl.getPosition();
-      default:
-        throw new IndexOutOfBoundsException(index);
-    }
-  }
-
-  @Override
-  public void setControlPoint(int index, DTVector2DR control) {
-    switch (index) {
-      case 0:
-        startControl.setPosition(control);
-        break;
-      case 1:
-        endControl.setPosition(control);
-        break;
-      default:
-        throw new IndexOutOfBoundsException(index);
+      case 0 -> startControl.setPosition(control);
+      case 1 -> endControl.setPosition(control);
+      default -> throw new IndexOutOfBoundsException(index);
     }
   }
 

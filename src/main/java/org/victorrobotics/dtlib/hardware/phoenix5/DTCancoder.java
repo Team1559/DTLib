@@ -47,8 +47,8 @@ public class DTCancoder implements DTAbsoluteEncoder {
 
   @Override
   public void setRange(boolean signed) {
-    internal.configAbsoluteSensorRange(
-        signed ? AbsoluteSensorRange.Signed_PlusMinus180 : AbsoluteSensorRange.Unsigned_0_to_360);
+    internal.configAbsoluteSensorRange(signed ? AbsoluteSensorRange.Signed_PlusMinus180
+        : AbsoluteSensorRange.Unsigned_0_to_360);
   }
 
   @Override
