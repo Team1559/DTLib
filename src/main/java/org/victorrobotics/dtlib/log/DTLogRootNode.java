@@ -6,8 +6,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 public class DTLogRootNode extends DTLogTreeNode {
-  private final Object               robot;
-  private final Class<?>             clazz;
+  private final Object                  robot;
+  private final Class<?>                clazz;
   private final List<DTLogStaticVar<?>> staticVars;
 
   public DTLogRootNode(Object robot) {

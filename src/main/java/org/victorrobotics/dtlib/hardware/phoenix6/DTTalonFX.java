@@ -101,8 +101,8 @@ public class DTTalonFX implements DTMotor {
   }
 
   @Override
-  public void configPID(int slot, double proportional, double integral, double derivative, double velocityFF,
-      double staticFF, double integralZone) {
+  public void configPID(int slot, double proportional, double integral, double derivative,
+                        double velocityFF, double staticFF, double integralZone) {
     // integralZone is deprecated in v6, windup prevented automatically
     if (slot == 0) {
       Slot0Configs configs = new Slot0Configs();
@@ -177,7 +177,8 @@ public class DTTalonFX implements DTMotor {
     configCurrentLimit(maxSupplyCurrent, maxSupplyCurrent, 0);
   }
 
-  public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit, double peakDuration) {
+  public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit,
+                                 double peakDuration) {
     CurrentLimitsConfigs configs = new CurrentLimitsConfigs();
     internal.getConfigurator()
             .refresh(configs);
@@ -243,12 +244,12 @@ public class DTTalonFX implements DTMotor {
 
   @Override
   public void setPosition(double position) {
-    internal.setControl(new PositionDutyCycle(position, false, 0, 0, false));
+    internal.setControl(new PositionDutyCycle(position, 0, false, 0, pidSlot, false));
   }
 
   @Override
   public void setVelocity(double velocity) {
-    internal.setControl(new VelocityDutyCycle(velocity, false, 0, pidSlot, false));
+    internal.setControl(new VelocityDutyCycle(velocity, 0, false, 0, pidSlot, false));
   }
 
   @Override
@@ -258,7 +259,7 @@ public class DTTalonFX implements DTMotor {
 
   @Override
   public void setEncoderPosition(double position) {
-    internal.setRotorPosition(position);
+    internal.setPosition(position, 0);
   }
 
   @Override
@@ -357,115 +358,116 @@ public class DTTalonFX implements DTMotor {
 
   public static class DTTalonFXFaults implements DTMotorFaults {
     private final StatusSignal<Integer> allFaults;
-    private final StatusSignal<Boolean> BootDuringEnable;
-    private final StatusSignal<Boolean> DeviceTemp;
-    private final StatusSignal<Boolean> ForwardHardLimit;
-    private final StatusSignal<Boolean> ForwardSoftLimit;
-    private final StatusSignal<Boolean> FusedSensorOutOfSync;
-    private final StatusSignal<Boolean> Hardware;
-    private final StatusSignal<Boolean> MissingRemoteSensor;
-    private final StatusSignal<Boolean> OverSupplyV;
-    private final StatusSignal<Boolean> ProcTemp;
-    private final StatusSignal<Boolean> ReverseHardLimit;
-    private final StatusSignal<Boolean> ReverseSoftLimit;
-    private final StatusSignal<Boolean> StatorCurrLimit;
-    private final StatusSignal<Boolean> SupplyCurrLimit;
-    private final StatusSignal<Boolean> Undervoltage;
-    private final StatusSignal<Boolean> UnlicensedFeatureInUse;
-    private final StatusSignal<Boolean> UnstableSupplyV;
-    private final StatusSignal<Boolean> UsingFusedCANcoderWhileUnlicensed;
+    private final StatusSignal<Boolean> bootDuringEnable;
+    private final StatusSignal<Boolean> deviceTemp;
+    private final StatusSignal<Boolean> forwardHardLimit;
+    private final StatusSignal<Boolean> forwardSoftLimit;
+    private final StatusSignal<Boolean> fusedSensorOutOfSync;
+    private final StatusSignal<Boolean> hardware;
+    private final StatusSignal<Boolean> overSupplyV;
+    private final StatusSignal<Boolean> procTemp;
+    private final StatusSignal<Boolean> reverseHardLimit;
+    private final StatusSignal<Boolean> reverseSoftLimit;
+    private final StatusSignal<Boolean> statorCurrLimit;
+    private final StatusSignal<Boolean> supplyCurrLimit;
+    private final StatusSignal<Boolean> undervoltage;
+    private final StatusSignal<Boolean> unlicensedFeatureInUse;
+    private final StatusSignal<Boolean> unstableSupplyV;
+    private final StatusSignal<Boolean> usingFusedCANcoderWhileUnlicensed;
+    private final StatusSignal<Boolean> bridgeBrownout;
 
     DTTalonFXFaults(TalonFX internal) {
       allFaults = internal.getFaultField();
-      BootDuringEnable = internal.getFault_BootDuringEnable();
-      DeviceTemp = internal.getFault_DeviceTemp();
-      ForwardHardLimit = internal.getFault_ForwardHardLimit();
-      ForwardSoftLimit = internal.getFault_ForwardSoftLimit();
-      FusedSensorOutOfSync = internal.getFault_FusedSensorOutOfSync();
-      Hardware = internal.getFault_Hardware();
-      MissingRemoteSensor = internal.getFault_MissingRemoteSensor();
-      OverSupplyV = internal.getFault_OverSupplyV();
-      ProcTemp = internal.getFault_ProcTemp();
-      ReverseHardLimit = internal.getFault_ReverseHardLimit();
-      ReverseSoftLimit = internal.getFault_ReverseSoftLimit();
-      StatorCurrLimit = internal.getFault_StatorCurrLimit();
-      SupplyCurrLimit = internal.getFault_SupplyCurrLimit();
-      Undervoltage = internal.getFault_Undervoltage();
-      UnlicensedFeatureInUse = internal.getFault_UnlicensedFeatureInUse();
-      UnstableSupplyV = internal.getFault_UnstableSupplyV();
-      UsingFusedCANcoderWhileUnlicensed = internal.getFault_UsingFusedCANcoderWhileUnlicensed();
+      bootDuringEnable = internal.getFault_BootDuringEnable();
+      deviceTemp = internal.getFault_DeviceTemp();
+      forwardHardLimit = internal.getFault_ForwardHardLimit();
+      forwardSoftLimit = internal.getFault_ForwardSoftLimit();
+      fusedSensorOutOfSync = internal.getFault_FusedSensorOutOfSync();
+      hardware = internal.getFault_Hardware();
+      overSupplyV = internal.getFault_OverSupplyV();
+      procTemp = internal.getFault_ProcTemp();
+      reverseHardLimit = internal.getFault_ReverseHardLimit();
+      reverseSoftLimit = internal.getFault_ReverseSoftLimit();
+      statorCurrLimit = internal.getFault_StatorCurrLimit();
+      supplyCurrLimit = internal.getFault_SupplyCurrLimit();
+      undervoltage = internal.getFault_Undervoltage();
+      unlicensedFeatureInUse = internal.getFault_UnlicensedFeatureInUse();
+      unstableSupplyV = internal.getFault_UnstableSupplyV();
+      usingFusedCANcoderWhileUnlicensed = internal.getFault_UsingFusedCANcoderWhileUnlicensed();
+      bridgeBrownout = internal.getFault_BridgeBrownout();
     }
 
     @Override
     public boolean hasAnyFault() {
       return allFaults.getValue()
-                      .intValue() != 0;
+                      .intValue()
+          != 0;
     }
 
     @Override
     public boolean lowVoltage() {
-      return Undervoltage.getValue()
-                         .booleanValue();
+      return undervoltage.getValue()
+                         .booleanValue()
+          || bridgeBrownout.getValue()
+                           .booleanValue();
     }
 
     @Override
     public boolean other() {
-      return OverSupplyV.getValue()
+      return overSupplyV.getValue()
                         .booleanValue()
-          || StatorCurrLimit.getValue()
+          || statorCurrLimit.getValue()
                             .booleanValue()
-          || SupplyCurrLimit.getValue()
+          || supplyCurrLimit.getValue()
                             .booleanValue()
-          || UnlicensedFeatureInUse.getValue()
+          || unlicensedFeatureInUse.getValue()
                                    .booleanValue()
-          || UnstableSupplyV.getValue()
+          || unstableSupplyV.getValue()
                             .booleanValue()
-          || UsingFusedCANcoderWhileUnlicensed.getValue()
+          || usingFusedCANcoderWhileUnlicensed.getValue()
                                               .booleanValue();
     }
 
     @Override
     public boolean softLimitForward() {
-      return ForwardSoftLimit.getValue()
+      return forwardSoftLimit.getValue()
                              .booleanValue();
     }
 
     @Override
     public boolean softLimitReverse() {
-      return ReverseSoftLimit.getValue()
+      return reverseSoftLimit.getValue()
                              .booleanValue();
     }
 
     @Override
     public boolean hardLimitForward() {
-      return ForwardHardLimit.getValue()
+      return forwardHardLimit.getValue()
                              .booleanValue();
     }
 
     @Override
     public boolean hardLimitReverse() {
-      return ReverseHardLimit.getValue()
+      return reverseHardLimit.getValue()
                              .booleanValue();
     }
 
     @Override
     public boolean hasReset() {
-      return BootDuringEnable.getValue()
+      return bootDuringEnable.getValue()
                              .booleanValue();
     }
 
     @Override
     public boolean hardwareFailure() {
-      return Hardware.getValue()
+      return hardware.getValue()
                      .booleanValue()
-          || DeviceTemp.getValue()
+          || deviceTemp.getValue()
                        .booleanValue()
-          || ProcTemp.getValue()
+          || procTemp.getValue()
                      .booleanValue()
-          || FusedSensorOutOfSync.getValue()
-                                 .booleanValue()
-          || MissingRemoteSensor.getValue()
-                                .booleanValue();
+          || fusedSensorOutOfSync.getValue()
+                                 .booleanValue();
     }
   }
 

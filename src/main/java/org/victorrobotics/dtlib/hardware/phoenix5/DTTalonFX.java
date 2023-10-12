@@ -2,7 +2,6 @@ package org.victorrobotics.dtlib.hardware.phoenix5;
 
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.hardware.DTMotor;
-import org.victorrobotics.dtlib.hardware.DTMotorFaults;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
@@ -64,8 +63,8 @@ public class DTTalonFX implements DTMotor {
   }
 
   @Override
-  public void configPID(int slot, double proportional, double integral, double derivative, double velocityFF,
-      double staticFF, double integralZone) {
+  public void configPID(int slot, double proportional, double integral, double derivative,
+                        double velocityFF, double staticFF, double integralZone) {
     if (slot < 0 || slot > 3) {
       throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
     }
@@ -90,12 +89,15 @@ public class DTTalonFX implements DTMotor {
 
   @Override
   public void configCurrentLimit(int maxSupplyCurrent) {
-    internal.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, maxSupplyCurrent, maxSupplyCurrent, 0));
+    internal.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, maxSupplyCurrent,
+                                                                          maxSupplyCurrent, 0));
   }
 
-  public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit, double peakDuration) {
-    internal.configSupplyCurrentLimit(
-        new SupplyCurrentLimitConfiguration(true, baseCurrentLimit, peakCurrentLimit, peakDuration));
+  public void configCurrentLimit(double baseCurrentLimit, double peakCurrentLimit,
+                                 double peakDuration) {
+    internal.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, baseCurrentLimit,
+                                                                          peakCurrentLimit,
+                                                                          peakDuration));
   }
 
   public void configAllSettings(TalonFXConfiguration config) {
@@ -214,20 +216,12 @@ public class DTTalonFX implements DTMotor {
     }
     TalonFXConfiguration allConfigs = new TalonFXConfiguration();
     internal.getAllConfigs(allConfigs);
-    SlotConfiguration config;
-    switch (slot) {
-      case 0:
-        config = allConfigs.slot0;
-        break;
-      case 1:
-        config = allConfigs.slot1;
-        break;
-      case 2:
-        config = allConfigs.slot2;
-        break;
-      default:
-        config = allConfigs.slot3;
-    }
+    SlotConfiguration config = switch (slot) {
+      case 1 -> allConfigs.slot1;
+      case 2 -> allConfigs.slot2;
+      case 3 -> allConfigs.slot3;
+      default -> allConfigs.slot0;
+    };
     double[] result = new double[6];
     result[0] = config.kP;
     result[1] = config.kI;

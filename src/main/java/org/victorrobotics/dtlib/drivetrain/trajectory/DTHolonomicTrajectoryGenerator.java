@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DTHolonomicTrajectoryGenerator {
-  private static final DTAccelerationLimit DEFAULT_ACCEL_LIMIT    = new DTAccelerationLimit(25, 20 * Math.PI, 0.02);
-  private static final DTVelocityLimit     DEFAULT_VELOCITY_LIMIT = new DTVelocityLimit(0.05, 5, 0.1, Math.PI * 4);
+  private static final DTAccelerationLimit DEFAULT_ACCEL_LIMIT    =
+      new DTAccelerationLimit(25, 20 * Math.PI, 0.02);
+  private static final DTVelocityLimit     DEFAULT_VELOCITY_LIMIT =
+      new DTVelocityLimit(0.05, 5, 0.1, Math.PI * 4);
 
   private static final double DEFAULT_DISTANCE_BETWEEN_POINTS = 0.02;
   private static final double DEFAULT_MAX_DELTA_T             = 0.126;
@@ -65,8 +67,8 @@ public class DTHolonomicTrajectoryGenerator {
     return pointList.toArray(Point[]::new);
   }
 
-  private void recursiveSplit(List<Point> pointList, DTSpline<?> spline, double minU, double maxU, DTVector2DR startPos,
-      DTVector2DR endPos) {
+  private void recursiveSplit(List<Point> pointList, DTSpline<?> spline, double minU, double maxU,
+                              DTVector2DR startPos, DTVector2DR endPos) {
     DTVector2DR displacement = endPos.clone();
     displacement.subtract(startPos);
     if (maxU - minU <= maxDeltaU && displacement.hypotenuse() <= maxDistance) {
@@ -95,7 +97,8 @@ public class DTHolonomicTrajectoryGenerator {
     points[0].curvatureRadius = Double.NaN;
     points[points.length - 1].curvatureRadius = Double.NaN;
     for (int i = 1; i < points.length - 1; i++) {
-      points[i].curvatureRadius = computeRadius(points[i - 1].position, points[i].position, points[i + 1].position);
+      points[i].curvatureRadius =
+          computeRadius(points[i - 1].position, points[i].position, points[i + 1].position);
       if (Double.isNaN(points[i].curvatureRadius)) {
         points[i].velocity.scaleHypotenuse(velocityLimit.minimumLinearVelocity);
       } else if (Double.isFinite(points[i].curvatureRadius)) {
@@ -113,8 +116,8 @@ public class DTHolonomicTrajectoryGenerator {
       // sqrt(v^2+2ad)
       double prevVelT = points[i - 1].velocity.hypotenuse();
       double prevMaxAccel = computeMaxAccel(points[i - 1]);
-      double maxVelT = Math.sqrt(
-          prevVelT * prevVelT + 2 * prevMaxAccel * (points[i].distance - points[i - 1].distance));
+      double maxVelT = Math.sqrt(prevVelT * prevVelT
+          + 2 * prevMaxAccel * (points[i].distance - points[i - 1].distance));
       points[i].velocity.scaleDownHypotenuse(maxVelT);
     }
   }
@@ -122,13 +125,15 @@ public class DTHolonomicTrajectoryGenerator {
   private void applyDecelerationConstraint(Point[] points) {
     int maxIndex = points.length - 1;
     points[maxIndex].velocity.set(points[maxIndex].position.clone()
-                                                           .subtract(points[maxIndex - 1].position));
+                                                           .subtract(points[maxIndex
+                                                               - 1].position));
     points[maxIndex].velocity.scaleHypotenuse(velocityLimit.minimumLinearVelocity);
     for (int i = maxIndex - 1; i >= 0; i--) {
       // sqrt(v^2-2ad)
       double nextVel = points[i + 1].velocity.hypotenuse();
       double nextMaxAccel = computeMaxAccel(points[i + 1]);
-      double maxVel = Math.sqrt(nextVel * nextVel + 2 * nextMaxAccel * (points[i + 1].distance - points[i].distance));
+      double maxVel = Math.sqrt(nextVel * nextVel
+          + 2 * nextMaxAccel * (points[i + 1].distance - points[i].distance));
       points[i].velocity.scaleDownHypotenuse(maxVel);
     }
   }
@@ -175,7 +180,8 @@ public class DTHolonomicTrajectoryGenerator {
     for (int i = 1; i < points.length; i++) {
       points[i].acceleration = points[i].velocity.clone()
                                                  .subtract(points[i - 1].velocity)
-                                                 .multiply(1 / (points[i].time - points[i - 1].time));
+                                                 .multiply(1
+                                                     / (points[i].time - points[i - 1].time));
     }
   }
 

@@ -11,7 +11,7 @@ public class DTLinearInterpolationCurve extends DTCurve {
   }
 
   public DTLinearInterpolationCurve(DTLinearInterpolationControl startControl,
-      DTLinearInterpolationControl endControl) {
+                                    DTLinearInterpolationControl endControl) {
     super(1);
     this.startControl = startControl;
     this.endControl = endControl;
@@ -41,27 +41,19 @@ public class DTLinearInterpolationCurve extends DTCurve {
 
   @Override
   public DTVector2DR getControlPoint(int index) {
-    switch (index) {
-      case 0:
-        return startControl.getPosition();
-      case 1:
-        return endControl.getPosition();
-      default:
-        throw new IndexOutOfBoundsException(index);
-    }
+    return switch (index) {
+      case 0 -> startControl.getPosition();
+      case 1 -> endControl.getPosition();
+      default -> throw new IndexOutOfBoundsException(index);
+    };
   }
 
   @Override
   public void setControlPoint(int index, DTVector2DR control) {
     switch (index) {
-      case 0:
-        startControl.setPosition(control);
-        break;
-      case 1:
-        endControl.setPosition(control);
-        break;
-      default:
-        throw new IndexOutOfBoundsException(index);
+      case 0 -> startControl.setPosition(control);
+      case 1 -> endControl.setPosition(control);
+      default -> throw new IndexOutOfBoundsException(index);
     }
   }
 
