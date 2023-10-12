@@ -1,5 +1,7 @@
 package org.victorrobotics.dtlib.log;
 
+import static org.victorrobotics.dtlib.log.DTLogWriter.LOG_PATH_SEPARATOR;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,7 +22,7 @@ public class DTLogTreeNode {
   private DTLogVar        variable;
 
   public DTLogTreeNode(String path, String name, Class<?> type, UnaryOperator<Object> getter) {
-    this.path = path + "/" + name;
+    this.path = path + LOG_PATH_SEPARATOR + name;
     this.type = type;
     this.getter = getter;
   }
@@ -176,7 +178,6 @@ public class DTLogTreeNode {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private void logNull() {
     if (variable != null) {
       variable.logValue(null);

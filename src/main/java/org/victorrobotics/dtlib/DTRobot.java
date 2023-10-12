@@ -6,7 +6,6 @@ import org.victorrobotics.dtlib.log.DTLogRootNode;
 import org.victorrobotics.dtlib.log.DTLogWriter;
 import org.victorrobotics.dtlib.log.DTWatchdog;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -21,6 +20,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DSControlWord;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.RuntimeType;
 
 public abstract class DTRobot {
@@ -126,9 +126,6 @@ public abstract class DTRobot {
   private void runModeChange() {
     if (currentMode == previousMode) return;
 
-    DTLogWriter.getInstance()
-               .writeShort(currentMode.identifier);
-
     if (currentMode == Mode.AUTO) {
       DTWatchdog.startEpoch();
       autoCommand = getAutoCommand();
@@ -156,10 +153,8 @@ public abstract class DTRobot {
                  .writeShort(currentMode.identifier);
     }
     robot.logTreeRoot.log();
-    try {
-      DTLogWriter.getInstance()
-                 .flush();
-    } catch (IOException e) {}
+    DTLogWriter.getInstance()
+               .tryFlush();
     DTWatchdog.addEpoch("DTLog");
   }
 
@@ -294,6 +289,10 @@ public abstract class DTRobot {
     return alliance;
   }
 
+  public static int getTeamNumber() {
+    return RobotController.getTeamNumber();
+  }
+
   public static boolean isSimulation() {
     return IS_SIMULATION;
   }
@@ -307,7 +306,7 @@ public abstract class DTRobot {
   }
 
   public static long currentTimeMicros() {
-    return HALUtil.getFPGATime();
+    return RobotController.getFPGATime();
   }
 
   public static double currentTime() {
