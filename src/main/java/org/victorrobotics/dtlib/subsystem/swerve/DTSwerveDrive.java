@@ -1,8 +1,10 @@
-package org.victorrobotics.dtlib.drivetrain.swerve;
+package org.victorrobotics.dtlib.subsystem.swerve;
 
-import org.victorrobotics.dtlib.drivetrain.DTAccelerationLimit;
-import org.victorrobotics.dtlib.drivetrain.DTVelocityLimit;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.math.geometry.DTVector2d;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.trajectory.DTAccelerationLimit;
+import org.victorrobotics.dtlib.math.trajectory.DTVelocityLimit;
 import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Objects;
@@ -24,13 +26,13 @@ public abstract class DTSwerveDrive extends DTSubsystem {
 
   private final SwerveModulePosition[] positions;
 
-  private Translation2d       centerOfRotation;
+  private DTVector2d          centerOfRotation;
   private DTAccelerationLimit accelerationLimit;
   private DTVelocityLimit     velocityLimit;
   private boolean             isFieldRelative;
 
-  private Field2d       virtualField;
-  private ChassisSpeeds currentSpeeds;
+  private Field2d     virtualField;
+  private DTVector2dR currentSpeeds;
 
   protected DTSwerveDrive(DTSwerveModule... modules) {
     if (modules == null || modules.length < 2) {
@@ -53,12 +55,14 @@ public abstract class DTSwerveDrive extends DTSubsystem {
     poseEstimator =
         new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions, new Pose2d());
 
-    centerOfRotation = new Translation2d();
+    centerOfRotation = new DTVector2d();
     accelerationLimit = new DTAccelerationLimit();
-    currentSpeeds = new ChassisSpeeds();
+    currentSpeeds = new DTVector2dR();
   }
 
-  public final void setCenterOfRotation(Translation2d newCenterOfRotation) {
+  public void initializeHardware() {}
+
+  public final void setCenterOfRotation(DTVector2d newCenterOfRotation) {
     centerOfRotation = newCenterOfRotation;
   }
 
@@ -84,20 +88,24 @@ public abstract class DTSwerveDrive extends DTSubsystem {
     driveVelocity(vx, vy, vr, centerOfRotation);
   }
 
-  public void driveVelocity(double vx, double vy, double vr, Translation2d centerOfRotation) {
-    ChassisSpeeds previousSpeeds = currentSpeeds;
+  public void driveVelocity(double vx, double vy, double vr, DTVector2d centerOfRotation) {
+    DTVector2dR previousSpeeds = currentSpeeds;
 
     if (isFieldRelative) {
-      currentSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, getGyroAngle());
+      ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, getGyroAngle());
+      currentSpeeds = new DTVector2dR(speeds);
     } else {
-      currentSpeeds = new ChassisSpeeds(vx, vy, vr);
+      currentSpeeds.setX(vx);
+      currentSpeeds.setY(vy);
+      currentSpeeds.setR(vr);
     }
 
     velocityLimit.apply(currentSpeeds);
     accelerationLimit.apply(currentSpeeds, previousSpeeds);
 
     SwerveModuleState[] newStates =
-        kinematics.toSwerveModuleStates(currentSpeeds, centerOfRotation);
+        kinematics.toSwerveModuleStates(currentSpeeds.toChassisSpeeds(),
+                                        centerOfRotation.toTranslation2d());
     setStates(newStates);
   }
 
@@ -134,9 +142,5 @@ public abstract class DTSwerveDrive extends DTSubsystem {
   }
 
   @Override
-  public void close() {
-    for (DTSwerveModule module : modules) {
-      // module.close();
-    }
-  }
+  public void close() {}
 }

@@ -1,4 +1,4 @@
-package org.victorrobotics.dtlib.drivetrain.swerve;
+package org.victorrobotics.dtlib.subsystem.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;

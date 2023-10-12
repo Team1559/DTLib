@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2DR;
+import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,7 +30,7 @@ public abstract class DTSpline<T extends DTCurve> implements Iterable<T> {
     return splitSegment(index, u % 1);
   }
 
-  protected DTVector2DR get(double u, BiFunction<T, Double, DTVector2DR> func) {
+  protected DTVector2dR get(double u, BiFunction<T, Double, DTVector2dR> func) {
     if (segments.isEmpty() || !Double.isFinite(u)) {
       return null;
     } else if (u < 0) {
@@ -44,19 +44,19 @@ public abstract class DTSpline<T extends DTCurve> implements Iterable<T> {
     return func.apply(segments.get(index), u);
   }
 
-  public DTVector2DR getPosition(double u) {
+  public DTVector2dR getPosition(double u) {
     return get(u, DTCurve::getPosition);
   }
 
-  public DTVector2DR getVelocity(double u) {
+  public DTVector2dR getVelocity(double u) {
     return get(u, DTCurve::getVelocity);
   }
 
-  public DTVector2DR getAcceleration(double u) {
+  public DTVector2dR getAcceleration(double u) {
     return get(u, DTCurve::getAcceleration);
   }
 
-  public DTVector2DR getJolt(double u) {
+  public DTVector2dR getJolt(double u) {
     return get(u, DTCurve::getJolt);
   }
 
