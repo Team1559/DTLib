@@ -38,8 +38,8 @@ public class DTHolonomicTrajectory implements Iterable<DTHolonomicTrajectory.Poi
 
     @Override
     public String toString() {
-      return String.format("Point[t=%.2f Pos=%s Vel=%s Acc=%s c=%.1f]", time, position, velocity, acceleration,
-          curvatureRadius);
+      return String.format("Point[t=%.2f Pos=%s Vel=%s Acc=%s c=%.1f]", time, position, velocity,
+                           acceleration, curvatureRadius);
     }
   }
 
@@ -56,7 +56,7 @@ public class DTHolonomicTrajectory implements Iterable<DTHolonomicTrajectory.Poi
     for (int i = 0; i < points.length; i++) {
       Point p = points[i];
       states.add(new Trajectory.State(p.time, p.velocity.hypotenuse(), p.acceleration.hypotenuse(),
-          p.position.toPose2d(), 1 / p.curvatureRadius));
+                                      p.position.toPose2d(), 1 / p.curvatureRadius));
     }
     return new Trajectory(states);
   }

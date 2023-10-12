@@ -1,16 +1,17 @@
 package org.victorrobotics.dtlib.controller;
 
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-
-import java.util.Arrays;
 
 import edu.wpi.first.hal.DriverStationJNI;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 
+/**
+ * A base class for command-based controller input from the DriverStation.
+ * Buttons and joysticks are represented using
+ */
 public class DTController {
-  private static final int MAX_CONTROLLER_COUNT = 6;
+  private static final int MAX_CONTROLLER_COUNT = DriverStation.kJoystickPorts;
 
   private static final DTController[] INSTANCES = new DTController[MAX_CONTROLLER_COUNT];
 
@@ -22,10 +23,10 @@ public class DTController {
 
   protected DTController(int port, int axisCount, int povCount) {
     if (port < -1 || port >= MAX_CONTROLLER_COUNT) {
-      throw new DTIllegalArgumentException(port, "port must be in range 0-" + (MAX_CONTROLLER_COUNT - 1));
+      throw new ArrayIndexOutOfBoundsException(port);
     }
     if (INSTANCES[port] != null) {
-      // TODO: warn
+      DriverStation.reportWarning("Controller already instantiated at port " + port, isConnected());
     }
     this.port = port;
     INSTANCES[port] = this;
@@ -38,18 +39,28 @@ public class DTController {
       povs = new int[povCount];
     }
 
-    DTCommandScheduler.bindInputCallback(this::refresh);
+    DTCommandScheduler.bindCallback(this::refresh);
+    refresh();
   }
 
   protected final DTTrigger getButton(int index) {
+    if (index >= 32 || index < 0) {
+      throw new ArrayIndexOutOfBoundsException(index);
+    }
     return new DTTrigger(() -> (buttons & (1 << index)) != 0);
   }
 
   protected final DTAxis getAxis(int index) {
+    if (povs == null || index >= axes.length || index < 0) {
+      throw new ArrayIndexOutOfBoundsException(index);
+    }
     return new DTAxis(() -> axes[index]);
   }
 
   protected final DTPov getPov(int index) {
+    if (povs == null || index >= povs.length || index < 0) {
+      throw new ArrayIndexOutOfBoundsException(index);
+    }
     return new DTPov(() -> povs[index]);
   }
 
@@ -57,10 +68,14 @@ public class DTController {
     if (!isConnected()) {
       buttons = 0;
       if (axes != null) {
-        Arrays.fill(axes, 0);
+        for (int i = 0; i < axes.length; i++) {
+          axes[i] = 0;
+        }
       }
       if (povs != null) {
-        Arrays.fill(povs, -1);
+        for (int i = 0; i < povs.length; i++) {
+          povs[i] = -1;
+        }
       }
       return;
     }
@@ -86,7 +101,7 @@ public class DTController {
 
   public final void setRumble(double leftPower, double rightPower) {
     DriverStationJNI.setJoystickOutputs((byte) port, 0, (short) (leftPower * 0xFFFF),
-        (short) (rightPower * 0xFFFF));
+                                        (short) (rightPower * 0xFFFF));
   }
 
   protected static Translation2d combineAxes(double x, double y) {

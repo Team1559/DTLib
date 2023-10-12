@@ -1,10 +1,9 @@
 package org.victorrobotics.dtlib.drivetrain.swerve;
 
-import org.victorrobotics.dtlib.DTHardwareComponent;
-import org.victorrobotics.dtlib.DTSubsystem;
 import org.victorrobotics.dtlib.drivetrain.DTAccelerationLimit;
 import org.victorrobotics.dtlib.drivetrain.DTVelocityLimit;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Objects;
 
@@ -18,7 +17,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
-public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareComponent {
+public abstract class DTSwerveDrive extends DTSubsystem {
   private final DTSwerveModule[]         modules;
   private final SwerveDriveKinematics    kinematics;
   private final SwerveDrivePoseEstimator poseEstimator;
@@ -34,19 +33,14 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
   private ChassisSpeeds currentSpeeds;
 
   protected DTSwerveDrive(DTSwerveModule... modules) {
-    Objects.requireNonNull(modules);
-    if (modules.length < 2) {
+    if (modules == null || modules.length < 2) {
       throw new IllegalArgumentException("Swerve drive requires at least 2 wheels");
     }
-    for (DTSwerveModule m : modules) {
-      Objects.requireNonNull(m);
+
+    this.modules = new DTSwerveModule[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      this.modules[i] = Objects.requireNonNull(modules[i]);
     }
-    this.modules = modules.clone();
-
-    setSubsystem("Swerve Drive");
-    setName(getSubsystem());
-
-    initializeHardware();
 
     Translation2d[] wheelLocations = new Translation2d[modules.length];
     positions = new SwerveModulePosition[modules.length];
@@ -56,17 +50,12 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
     }
 
     kinematics = new SwerveDriveKinematics(wheelLocations);
-    poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions, new Pose2d());
+    poseEstimator =
+        new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions, new Pose2d());
 
     centerOfRotation = new Translation2d();
     accelerationLimit = new DTAccelerationLimit();
     currentSpeeds = new ChassisSpeeds();
-  }
-
-  public void initializeHardware() {
-    for (DTSwerveModule module : modules) {
-      module.initializeHardware();
-    }
   }
 
   public final void setCenterOfRotation(Translation2d newCenterOfRotation) {
@@ -107,14 +96,15 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
     velocityLimit.apply(currentSpeeds);
     accelerationLimit.apply(currentSpeeds, previousSpeeds);
 
-    SwerveModuleState[] newStates = kinematics.toSwerveModuleStates(currentSpeeds, centerOfRotation);
+    SwerveModuleState[] newStates =
+        kinematics.toSwerveModuleStates(currentSpeeds, centerOfRotation);
     setStates(newStates);
   }
 
   public final void setStates(SwerveModuleState... states) {
     if (states.length != modules.length) {
-      throw new DTIllegalArgumentException(states,
-          "received " + states.length + " module states for " + modules.length + " modules");
+      throw new DTIllegalArgumentException(states, "received " + states.length
+          + " module states for " + modules.length + " modules");
     }
 
     double minCosine = 1;
@@ -146,7 +136,7 @@ public abstract class DTSwerveDrive extends DTSubsystem implements DTHardwareCom
   @Override
   public void close() {
     for (DTSwerveModule module : modules) {
-      module.close();
+      // module.close();
     }
   }
 }

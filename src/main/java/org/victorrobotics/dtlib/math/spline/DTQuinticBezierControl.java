@@ -105,8 +105,8 @@ public class DTQuinticBezierControl extends DTCurveControl {
     return new DTQuinticBezierControl(p5.clone(), p5.clone()
                                                     .multiply(2)
                                                     .subtract(p4),
-        p5.clone()
-          .multiply(2)
-          .subtract(p3));
+                                      p5.clone()
+                                        .multiply(2)
+                                        .subtract(p3));
   }
 }

@@ -1,17 +1,21 @@
-package org.victorrobotics.dtlib.command.util;
+package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.DTSubsystem;
-import org.victorrobotics.dtlib.command.DTCommand;
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
 import java.util.Set;
 
+/**
+ * <p>
+ * The rules for command compositions apply: command instances that are passed
+ * to it cannot be added to any other composition or scheduled individually, and
+ * the composition requires all subsystems its components require.
+ */
 public class DTTargetCommand implements DTCommand {
   protected final DTCommand target;
 
   public DTTargetCommand(DTCommand target) {
     this.target = target;
-    DTCommandScheduler.registerComposedCommands(target);
+    DTCommandScheduler.registerComposed(target);
   }
 
   @Override
@@ -57,5 +61,10 @@ public class DTTargetCommand implements DTCommand {
   @Override
   public boolean runsWhenDisabled() {
     return target.runsWhenDisabled();
+  }
+
+  @Override
+  public String getName() {
+    return target.getName();
   }
 }

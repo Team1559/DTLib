@@ -1,13 +1,11 @@
 package org.victorrobotics.dtlib.drivetrain.swerve;
 
-import org.victorrobotics.dtlib.DTHardwareComponent;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
-public interface DTSwerveModule extends DTHardwareComponent {
+public interface DTSwerveModule {
   Translation2d getLocation();
 
   void setState(SwerveModuleState state);

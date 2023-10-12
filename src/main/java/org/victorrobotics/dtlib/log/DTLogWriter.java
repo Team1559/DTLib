@@ -18,8 +18,9 @@ public class DTLogWriter implements Closeable, Flushable {
   private final BitSet      bitSet;
 
   public DTLogWriter(File file, int bufferSize) throws IOException {
-    this.channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE,
-        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    this.channel =
+        FileChannel.open(file.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE,
+                         StandardOpenOption.TRUNCATE_EXISTING);
     this.buffer = ByteBuffer.allocateDirect(bufferSize);
     this.bitSet = new BitSet();
   }

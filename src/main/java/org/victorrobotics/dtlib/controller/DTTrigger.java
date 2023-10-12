@@ -13,8 +13,9 @@ import java.util.function.BooleanSupplier;
 import edu.wpi.first.math.filter.Debouncer;
 
 /**
- * This class provides an easy way to link commands to conditions. It is modified from
- * edu.wpi.first.wpilibj2.command.button.Trigger, maintaining API compatibility.
+ * This class provides an easy way to link commands to conditions. It is
+ * modified from edu.wpi.first.wpilibj2.command.button.Trigger, maintaining API
+ * compatibility.
  */
 public class DTTrigger implements BooleanSupplier {
   private final BooleanSupplier condition;
@@ -25,14 +26,16 @@ public class DTTrigger implements BooleanSupplier {
   /**
    * Creates a new DTTrigger based on the given condition.
    * <p>
-   * Polled by the default scheduler button CommandScheduler.getInstance().getDefaultButtonLoop().
+   * Polled by the default scheduler button
+   * CommandScheduler.getInstance().getDefaultButtonLoop().
    *
    * @param condition
    *        the condition represented by this DTTrigger
    */
   public DTTrigger(BooleanSupplier condition) {
     this.condition = Objects.requireNonNull(condition);
-    DTCommandScheduler.bindInputCallback(this::refresh);
+    DTCommandScheduler.bindCallback(this::refresh);
+    refresh();
   }
 
   private void refresh() {
@@ -46,14 +49,15 @@ public class DTTrigger implements BooleanSupplier {
   }
 
   /**
-   * Starts the given command whenever the condition changes from `false` to `true`.
+   * Starts the given command whenever the condition changes from `false` to
+   * `true`.
    *
    * @param command
    *        the command to start
    */
   public void onTrue(DTCommand command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindLogicCallback(() -> {
+    DTCommandScheduler.bindCallback(() -> {
       if (!previous && value) {
         command.schedule();
       }
@@ -61,14 +65,15 @@ public class DTTrigger implements BooleanSupplier {
   }
 
   /**
-   * Starts the given command whenever the condition changes from `true` to `false`.
+   * Starts the given command whenever the condition changes from `true` to
+   * `false`.
    *
    * @param command
    *        the command to start
    */
   public void onFalse(DTCommand command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindLogicCallback(() -> {
+    DTCommandScheduler.bindCallback(() -> {
       if (previous && !value) {
         command.schedule();
       }
@@ -76,18 +81,19 @@ public class DTTrigger implements BooleanSupplier {
   }
 
   /**
-   * Starts the given command when the condition changes to `true` and cancels it when the condition
-   * changes to `false`.
+   * Starts the given command when the condition changes to `true` and cancels
+   * it when the condition changes to `false`.
    * <p>
-   * Doesn't re-start the command if it ends while the condition is still `true`. If the command
-   * should restart, see {@link edu.wpi.first.wpilibj2.command.RepeatCommand}.
+   * Doesn't re-start the command if it ends while the condition is still
+   * `true`. If the command should restart, see
+   * {@link edu.wpi.first.wpilibj2.command.RepeatCommand}.
    *
    * @param command
    *        the command to start
    */
   public void whileTrue(DTCommand command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindLogicCallback(() -> {
+    DTCommandScheduler.bindCallback(() -> {
       if (!previous && value) {
         command.schedule();
       } else if (previous && !value) {
@@ -97,18 +103,19 @@ public class DTTrigger implements BooleanSupplier {
   }
 
   /**
-   * Starts the given command when the condition changes to `false` and cancels it when the
-   * condition changes to `true`.
+   * Starts the given command when the condition changes to `false` and cancels
+   * it when the condition changes to `true`.
    * <p>
-   * Doesn't re-start the command if it ends while the condition is still `false`. If the command
-   * should restart, see {@link edu.wpi.first.wpilibj2.command.RepeatCommand}.
+   * Doesn't re-start the command if it ends while the condition is still
+   * `false`. If the command should restart, see
+   * {@link edu.wpi.first.wpilibj2.command.RepeatCommand}.
    *
    * @param command
    *        the command to start
    */
   public void whileFalse(DTCommand command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindLogicCallback(() -> {
+    DTCommandScheduler.bindCallback(() -> {
       if (previous && !value) {
         command.schedule();
       } else if (!previous && value) {
@@ -125,7 +132,7 @@ public class DTTrigger implements BooleanSupplier {
    */
   public void toggleOnTrue(DTCommand command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindLogicCallback(() -> {
+    DTCommandScheduler.bindCallback(() -> {
       if (!previous && value) {
         if (command.isScheduled()) {
           command.cancel();
@@ -144,7 +151,7 @@ public class DTTrigger implements BooleanSupplier {
    */
   public void toggleOnFalse(DTCommand command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindLogicCallback(() -> {
+    DTCommandScheduler.bindCallback(() -> {
       if (previous && !value) {
         if (command.isScheduled()) {
           command.cancel();
@@ -185,7 +192,8 @@ public class DTTrigger implements BooleanSupplier {
    * @param other
    *        the condition to compose with
    *
-   * @return A DTTrigger which is active when either condition is true, but not both.
+   * @return A DTTrigger which is active when either condition is true, but not
+   *         both.
    */
   public DTTrigger xor(BooleanSupplier other) {
     return new DTTrigger(() -> value != other.getAsBoolean());
@@ -197,7 +205,8 @@ public class DTTrigger implements BooleanSupplier {
    * @param other
    *        the condition to compose with
    *
-   * @return A DTTrigger which is active when this condition is true and other is not.
+   * @return A DTTrigger which is active when this condition is true and other
+   *         is not.
    */
   public DTTrigger unless(BooleanSupplier other) {
     return new DTTrigger(() -> value && !other.getAsBoolean());
@@ -213,8 +222,9 @@ public class DTTrigger implements BooleanSupplier {
   }
 
   /**
-   * Creates a new debounced DTTrigger from this DTTrigger - it will become active when this
-   * DTTrigger has been active for longer than the specified period.
+   * Creates a new debounced DTTrigger from this DTTrigger - it will become
+   * active when this DTTrigger has been active for longer than the specified
+   * period.
    *
    * @param seconds
    *        The debounce period.
@@ -226,8 +236,9 @@ public class DTTrigger implements BooleanSupplier {
   }
 
   /**
-   * Creates a new debounced DTTrigger from this DTTrigger - it will become active when this
-   * DTTrigger has been active for longer than the specified period.
+   * Creates a new debounced DTTrigger from this DTTrigger - it will become
+   * active when this DTTrigger has been active for longer than the specified
+   * period.
    *
    * @param seconds
    *        The debounce period.

@@ -4,215 +4,145 @@ import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
 import org.victorrobotics.dtlib.log.DTLogRootNode;
 import org.victorrobotics.dtlib.log.DTLogger;
+import org.victorrobotics.dtlib.log.DTWatchdog;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.hal.DriverStationJNI;
+import edu.wpi.first.hal.HAL;
 import edu.wpi.first.hal.HALUtil;
 import edu.wpi.first.hal.NotifierJNI;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableInstance.NetworkMode;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DSControlWord;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RuntimeType;
-import edu.wpi.first.wpilibj.Watchdog;
 
 public abstract class DTRobot {
+  public enum Mode {
+    DISABLED(false),
+    E_STOP(false),
+    AUTO(true),
+    TELEOP(true),
+    TEST(true);
+
+    public final boolean isEnabled;
+
+    Mode(boolean isEnabled) {
+      this.isEnabled = isEnabled;
+    }
+  }
+
+  public enum AllianceStation {
+    RED_1(1, true),
+    RED_2(2, true),
+    RED_3(3, true),
+    BLUE_1(1, false),
+    BLUE_2(2, false),
+    BLUE_3(3, false);
+
+    public final int     station;
+    public final boolean isRed;
+
+    AllianceStation(int station, boolean isRed) {
+      this.station = station;
+      this.isRed = isRed;
+    }
+
+    static AllianceStation fromDS(AllianceStationID id) {
+      return AllianceStation.values()[id.ordinal()];
+    }
+  }
+
   public static final double PERIOD_SECONDS = 0.02;
   public static final long   PERIOD_MICROS  = (long) (PERIOD_SECONDS * 1e6);
 
-  private final int notifierHandle;
+  private static final DSControlWord CONTROL_WORD  = new DSControlWord();
+  private static final boolean       IS_SIMULATION =
+      RuntimeType.getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation;
+  private static final AtomicBoolean RUN           = new AtomicBoolean();
 
-  private final DSControlWord modeSupplier;
-  private final Watchdog      loopOverrun;
+  private static Mode currentMode  = Mode.DISABLED;
+  private static Mode previousMode = Mode.DISABLED;
 
-  private final List<DTSubsystem> subsystems;
+  private static AllianceStation alliance;
 
   private final DTLogRootNode logRoot;
 
   private Compressor compressor;
-  private boolean    compressorEnabled;
-
-  private Mode currentMode;
-  private Mode previousMode;
 
   private DTCommand autoCommand;
 
   protected DTRobot() {
-    notifierHandle = NotifierJNI.initializeNotifier();
-    NotifierJNI.setNotifierName(notifierHandle, "DTRobot");
-
-    modeSupplier = new DSControlWord();
-    currentMode = Mode.DISABLED;
-    previousMode = Mode.DISABLED;
-
-    loopOverrun = new Watchdog(PERIOD_SECONDS, () -> {});
-    loopOverrun.suppressTimeoutMessage(true);
-
-    subsystems = new ArrayList<>();
-    compressor = null;
-    compressorEnabled = true;
-
     logRoot = new DTLogRootNode(this);
   }
 
   /**
-   * When the robot boots up, this method will be executed to construct and initialize any robot
-   * hardware, subsystems, etc.
+   * When the robot boots up, this method will be executed to construct and
+   * initialize any robot hardware, subsystems, etc.
    */
   protected abstract void init();
 
   /**
-   * If the robot is a simulation, this method is where additional setup logic will be executed
+   * If the robot is a simulation, this method is where additional setup logic
+   * will be executed
    */
   protected abstract void simulationInit();
 
   /**
-   * This method will be called after initialization to bind any commands to triggers such as
-   * controller buttons
+   * This method will be called after initialization to bind any commands to
+   * triggers such as controller buttons
    */
   protected abstract void bindCommands();
 
   /**
-   * This method will be called every robot cycle before commands are executed, and can be used for
-   * purposes such as logging values to the console
+   * This method will be called every robot cycle before commands are executed,
+   * and can be used for purposes such as logging values to the console
    */
   protected abstract void periodic();
 
   /**
-   * @return the user-supplied command to be executed when autonomous mode is enabled
+   * @return the user-supplied command to be executed when autonomous mode is
+   *         enabled
    */
   protected abstract DTCommand getAutoCommand();
 
   /**
-   * Start the robot program. Replaces {@link RobotBase#runRobot RobotBase::runRobot()}.
+   * @return the user-supplied command to execute when the robot self-tests
    */
-  public final void start() {
-    String className = getClass().getSimpleName();
-    System.out.println("[DTLib] " + className + " initializing...");
-    // Do not catch init exceptions
-    init();
-    if (isSimulation()) {
-      simulationInit();
-    }
-    bindCommands();
+  protected abstract DTCommand getSelfTestCommand();
 
-    while (!DTLogger.init()) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        // ignore
-      }
-    }
-
-    DriverStationJNI.observeUserProgramStarting();
-    System.out.println("[DTLib] " + className + " initialization complete");
-
-    long triggerTime = 0;
-    while (true) {
-      // Wait to be woken up
-      NotifierJNI.updateNotifierAlarm(notifierHandle, triggerTime);
-      long time = NotifierJNI.waitForNotifierAlarm(notifierHandle);
-      if (time == 0) {
-        // Notifier has been stopped, exit
-        break;
-      }
-      // Compute next cycle start time
-      triggerTime += PERIOD_MICROS;
-
-      // Load new input data
-      loopOverrun.enable();
-      DriverStation.refreshData();
-      refreshMode();
-
-      // Execute code for this cycle
-      runModeChange();
-      runPeriodic();
-      runCurrentMode();
-      log();
-
-      loopOverrun.disable();
-
-      if (loopOverrun.isExpired()) {
-        DriverStation.reportWarning("Loop time of " + PERIOD_SECONDS + "s overrun by "
-            + (loopOverrun.getTime() - PERIOD_SECONDS) + "s", false);
-        loopOverrun.printEpochs();
-      }
-    }
-  }
-
-  public final void end() {
-    NotifierJNI.stopNotifier(notifierHandle);
-  }
-
-  private void refreshMode() {
-    modeSupplier.refresh();
-    previousMode = currentMode;
-
-    if (modeSupplier.isEStopped()) {
-      currentMode = Mode.E_STOP;
-    } else if (!modeSupplier.isEnabled()) {
-      currentMode = Mode.DISABLED;
-    } else if (modeSupplier.isAutonomous()) {
-      currentMode = Mode.AUTO;
-    } else if (modeSupplier.isTest()) {
-      currentMode = Mode.TEST;
-    } else {
-      currentMode = Mode.TELEOP;
-    }
-    loopOverrun.addEpoch("DS refresh");
-  }
-
-  private void runPeriodic() {
-    periodic();
-    loopOverrun.addEpoch("Periodic");
+  public String getName() {
+    return getClass().getSimpleName();
   }
 
   private void runModeChange() {
-    if (currentMode == previousMode) {
-      return;
-    }
+    if (currentMode == previousMode) return;
 
     if (currentMode == Mode.AUTO) {
+      DTWatchdog.startEpoch();
       autoCommand = getAutoCommand();
+      DTWatchdog.addEpoch("getAutoCommand()");
       DTCommandScheduler.schedule(autoCommand);
     } else if (previousMode == Mode.AUTO) {
       DTCommandScheduler.cancel(autoCommand);
     }
 
-    if (currentMode.isEnabled && !previousMode.isEnabled) {
-      enableCompressor();
-    } else if (!currentMode.isEnabled && previousMode.isEnabled) {
-      disableCompressor();
+    if (compressor != null) {
+      if (currentMode.isEnabled && !previousMode.isEnabled) {
+        compressor.enableDigital();
+      } else if (!currentMode.isEnabled && previousMode.isEnabled) {
+        compressor.disable();
+      }
     }
-
-    loopOverrun.addEpoch("Mode change");
   }
 
-  private void runCurrentMode() {
-    switch (currentMode) {
-      case DISABLED:
-      case E_STOP:
-        DriverStationJNI.observeUserProgramDisabled();
-        break;
-      case AUTO:
-        DriverStationJNI.observeUserProgramAutonomous();
-        break;
-      case TELEOP:
-        DriverStationJNI.observeUserProgramTeleop();
-        break;
-      case TEST:
-        DriverStationJNI.observeUserProgramTest();
-        break;
-    }
-    DTCommandScheduler.run();
-    loopOverrun.addEpoch("Execute " + currentMode);
-  }
-
-  private void log() {
+  private static void log(DTRobot robot) {
+    DTWatchdog.startEpoch();
     DTLogger.logNewTimestamp();
     if (currentMode != previousMode) {
       switch (currentMode) {
@@ -235,32 +165,10 @@ public abstract class DTRobot {
           break;
       }
     }
-    logRoot.log();
+    robot.logRoot.log();
     DTLogger.flush();
-    loopOverrun.addEpoch("DTLog");
+    DTWatchdog.addEpoch("DTLog");
   }
-
-  public final Mode getCurrentMode() {
-    return currentMode;
-  }
-
-  public static boolean isSimulation() {
-    return RuntimeType.getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation;
-  }
-
-  public static boolean isReal() {
-    return !isSimulation();
-  }
-
-  public Alliance getAlliance() {
-    return Alliance.fromDS(DriverStationJNI.getAllianceStation());
-  }
-
-  protected final void registerSubsystem(DTSubsystem subsystem) {
-    subsystems.add(subsystem);
-  }
-
-  protected abstract DTCommand getSelfTestCommand();
 
   protected final void configCompressor(int module, PneumaticsModuleType type) {
     if (compressor != null) {
@@ -269,57 +177,147 @@ public abstract class DTRobot {
     compressor = new Compressor(module, type);
   }
 
-  protected void configCompressorControl(boolean enable) {
-    compressorEnabled = enable;
-    if (!enable && compressor != null) {
-      compressor.disable();
+  public static void runRobot(Supplier<DTRobot> robotConstructor) {
+    if (!HAL.initialize(500, 0)) {
+      throw new IllegalStateException("Failed to initialize HAL");
+    }
+    if (!NotifierJNI.setHALThreadPriority(true, 40)) {
+      System.err.println("Failed to update HAL Notifier thread priority");
+    }
+
+    startNTServer();
+    refreshDriverStation();
+    DTLogger.initialize();
+
+    DTRobot robot;
+    try {
+      robot = robotConstructor.get();
+    } catch (Throwable t) {
+      Throwable cause = t.getCause();
+      if (cause != null) {
+        t = cause;
+      }
+      System.err.println("[DTLib] Unhandled exception thrown while instantiating robot:");
+      t.printStackTrace();
+      return;
+    }
+
+    System.out.println("[DTLib] " + robot.getName() + " initializing...");
+    robot.init();
+    if (isSimulation()) {
+      robot.simulationInit();
+    }
+    robot.bindCommands();
+
+    DriverStationJNI.observeUserProgramStarting();
+    System.out.println("[DTLib] " + robot.getName() + " ready");
+
+    int notifierHandle = NotifierJNI.initializeNotifier();
+    NotifierJNI.setNotifierName(notifierHandle, "DTRobot");
+    long triggerTime = 0;
+    RUN.set(true);
+
+    while (RUN.get()) {
+      // Wait to be woken up
+      triggerTime += PERIOD_MICROS;
+      NotifierJNI.updateNotifierAlarm(notifierHandle, triggerTime);
+      long time = NotifierJNI.waitForNotifierAlarm(notifierHandle);
+      if (time == 0) {
+        // Notifier has been stopped, exit
+        RUN.set(false);
+        break;
+      }
+
+      DTWatchdog.reset();
+      refreshDriverStation();
+      robot.runModeChange();
+
+      // Execute code for this cycle
+      DTWatchdog.startEpoch();
+      robot.periodic();
+      DTWatchdog.addEpoch("periodic()");
+
+      DTCommandScheduler.run();
+      log(robot);
+
+      if (DTWatchdog.isExpired()) {
+        DTWatchdog.printEpochs();
+      }
+    }
+
+    HAL.shutdown();
+  }
+
+  private static void startNTServer() {
+    String persistFilename = isReal() ? "/home/lvuser/networktables.json" : "networktables.json";
+    NetworkTableInstance.getDefault()
+                        .startServer(persistFilename);
+    int count = 0;
+    while (NetworkTableInstance.getDefault()
+                               .getNetworkMode()
+                               .contains(NetworkMode.kStarting)) {
+      count++;
+      if (count >= 100) {
+        System.err.println("[DTLib] NT server start timeeout, continuing");
+        break;
+      }
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {}
     }
   }
 
-  private void enableCompressor() {
-    if (compressor != null && compressorEnabled) {
-      compressor.enableDigital();
+  private static void refreshDriverStation() {
+    DTWatchdog.startEpoch();
+    DriverStation.refreshData();
+    CONTROL_WORD.refresh();
+    alliance = AllianceStation.fromDS(DriverStationJNI.getAllianceStation());
+
+    previousMode = currentMode;
+    if (CONTROL_WORD.isEStopped()) {
+      currentMode = Mode.E_STOP;
+      DriverStationJNI.observeUserProgramDisabled();
+    } else if (!CONTROL_WORD.isEnabled()) {
+      currentMode = Mode.DISABLED;
+      DriverStationJNI.observeUserProgramDisabled();
+    } else if (CONTROL_WORD.isAutonomous()) {
+      currentMode = Mode.AUTO;
+      DriverStationJNI.observeUserProgramAutonomous();
+    } else if (CONTROL_WORD.isTest()) {
+      currentMode = Mode.TEST;
+      DriverStationJNI.observeUserProgramTest();
+    } else {
+      currentMode = Mode.TELEOP;
+      DriverStationJNI.observeUserProgramTeleop();
     }
+    DTWatchdog.addEpoch("refreshDriverStation()");
   }
 
-  private void disableCompressor() {
-    if (compressor != null) {
-      compressor.disable();
-    }
+  public static Mode getCurrentMode() {
+    return currentMode;
   }
 
-  public enum Mode {
-    DISABLED(false),
-    E_STOP(false),
-    AUTO(true),
-    TELEOP(true),
-    TEST(true);
-
-    public final boolean isEnabled;
-
-    Mode(boolean isEnabled) {
-      this.isEnabled = isEnabled;
-    }
+  public static AllianceStation getAlliance() {
+    return alliance;
   }
 
-  public enum Alliance {
-    RED_1(1, true),
-    RED_2(2, true),
-    RED_3(3, true),
-    BLUE_1(1, false),
-    BLUE_2(2, false),
-    BLUE_3(3, false);
+  public static boolean isSimulation() {
+    return IS_SIMULATION;
+  }
 
-    public final int     id;
-    public final boolean isRed;
+  public static boolean isReal() {
+    return !IS_SIMULATION;
+  }
 
-    Alliance(int id, boolean isRed) {
-      this.id = id;
-      this.isRed = isRed;
-    }
+  public static boolean isDSConnected() {
+    return CONTROL_WORD.isDSAttached();
+  }
 
-    public static Alliance fromDS(AllianceStationID a) {
-      return Alliance.values()[a.ordinal()];
-    }
+  public static long currentTimeMicros() {
+    return HALUtil.getFPGATime();
+  }
+
+  public static double currentTime() {
+    return currentTimeMicros() * 1e-6;
   }
 }

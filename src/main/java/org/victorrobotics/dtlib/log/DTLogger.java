@@ -1,6 +1,7 @@
 package org.victorrobotics.dtlib.log;
 
 import org.victorrobotics.dtlib.DTLibInfo;
+import org.victorrobotics.dtlib.DTRobot;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,9 +18,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
 
 public class DTLogger {
@@ -56,7 +55,7 @@ public class DTLogger {
   }
 
   public static boolean logNewTimestamp() {
-    long newTime = RobotController.getFPGATime() / 1000;
+    long newTime = DTRobot.currentTimeMicros() / 1000;
     long diff = newTime - lastTimestamp;
     if (diff <= 0) {
       // Same time, no change
@@ -76,31 +75,26 @@ public class DTLogger {
     return true;
   }
 
-  public static boolean init() {
-    if (!isTimeSynchronized()) {
-      return false;
-    }
-
-    try {
-      openCapture();
-      writeHeader();
-      return true;
-    } catch (IOException e) {
-      try {
-        if (dataWriter != null) {
-          dataWriter.close();
-        }
-      } catch (IOException e2) {
+  public static void initialize() {
+    while (true) {
+      if (isTimeSynchronized()) {
+        try {
+          openWriter();
+          writeHeader();
+          return;
+        } catch (IOException e) {}
       }
-      dataWriter = null;
-      return false;
+
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {}
     }
   }
 
-  private static void openCapture() throws IOException {
+  private static void openWriter() throws IOException {
     Instant now = Clock.systemUTC()
                        .instant();
-    lastTimestamp = RobotController.getFPGATime() / 1_000;
+    lastTimestamp = DTRobot.currentTimeMicros() / 1_000;
     startTimeMillis = now.toEpochMilli();
 
     String name = TIME_FORMATTER.format(now) + ".dtlog";
@@ -126,8 +120,9 @@ public class DTLogger {
   }
 
   private static boolean isTimeSynchronized() {
-    return DriverStation.isDSAttached() && LocalDate.now(Clock.systemUTC())
-                                                    .getYear() >= 2000;
+    return DTRobot.isDSConnected() && LocalDate.now(Clock.systemUTC())
+                                               .getYear()
+        >= 2000;
   }
 
   public static void logDebug(String msg) {
