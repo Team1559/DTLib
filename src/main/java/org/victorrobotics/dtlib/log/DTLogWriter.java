@@ -23,6 +23,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
 
@@ -373,6 +374,14 @@ public final class DTLogWriter implements Closeable, Flushable {
   private boolean logMessage(String msg, DTLog.Level logLevel) {
     if (logLevel.ordinal() < level.ordinal()) {
       return false;
+    }
+
+    if (logLevel == DTLog.Level.ERROR) {
+      DriverStation.reportError(msg, false);
+    } else if (logLevel == DTLog.Level.WARN) {
+      DriverStation.reportWarning(msg, false);
+    } else {
+      System.out.println(msg);
     }
 
     writeShort(logLevel.typeID);
