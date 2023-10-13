@@ -61,13 +61,22 @@ public final class DTCommandScheduler {
     CALLBACKS.forEach(Runnable::run);
 
     for (DTSubsystem subsystem : REQUIRING_COMMANDS.keySet()) {
-      DTWatchdog.startEpoch();
-      subsystem.periodic();
-      DTWatchdog.addEpoch(subsystem.getName() + ".periodic()");
-      if (DTRobot.isSimulation()) {
+      try {
         DTWatchdog.startEpoch();
-        subsystem.simulationPeriodic();
-        DTWatchdog.addEpoch(subsystem.getName() + ".simulationPeriodic()");
+        subsystem.periodic();
+        DTWatchdog.addEpoch(subsystem.getName() + ".periodic()");
+      } catch (RuntimeException e) {
+        DTLogWriter.logException(e, DTLog.Level.WARN);
+      }
+
+      if (DTRobot.isSimulation()) {
+        try {
+          DTWatchdog.startEpoch();
+          subsystem.simulationPeriodic();
+          DTWatchdog.addEpoch(subsystem.getName() + ".simulationPeriodic()");
+        } catch (RuntimeException e) {
+          DTLogWriter.logException(e, DTLog.Level.WARN);
+        }
       }
     }
 
@@ -76,45 +85,63 @@ public final class DTCommandScheduler {
       DTCommand command = iterator.next();
 
       if (!DTRobot.getCurrentMode().isEnabled && !command.runsWhenDisabled()) {
-        DTWatchdog.startEpoch();
         try {
+          DTWatchdog.startEpoch();
           command.interrupt();
+          DTWatchdog.addEpoch(command.getName() + ".interrupt()");
         } catch (RuntimeException e) {
           DTLogWriter.logException(e, DTLog.Level.WARN);
         }
+
         command.getRequirements()
                .forEach(s -> REQUIRING_COMMANDS.put(s, null));
         iterator.remove();
-        DTWatchdog.addEpoch(command.getName() + ".interrupt()");
         continue;
       }
 
-      DTWatchdog.startEpoch();
+      boolean exception = false;
+
       try {
+        DTWatchdog.startEpoch();
         command.execute();
+        DTWatchdog.addEpoch(command.getName() + ".execute()");
       } catch (RuntimeException e) {
         DTLogWriter.logException(e, DTLog.Level.WARN);
+        exception = true;
       }
-      DTWatchdog.addEpoch(command.getName() + ".execute()");
 
       boolean finished = true;
       try {
         finished = command.isFinished();
       } catch (RuntimeException e) {
         DTLogWriter.logException(e, DTLog.Level.WARN);
+        exception = true;
       }
 
-      if (finished) {
-        DTWatchdog.startEpoch();
+      if (exception) {
         try {
-          command.end();
+          DTWatchdog.startEpoch();
+          command.interrupt();
+          DTWatchdog.addEpoch(command.getName() + ".interrupt()");
         } catch (RuntimeException e) {
           DTLogWriter.logException(e, DTLog.Level.WARN);
         }
+
         iterator.remove();
         command.getRequirements()
                .forEach(s -> REQUIRING_COMMANDS.put(s, null));
-        DTWatchdog.addEpoch(command.getName() + ".end()");
+      } else if (finished) {
+        try {
+          DTWatchdog.startEpoch();
+          command.end();
+          DTWatchdog.addEpoch(command.getName() + ".end()");
+        } catch (RuntimeException e) {
+          DTLogWriter.logException(e, DTLog.Level.WARN);
+        }
+
+        iterator.remove();
+        command.getRequirements()
+               .forEach(s -> REQUIRING_COMMANDS.put(s, null));
       }
     }
     isRunning = false;
@@ -217,7 +244,9 @@ public final class DTCommandScheduler {
     }
 
     try {
+      DTWatchdog.startEpoch();
       command.initialize();
+      DTWatchdog.addEpoch(command.getName() + ".initialize()");
     } catch (RuntimeException e) {
       DTLogWriter.logException(e, DTLog.Level.WARN);
       return false;
@@ -270,7 +299,9 @@ public final class DTCommandScheduler {
            .forEach(s -> REQUIRING_COMMANDS.put(s, null));
 
     try {
+      DTWatchdog.startEpoch();
       command.interrupt();
+      DTWatchdog.addEpoch(command.getName() + ".interrupt()");
     } catch (RuntimeException e) {
       DTLogWriter.logException(e, DTLog.Level.WARN);
     }
@@ -283,19 +314,18 @@ public final class DTCommandScheduler {
       return;
     }
 
-    Iterator<DTCommand> itr = SCHEDULED_COMMANDS.iterator();
-    while (itr.hasNext()) {
-      DTCommand command = itr.next();
-      itr.remove();
-      command.getRequirements()
-             .forEach(s -> REQUIRING_COMMANDS.put(s, null));
-
+    SCHEDULED_COMMANDS.forEach(command -> {
       try {
+        DTWatchdog.startEpoch();
         command.interrupt();
+        DTWatchdog.addEpoch(command.getName() + ".interrupt()");
       } catch (RuntimeException e) {
         DTLogWriter.logException(e, DTLog.Level.WARN);
       }
-    }
+      command.getRequirements()
+             .forEach(s -> REQUIRING_COMMANDS.put(s, null));
+    });
+    SCHEDULED_COMMANDS.clear();
   }
 
   /**

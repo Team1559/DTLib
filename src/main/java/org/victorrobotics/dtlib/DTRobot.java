@@ -162,7 +162,7 @@ public abstract class DTRobot {
     robot.logTreeRoot.log();
     DTLogWriter.getInstance()
                .tryFlush();
-    DTWatchdog.addEpoch("DTLog");
+    DTWatchdog.addEpoch("log()");
   }
 
   protected final void configCompressor(int module, PneumaticsModuleType type) {
@@ -191,7 +191,7 @@ public abstract class DTRobot {
       if (cause != null) {
         t = cause;
       }
-      System.err.println("[DTLib] Unhandled exception thrown while instantiating robot:");
+      System.err.println("Unhandled exception thrown while instantiating robot:");
       t.printStackTrace();
       return;
     }
@@ -237,7 +237,7 @@ public abstract class DTRobot {
       // Execute code for this cycle
       DTWatchdog.startEpoch();
       robot.periodic();
-      DTWatchdog.addEpoch("periodic()");
+      DTWatchdog.addEpoch(robot.getName() + ".periodic()");
 
       DTCommandScheduler.run();
       log(robot);
