@@ -197,16 +197,22 @@ public abstract class DTRobot {
     }
 
     DTLogWriter.init(robot.logLevel);
+    DTLogWriter.info(robot.getName() + " initializing...");
 
-    System.out.println("[DTLib] " + robot.getName() + " initializing...");
-    robot.init();
-    if (isSimulation()) {
-      robot.simulationInit();
+    waitForNTServer();
+    try {
+      robot.init();
+      if (isSimulation()) {
+        robot.simulationInit();
+      }
+      robot.bindCommands();
+    } catch (RuntimeException e) {
+      DTLogWriter.error(e.getMessage());
+      throw e;
     }
-    robot.bindCommands();
 
     DriverStationJNI.observeUserProgramStarting();
-    System.out.println("[DTLib] " + robot.getName() + " ready");
+    DTLogWriter.info(robot.getName() + " ready");
 
     int notifierHandle = NotifierJNI.initializeNotifier();
     NotifierJNI.setNotifierName(notifierHandle, "DTRobot");
@@ -237,7 +243,7 @@ public abstract class DTRobot {
       log(robot);
 
       if (DTWatchdog.isExpired()) {
-        DTWatchdog.printEpochs();
+        DTWatchdog.printEpochs(DTLogWriter::warn, DTLogWriter::info);
       }
     }
 
@@ -248,13 +254,16 @@ public abstract class DTRobot {
     String persistFilename = isReal() ? "/home/lvuser/networktables.json" : "networktables.json";
     NetworkTableInstance.getDefault()
                         .startServer(persistFilename);
+  }
+
+  private static void waitForNTServer() {
     int count = 0;
     while (NetworkTableInstance.getDefault()
                                .getNetworkMode()
                                .contains(NetworkMode.kStarting)) {
       count++;
       if (count >= 100) {
-        System.err.println("[DTLib] NT server start timeeout, continuing");
+        DTLogWriter.warn("NT server start timeeout, continuing");
         break;
       }
       try {

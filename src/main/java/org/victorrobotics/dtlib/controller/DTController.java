@@ -1,6 +1,7 @@
 package org.victorrobotics.dtlib.controller;
 
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.log.DTLogWriter;
 
 import edu.wpi.first.hal.DriverStationJNI;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -26,7 +27,7 @@ public class DTController {
       throw new ArrayIndexOutOfBoundsException(port);
     }
     if (INSTANCES[port] != null) {
-      DriverStation.reportWarning("Controller already instantiated at port " + port, isConnected());
+      DTLogWriter.warn("Controller already instantiated at port " + port);
     }
     this.port = port;
     INSTANCES[port] = this;

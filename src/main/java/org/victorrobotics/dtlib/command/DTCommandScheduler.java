@@ -2,6 +2,7 @@ package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.log.DTLogWriter;
 import org.victorrobotics.dtlib.log.DTWatchdog;
 import org.victorrobotics.dtlib.subsystem.DTSubsystem;
 
@@ -16,8 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.WeakHashMap;
-
-import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * The scheduler responsible for managing DTCommands and DTSubsystems
@@ -184,10 +183,10 @@ public final class DTCommandScheduler {
    */
   public static boolean schedule(DTCommand command) {
     if (command == null) {
-      warn("Tried to schedule a null command");
+      DTLogWriter.warn("Tried to schedule a null command");
       return false;
     } else if (COMPOSED_COMMANDS.contains(command)) {
-      warn("Tried to schedule a composed command");
+      DTLogWriter.warn("Tried to schedule a composed command");
       return false;
     }
 
@@ -257,7 +256,7 @@ public final class DTCommandScheduler {
    */
   public static void cancel(DTCommand command) {
     if (command == null) {
-      warn("Tried to cancel a null command");
+      DTLogWriter.warn("Tried to cancel a null command");
       return;
     } else if (!isScheduled(command)) return;
 
@@ -311,7 +310,7 @@ public final class DTCommandScheduler {
    */
   public static void registerSubsystem(DTSubsystem subsystem) {
     if (subsystem == null) {
-      warn("Tried to register a null subsystem");
+      DTLogWriter.warn("Tried to register a null subsystem");
       return;
     }
 
@@ -402,11 +401,7 @@ public final class DTCommandScheduler {
   }
 
   private static void handleCommandException(DTCommand command, RuntimeException e) {
-    warn(command.getName() + " threw an exception: " + e);
-  }
-
-  private static void warn(String msg) {
-    DriverStation.reportWarning(msg, false);
+    DTLogWriter.warn(command.getName() + " threw an exception: " + e);
   }
 
   /**
