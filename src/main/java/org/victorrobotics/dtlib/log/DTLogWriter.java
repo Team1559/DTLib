@@ -59,11 +59,12 @@ public final class DTLogWriter implements Closeable, Flushable {
   private final FileChannel channel;
   private final ByteBuffer  buffer;
   private final BitSet      bitSet;
+  private final DTLog.Level level;
 
   private long lastTimestamp;
   private int  nextVarHandle = 0x0100;
 
-  private DTLogWriter() throws IOException {
+  private DTLogWriter(DTLog.Level logLevel) throws IOException {
     Instant now = Clock.systemUTC()
                        .instant();
     lastTimestamp = DTRobot.currentTimeMicros() / 1000;
@@ -74,6 +75,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     channel = FileChannel.open(file.toPath(), WRITE, CREATE, TRUNCATE_EXISTING);
     buffer = ByteBuffer.allocateDirect(BUFFER_SIZE_BYTES);
     bitSet = new BitSet();
+    level = logLevel;
 
     writeBytes(HEADER_MAGIC_BYTES);
     int checksum = HEADER_MAGIC_XOR;
@@ -368,16 +370,37 @@ public final class DTLogWriter implements Closeable, Flushable {
     return true;
   }
 
-  public void logMessage(String msg, DTLog.Level level) {
-    writeShort(level.typeID);
+  private boolean logMessage(String msg, DTLog.Level logLevel) {
+    if (logLevel.ordinal() < level.ordinal()) {
+      return false;
+    }
+
+    writeShort(logLevel.typeID);
     writeStringUTF8(msg);
+    return true;
   }
 
-  public static void init() {
+  public static boolean debug(String msg) {
+    return getInstance().logMessage(msg, DTLog.Level.DEBUG);
+  }
+
+  public static boolean info(String msg) {
+    return getInstance().logMessage(msg, DTLog.Level.INFO);
+  }
+
+  public static boolean warn(String msg) {
+    return getInstance().logMessage(msg, DTLog.Level.WARN);
+  }
+
+  public static boolean error(String msg) {
+    return getInstance().logMessage(msg, DTLog.Level.ERROR);
+  }
+
+  public static void init(DTLog.Level logLevel) {
     while (true) {
       if (!RobotController.isSystemTimeValid()) {
         try {
-          INSTANCE = new DTLogWriter();
+          INSTANCE = new DTLogWriter(logLevel);
           return;
         } catch (IOException e) {}
       }

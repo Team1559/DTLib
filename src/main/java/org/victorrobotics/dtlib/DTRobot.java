@@ -2,6 +2,7 @@ package org.victorrobotics.dtlib;
 
 import org.victorrobotics.dtlib.command.DTCommand;
 import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.log.DTLog;
 import org.victorrobotics.dtlib.log.DTLogRootNode;
 import org.victorrobotics.dtlib.log.DTLogWriter;
 import org.victorrobotics.dtlib.log.DTWatchdog;
@@ -74,6 +75,7 @@ public abstract class DTRobot {
 
   private static AllianceStation alliance;
 
+  private final DTLog.Level logLevel;
   private final DTLogRootNode logTreeRoot;
 
   private Compressor compressor;
@@ -81,7 +83,12 @@ public abstract class DTRobot {
   private DTCommand autoCommand;
 
   protected DTRobot() {
-    logTreeRoot = new DTLogRootNode(this, getName());
+    this(DTLog.Level.INFO);
+  }
+
+  protected DTRobot(DTLog.Level logLevel) {
+    this.logLevel = logLevel;
+    logTreeRoot = new DTLogRootNode(this, logLevel);
   }
 
   /**
@@ -175,7 +182,6 @@ public abstract class DTRobot {
 
     startNTServer();
     refreshDriverStation();
-    DTLogWriter.init();
 
     DTRobot robot;
     try {
@@ -189,6 +195,8 @@ public abstract class DTRobot {
       t.printStackTrace();
       return;
     }
+
+    DTLogWriter.init(robot.logLevel);
 
     System.out.println("[DTLib] " + robot.getName() + " initializing...");
     robot.init();
