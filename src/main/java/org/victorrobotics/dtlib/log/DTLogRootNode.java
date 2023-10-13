@@ -1,7 +1,5 @@
 package org.victorrobotics.dtlib.log;
 
-import org.victorrobotics.dtlib.DTRobot;
-
 import java.util.ArrayDeque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -12,8 +10,8 @@ public class DTLogRootNode extends DTLogTreeNode {
 
   private final DTLogStaticVar[] staticVars;
 
-  public DTLogRootNode(DTRobot robot, DTLog.Level robotLogLevel) {
-    super("", robot.getName(), robot.getClass(), unused -> robot);
+  public DTLogRootNode(Object robot, DTLog.Level robotLogLevel) {
+    super("", robot.toString(), robot.getClass(), unused -> robot);
 
     Map<DTLogStaticVar, DTLog.Level> staticVarList = new LinkedHashMap<>();
     init(new ArrayDeque<>(), new LinkedHashSet<>(), staticVarList, robotLogLevel);

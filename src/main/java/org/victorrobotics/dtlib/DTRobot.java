@@ -126,7 +126,11 @@ public abstract class DTRobot {
    */
   protected abstract DTCommand getSelfTestCommand();
 
-  public String getName() {
+  /**
+   * @return the name of the robot
+   */
+  @Override
+  public String toString() {
     return getClass().getSimpleName();
   }
 
@@ -197,7 +201,7 @@ public abstract class DTRobot {
     }
 
     DTLogWriter.init(robot.logLevel);
-    DTLogWriter.info(robot.getName() + " initializing...");
+    DTLogWriter.info(robot + " initializing...");
 
     waitForNTServer();
     try {
@@ -212,7 +216,7 @@ public abstract class DTRobot {
     }
 
     DriverStationJNI.observeUserProgramStarting();
-    DTLogWriter.info(robot.getName() + " ready");
+    DTLogWriter.info(robot + " ready");
 
     int notifierHandle = NotifierJNI.initializeNotifier();
     NotifierJNI.setNotifierName(notifierHandle, "DTRobot");
@@ -237,7 +241,7 @@ public abstract class DTRobot {
       // Execute code for this cycle
       DTWatchdog.startEpoch();
       robot.periodic();
-      DTWatchdog.addEpoch(robot.getName() + ".periodic()");
+      DTWatchdog.addEpoch(robot + ".periodic()");
 
       DTCommandScheduler.run();
       log(robot);
