@@ -8,10 +8,12 @@ import org.victorrobotics.dtlib.DTLibInfo;
 import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.Flushable;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
@@ -403,6 +406,41 @@ public final class DTLogWriter implements Closeable, Flushable {
 
   public static boolean error(String msg) {
     return getInstance().logMessage(msg, DTLog.Level.ERROR);
+  }
+
+  private boolean logMessage(Supplier<String> msgSupplier, DTLog.Level logLevel) {
+    if (logLevel.ordinal() < level.ordinal()) {
+      return false;
+    }
+
+    return logMessage(msgSupplier.get(), logLevel);
+  }
+
+  public static boolean debug(Supplier<String> msgSupplier) {
+    return getInstance().logMessage(msgSupplier, DTLog.Level.DEBUG);
+  }
+
+  public static boolean info(Supplier<String> msgSupplier) {
+    return getInstance().logMessage(msgSupplier, DTLog.Level.INFO);
+  }
+
+  public static boolean warn(Supplier<String> msgSupplier) {
+    return getInstance().logMessage(msgSupplier, DTLog.Level.WARN);
+  }
+
+  public static boolean error(Supplier<String> msgSupplier) {
+    return getInstance().logMessage(msgSupplier, DTLog.Level.ERROR);
+  }
+
+  public static void logException(Throwable exception, DTLog.Level logLevel) {
+    getInstance().logMessage(exception.toString(), logLevel);
+    debug(() -> {
+      ByteArrayOutputStream debugOutput = new ByteArrayOutputStream();
+      PrintStream debugPrinter = new PrintStream(debugOutput);
+      exception.printStackTrace(debugPrinter);
+      String str = new String(debugOutput.toByteArray());
+      return str.substring(str.indexOf('\t'));
+    });
   }
 
   public static void init(DTLog.Level logLevel) {

@@ -75,7 +75,7 @@ public abstract class DTRobot {
 
   private static AllianceStation alliance;
 
-  private final DTLog.Level logLevel;
+  private final DTLog.Level   logLevel;
   private final DTLogRootNode logTreeRoot;
 
   private Compressor compressor;
@@ -206,9 +206,9 @@ public abstract class DTRobot {
         robot.simulationInit();
       }
       robot.bindCommands();
-    } catch (RuntimeException e) {
-      DTLogWriter.error(e.getMessage());
-      throw e;
+    } catch (Throwable t) {
+      DTLogWriter.logException(t, DTLog.Level.ERROR);
+      return;
     }
 
     DriverStationJNI.observeUserProgramStarting();
@@ -268,7 +268,9 @@ public abstract class DTRobot {
       }
       try {
         Thread.sleep(10);
-      } catch (InterruptedException e) {}
+      } catch (InterruptedException e) {
+        DTLogWriter.logException(e, DTLog.Level.INFO);
+      }
     }
   }
 

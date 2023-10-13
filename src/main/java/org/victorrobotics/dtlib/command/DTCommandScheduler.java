@@ -2,6 +2,7 @@ package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+import org.victorrobotics.dtlib.log.DTLog;
 import org.victorrobotics.dtlib.log.DTLogWriter;
 import org.victorrobotics.dtlib.log.DTWatchdog;
 import org.victorrobotics.dtlib.subsystem.DTSubsystem;
@@ -79,7 +80,7 @@ public final class DTCommandScheduler {
         try {
           command.interrupt();
         } catch (RuntimeException e) {
-          handleCommandException(command, e);
+          DTLogWriter.logException(e, DTLog.Level.WARN);
         }
         command.getRequirements()
                .forEach(s -> REQUIRING_COMMANDS.put(s, null));
@@ -92,7 +93,7 @@ public final class DTCommandScheduler {
       try {
         command.execute();
       } catch (RuntimeException e) {
-        handleCommandException(command, e);
+        DTLogWriter.logException(e, DTLog.Level.WARN);
       }
       DTWatchdog.addEpoch(command.getName() + ".execute()");
 
@@ -100,7 +101,7 @@ public final class DTCommandScheduler {
       try {
         finished = command.isFinished();
       } catch (RuntimeException e) {
-        handleCommandException(command, e);
+        DTLogWriter.logException(e, DTLog.Level.WARN);
       }
 
       if (finished) {
@@ -108,10 +109,9 @@ public final class DTCommandScheduler {
         try {
           command.end();
         } catch (RuntimeException e) {
-          handleCommandException(command, e);
+          DTLogWriter.logException(e, DTLog.Level.WARN);
         }
         iterator.remove();
-
         command.getRequirements()
                .forEach(s -> REQUIRING_COMMANDS.put(s, null));
         DTWatchdog.addEpoch(command.getName() + ".end()");
@@ -216,16 +216,15 @@ public final class DTCommandScheduler {
       REQUIRING_COMMANDS.put(entry.getKey(), command);
     }
 
-    SCHEDULED_COMMANDS.add(command);
-
     try {
       command.initialize();
-      return true;
     } catch (RuntimeException e) {
-      handleCommandException(command, e);
-      SCHEDULED_COMMANDS.remove(command);
+      DTLogWriter.logException(e, DTLog.Level.WARN);
       return false;
     }
+
+    SCHEDULED_COMMANDS.add(command);
+    return true;
   }
 
   /**
@@ -273,7 +272,7 @@ public final class DTCommandScheduler {
     try {
       command.interrupt();
     } catch (RuntimeException e) {
-      handleCommandException(command, e);
+      DTLogWriter.logException(e, DTLog.Level.WARN);
     }
   }
 
@@ -294,7 +293,7 @@ public final class DTCommandScheduler {
       try {
         command.interrupt();
       } catch (RuntimeException e) {
-        handleCommandException(command, e);
+        DTLogWriter.logException(e, DTLog.Level.WARN);
       }
     }
   }
@@ -398,10 +397,6 @@ public final class DTCommandScheduler {
       throw new DTIllegalArgumentException(commands,
                                            "composed commands may not be scheduled or added to another composition");
     }
-  }
-
-  private static void handleCommandException(DTCommand command, RuntimeException e) {
-    DTLogWriter.warn(command.getName() + " threw an exception: " + e);
   }
 
   /**

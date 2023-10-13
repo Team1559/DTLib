@@ -96,6 +96,7 @@ public class DTLogTreeNode {
         try {
           return field.get(null);
         } catch (IllegalAccessException | IllegalArgumentException e) {
+          DTLogWriter.logException(e, DTLog.Level.ERROR);
           return null;
         }
       }), annotation.level());
@@ -106,6 +107,7 @@ public class DTLogTreeNode {
       try {
         return field.get(parent);
       } catch (IllegalAccessException | IllegalArgumentException e) {
+        DTLogWriter.logException(e, DTLog.Level.ERROR);
         return null;
       }
     }), annotation.level());
@@ -136,6 +138,7 @@ public class DTLogTreeNode {
         try {
           return method.invoke(null, (Object[]) null);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+          DTLogWriter.logException(e, DTLog.Level.ERROR);
           return null;
         }
       }), annotation.level());
@@ -146,6 +149,7 @@ public class DTLogTreeNode {
       try {
         return method.invoke(parent, (Object[]) null);
       } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        DTLogWriter.logException(e, DTLog.Level.ERROR);
         return null;
       }
     }), annotation.level());
