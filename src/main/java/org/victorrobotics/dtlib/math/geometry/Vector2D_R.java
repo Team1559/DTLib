@@ -5,27 +5,27 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
-public class DTVector2dR extends DTVector2d {
+public class Vector2D_R extends Vector2D {
   protected double r;
 
-  public DTVector2dR() {}
+  public Vector2D_R() {}
 
-  public DTVector2dR(double x, double y, double r) {
+  public Vector2D_R(double x, double y, double r) {
     super(x, y);
     this.r = r;
   }
 
-  public DTVector2dR(Translation2d translation) {
+  public Vector2D_R(Translation2d translation) {
     super(translation);
   }
 
-  public DTVector2dR(Pose2d pose) {
+  public Vector2D_R(Pose2d pose) {
     super(pose);
     r = pose.getRotation()
             .getRadians();
   }
 
-  public DTVector2dR(ChassisSpeeds speeds) {
+  public Vector2D_R(ChassisSpeeds speeds) {
     super(speeds);
     r = speeds.omegaRadiansPerSecond;
   }
@@ -49,60 +49,60 @@ public class DTVector2dR extends DTVector2d {
   }
 
   @Override
-  public DTVector2dR set(DTVector2d other) {
+  public Vector2D_R set(Vector2D other) {
     super.set(other);
-    if (other instanceof DTVector2dR) {
-      r = ((DTVector2dR) other).r;
+    if (other instanceof Vector2D_R) {
+      r = ((Vector2D_R) other).r;
     }
     return this;
   }
 
   @Override
-  public DTVector2dR invert() {
+  public Vector2D_R invert() {
     super.invert();
     r = -r;
     return this;
   }
 
   @Override
-  public DTVector2dR add(DTVector2d other) {
+  public Vector2D_R add(Vector2D other) {
     super.add(other);
-    if (other instanceof DTVector2dR) {
-      r += ((DTVector2dR) other).r;
+    if (other instanceof Vector2D_R) {
+      r += ((Vector2D_R) other).r;
     }
     return this;
   }
 
   @Override
-  public DTVector2dR subtract(DTVector2d other) {
+  public Vector2D_R subtract(Vector2D other) {
     super.subtract(other);
-    if (other instanceof DTVector2dR) {
-      r -= ((DTVector2dR) other).r;
+    if (other instanceof Vector2D_R) {
+      r -= ((Vector2D_R) other).r;
     }
     return this;
   }
 
   @Override
-  public DTVector2dR multiply(double scalar) {
+  public Vector2D_R multiply(double scalar) {
     super.multiply(scalar);
     r *= scalar;
     return this;
   }
 
   @Override
-  public DTVector2dR divide(double scalar) {
+  public Vector2D_R divide(double scalar) {
     super.divide(scalar);
     return this;
   }
 
   @Override
-  public DTVector2dR normalize(double d) {
+  public Vector2D_R normalize(double d) {
     super.normalize(d);
     return this;
   }
 
   @Override
-  public DTVector2dR clone() {
-    return (DTVector2dR) super.clone();
+  public Vector2D_R clone() {
+    return (Vector2D_R) super.clone();
   }
 }

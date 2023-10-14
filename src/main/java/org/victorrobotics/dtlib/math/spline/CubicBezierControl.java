@@ -1,79 +1,79 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
-public class DTCubicBezierControl extends DTCurveControl {
-  private final DTVector2dR p0;
-  private final DTVector2dR p1;
+public class CubicBezierControl extends SplineControl {
+  private final Vector2D_R p0;
+  private final Vector2D_R p1;
 
-  public DTCubicBezierControl() {
-    p0 = new DTVector2dR();
-    p1 = new DTVector2dR();
+  public CubicBezierControl() {
+    p0 = new Vector2D_R();
+    p1 = new Vector2D_R();
   }
 
-  private DTCubicBezierControl(DTVector2dR p0, DTVector2dR p1) {
+  private CubicBezierControl(Vector2D_R p0, Vector2D_R p1) {
     this.p0 = p0.clone();
     this.p1 = p1.clone();
   }
 
-  public DTVector2dR getP0() {
+  public Vector2D_R getP0() {
     return p0.clone();
   }
 
-  public DTVector2dR getP1() {
+  public Vector2D_R getP1() {
     return p1.clone();
   }
 
-  public DTVector2dR getP2() {
+  public Vector2D_R getP2() {
     return p0.clone()
              .multiply(2)
              .subtract(p1);
   }
 
-  public DTVector2dR getP3() {
+  public Vector2D_R getP3() {
     return p0.clone();
   }
 
-  protected DTVector2dR getP0Raw() {
+  protected Vector2D_R getP0Raw() {
     return p0;
   }
 
-  protected DTVector2dR getP1Raw() {
+  protected Vector2D_R getP1Raw() {
     return p1;
   }
 
-  protected DTVector2dR getP3Raw() {
+  protected Vector2D_R getP3Raw() {
     return p0;
   }
 
-  public void setP0(DTVector2dR p0) {
+  public void setP0(Vector2D_R p0) {
     this.p0.set(p0);
     modCount++;
   }
 
-  public void setP1(DTVector2dR p1) {
+  public void setP1(Vector2D_R p1) {
     this.p1.set(p1);
     modCount++;
   }
 
-  public void setP2(DTVector2dR p2) {
+  public void setP2(Vector2D_R p2) {
     this.p1.set(p0.clone()
                   .multiply(2)
                   .subtract(p2));
     modCount++;
   }
 
-  public void setP3(DTVector2dR p3) {
+  public void setP3(Vector2D_R p3) {
     this.p0.set(p3);
     modCount++;
   }
 
-  public static DTCubicBezierControl createStart(DTVector2dR p0, DTVector2dR p1) {
-    return new DTCubicBezierControl(p0, p1);
+  public static CubicBezierControl createStart(Vector2D_R p0, Vector2D_R p1) {
+    return new CubicBezierControl(p0, p1);
   }
 
-  public static DTCubicBezierControl createEnd(DTVector2dR p2, DTVector2dR p3) {
-    return new DTCubicBezierControl(p3.clone(), p3.clone()
+  public static CubicBezierControl createEnd(Vector2D_R p2, Vector2D_R p3) {
+    return new CubicBezierControl(p3.clone(), p3.clone()
                                                   .multiply(2)
                                                   .subtract(p2));
   }

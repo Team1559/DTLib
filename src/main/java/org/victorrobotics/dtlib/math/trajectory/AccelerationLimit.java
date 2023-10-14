@@ -1,9 +1,9 @@
 package org.victorrobotics.dtlib.math.trajectory;
 
 import org.victorrobotics.dtlib.DTRobot;
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
-public final class DTAccelerationLimit {
+public final class AccelerationLimit {
   // These are in standard units
   public final double maxTranslation;
   public final double maxRotation;
@@ -12,24 +12,24 @@ public final class DTAccelerationLimit {
   private final double maxTranslationPerCycle;
   private final double maxRotationPerCycle;
 
-  public DTAccelerationLimit() {
+  public AccelerationLimit() {
     maxTranslation = Double.NaN;
     maxRotation = Double.NaN;
     maxTranslationPerCycle = Double.NaN;
     maxRotationPerCycle = Double.NaN;
   }
 
-  public DTAccelerationLimit(double translation, double rotation) {
+  public AccelerationLimit(double translation, double rotation) {
     maxTranslation = Double.isFinite(translation) ? Math.abs(translation) : Double.NaN;
     maxRotation = Double.isFinite(rotation) ? Math.abs(rotation) : Double.NaN;
     maxTranslationPerCycle = maxTranslation * DTRobot.PERIOD_SECONDS;
     maxRotationPerCycle = maxRotation * DTRobot.PERIOD_SECONDS;
   }
 
-  public boolean apply(DTVector2dR newSpeeds, DTVector2dR previousSpeeds) {
+  public boolean apply(Vector2D_R newSpeeds, Vector2D_R previousSpeeds) {
     boolean change = false;
 
-    DTVector2dR cycleAcceleration = newSpeeds.clone()
+    Vector2D_R cycleAcceleration = newSpeeds.clone()
                                              .subtract(previousSpeeds);
 
     double translationAccel = cycleAcceleration.getNorm();

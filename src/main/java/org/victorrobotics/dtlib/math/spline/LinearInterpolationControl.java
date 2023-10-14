@@ -1,27 +1,27 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
-public class DTLinearInterpolationControl extends DTCurveControl {
-  private DTVector2dR position;
+public class LinearInterpolationControl extends SplineControl {
+  private Vector2D_R position;
 
-  public DTLinearInterpolationControl() {
-    position = new DTVector2dR();
+  public LinearInterpolationControl() {
+    position = new Vector2D_R();
   }
 
-  public DTLinearInterpolationControl(DTVector2dR position) {
+  public LinearInterpolationControl(Vector2D_R position) {
     this.position = position.clone();
   }
 
-  public DTVector2dR getPosition() {
+  public Vector2D_R getPosition() {
     return position.clone();
   }
 
-  protected DTVector2dR getPosRaw() {
+  protected Vector2D_R getPosRaw() {
     return position;
   }
 
-  public void setPosition(DTVector2dR position) {
+  public void setPosition(Vector2D_R position) {
     this.position.set(position);
   }
 }

@@ -5,30 +5,30 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
-public class DTVector2d implements Cloneable {
+public class Vector2D implements Cloneable {
   protected static final Rotation2d ZERO_ROTATION = new Rotation2d();
 
   protected double x;
   protected double y;
 
-  public DTVector2d() {}
+  public Vector2D() {}
 
-  public DTVector2d(double x, double y) {
+  public Vector2D(double x, double y) {
     this.x = x;
     this.y = y;
   }
 
-  public DTVector2d(Translation2d translation) {
+  public Vector2D(Translation2d translation) {
     x = translation.getX();
     y = translation.getY();
   }
 
-  public DTVector2d(Pose2d pose) {
+  public Vector2D(Pose2d pose) {
     x = pose.getX();
     y = pose.getY();
   }
 
-  public DTVector2d(ChassisSpeeds speeds) {
+  public Vector2D(ChassisSpeeds speeds) {
     x = speeds.vxMetersPerSecond;
     y = speeds.vyMetersPerSecond;
   }
@@ -61,7 +61,7 @@ public class DTVector2d implements Cloneable {
     return new Translation2d(x, y);
   }
 
-  public DTVector2d set(DTVector2d other) {
+  public Vector2D set(Vector2D other) {
     x = other.x;
     y = other.y;
     return this;
@@ -75,42 +75,42 @@ public class DTVector2d implements Cloneable {
     return new ChassisSpeeds(x, y, 0);
   }
 
-  public DTVector2d invert() {
+  public Vector2D invert() {
     x = -x;
     y = -y;
     return this;
   }
 
-  public DTVector2d add(DTVector2d other) {
+  public Vector2D add(Vector2D other) {
     x += other.x;
     y += other.y;
     return this;
   }
 
-  public DTVector2d subtract(DTVector2d other) {
+  public Vector2D subtract(Vector2D other) {
     x -= other.x;
     y -= other.y;
     return this;
   }
 
-  public DTVector2d multiply(double scalar) {
+  public Vector2D multiply(double scalar) {
     x *= scalar;
     y *= scalar;
     return this;
   }
 
-  public DTVector2d divide(double scalar) {
+  public Vector2D divide(double scalar) {
     return multiply(1 / scalar);
   }
 
-  public DTVector2d normalize(double d) {
+  public Vector2D normalize(double d) {
     return multiply(d / getNorm());
   }
 
   @Override
-  public DTVector2d clone() {
+  public Vector2D clone() {
     try {
-      return (DTVector2d) super.clone();
+      return (Vector2D) super.clone();
     } catch (CloneNotSupportedException e) {
       throw new IllegalStateException(e);
     }

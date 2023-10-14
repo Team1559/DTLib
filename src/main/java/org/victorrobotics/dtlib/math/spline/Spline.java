@@ -1,20 +1,20 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public abstract class DTSpline<T extends DTCurve> implements Iterable<T> {
+public abstract class Spline<T extends SplineSegment> implements Iterable<T> {
   protected final List<T> segments;
 
-  protected DTSpline() {
+  protected Spline() {
     segments = new ArrayList<>();
   }
 
-  protected DTSpline(T segment) {
+  protected Spline(T segment) {
     segments = new ArrayList<>();
     segments.add(segment);
   }
@@ -30,7 +30,7 @@ public abstract class DTSpline<T extends DTCurve> implements Iterable<T> {
     return splitSegment(index, u % 1);
   }
 
-  protected DTVector2dR get(double u, BiFunction<T, Double, DTVector2dR> func) {
+  protected Vector2D_R get(double u, BiFunction<T, Double, Vector2D_R> func) {
     if (segments.isEmpty() || !Double.isFinite(u)) {
       return null;
     } else if (u < 0) {
@@ -44,20 +44,20 @@ public abstract class DTSpline<T extends DTCurve> implements Iterable<T> {
     return func.apply(segments.get(index), u);
   }
 
-  public DTVector2dR getPosition(double u) {
-    return get(u, DTCurve::getPosition);
+  public Vector2D_R getPosition(double u) {
+    return get(u, SplineSegment::getPosition);
   }
 
-  public DTVector2dR getVelocity(double u) {
-    return get(u, DTCurve::getVelocity);
+  public Vector2D_R getVelocity(double u) {
+    return get(u, SplineSegment::getVelocity);
   }
 
-  public DTVector2dR getAcceleration(double u) {
-    return get(u, DTCurve::getAcceleration);
+  public Vector2D_R getAcceleration(double u) {
+    return get(u, SplineSegment::getAcceleration);
   }
 
-  public DTVector2dR getJolt(double u) {
-    return get(u, DTCurve::getJolt);
+  public Vector2D_R getJolt(double u) {
+    return get(u, SplineSegment::getJolt);
   }
 
   public List<T> getSegments() {

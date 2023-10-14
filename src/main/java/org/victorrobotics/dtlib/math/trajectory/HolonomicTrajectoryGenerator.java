@@ -1,39 +1,39 @@
 package org.victorrobotics.dtlib.math.trajectory;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
-import org.victorrobotics.dtlib.math.spline.DTSpline;
-import org.victorrobotics.dtlib.math.trajectory.DTHolonomicTrajectory.Constraint;
-import org.victorrobotics.dtlib.math.trajectory.DTHolonomicTrajectory.Point;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
+import org.victorrobotics.dtlib.math.spline.Spline;
+import org.victorrobotics.dtlib.math.trajectory.HolonomicTrajectory.Constraint;
+import org.victorrobotics.dtlib.math.trajectory.HolonomicTrajectory.Point;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DTHolonomicTrajectoryGenerator {
-  private static final DTAccelerationLimit DEFAULT_ACCEL_LIMIT    =
-      new DTAccelerationLimit(25, 20 * Math.PI);
-  private static final DTVelocityLimit     DEFAULT_VELOCITY_LIMIT =
-      new DTVelocityLimit(0.05, 5, 0.1, Math.PI * 4);
+public class HolonomicTrajectoryGenerator {
+  private static final AccelerationLimit DEFAULT_ACCEL_LIMIT    =
+      new AccelerationLimit(25, 20 * Math.PI);
+  private static final VelocityLimit     DEFAULT_VELOCITY_LIMIT =
+      new VelocityLimit(0.05, 5, 0.1, Math.PI * 4);
 
   private static final double DEFAULT_DISTANCE_BETWEEN_POINTS = 0.02;
   private static final int    DEFAULT_MIN_POINT_COUNT         = 8;
 
-  private DTAccelerationLimit accelLimit;
-  private DTVelocityLimit     velocityLimit;
+  private AccelerationLimit accelLimit;
+  private VelocityLimit     velocityLimit;
   private double              distanceBetweenPoints;
   private double              deltaU;
 
-  public DTHolonomicTrajectoryGenerator() {
+  public HolonomicTrajectoryGenerator() {
     accelLimit = DEFAULT_ACCEL_LIMIT;
     velocityLimit = DEFAULT_VELOCITY_LIMIT;
     distanceBetweenPoints = DEFAULT_DISTANCE_BETWEEN_POINTS;
     deltaU = 1D / DEFAULT_MIN_POINT_COUNT;
   }
 
-  public void setAccelLimit(DTAccelerationLimit limit) {
+  public void setAccelLimit(AccelerationLimit limit) {
     accelLimit = limit;
   }
 
-  public void setVelocityLimit(DTVelocityLimit limit) {
+  public void setVelocityLimit(VelocityLimit limit) {
     velocityLimit = limit;
   }
 
@@ -45,7 +45,7 @@ public class DTHolonomicTrajectoryGenerator {
     deltaU = 1D / count;
   }
 
-  public DTHolonomicTrajectory generate(DTSpline<?> spline) {
+  public HolonomicTrajectory generate(Spline<?> spline) {
     Point[] points = generatePoints(spline);
     maximizeVelocities(points);
     computeDistance(points);
@@ -57,24 +57,24 @@ public class DTHolonomicTrajectoryGenerator {
     computeTimes(points);
     computeAccelerations(points);
     computeJolts(points);
-    return new DTHolonomicTrajectory(points);
+    return new HolonomicTrajectory(points);
   }
 
-  private Point[] generatePoints(DTSpline<?> spline) {
+  private Point[] generatePoints(Spline<?> spline) {
     List<Point> pointList = new ArrayList<>();
     for (int i = 0; i < spline.length(); i++) {
       Point start = createPoint(spline, i);
       pointList.add(start);
 
-      DTVector2dR endPos = spline.getPosition(i + 1);
+      Vector2D_R endPos = spline.getPosition(i + 1);
       recursiveSplit(pointList, spline, i, i + 1, start.position, endPos);
     }
     pointList.add(createPoint(spline, spline.length()));
     return pointList.toArray(Point[]::new);
   }
 
-  private void recursiveSplit(List<Point> pointList, DTSpline<?> spline, double minU, double maxU,
-                              DTVector2dR startPos, DTVector2dR endPos) {
+  private void recursiveSplit(List<Point> pointList, Spline<?> spline, double minU, double maxU,
+                              Vector2D_R startPos, Vector2D_R endPos) {
     if (maxU - minU <= deltaU) {
       double distance = endPos.clone()
                               .subtract(startPos)
@@ -171,7 +171,7 @@ public class DTHolonomicTrajectoryGenerator {
         - centripetalAccel * centripetalAccel);
   }
 
-  private static Point createPoint(DTSpline<?> spline, double u) {
+  private static Point createPoint(Spline<?> spline, double u) {
     Point p = new Point();
     p.position = spline.getPosition(u);
     p.velocity = spline.getVelocity(u);

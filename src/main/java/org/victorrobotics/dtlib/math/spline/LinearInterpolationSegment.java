@@ -1,48 +1,48 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
-public class DTLinearInterpolationCurve extends DTCurve {
-  private final DTLinearInterpolationControl startControl;
-  private final DTLinearInterpolationControl endControl;
+public class LinearInterpolationSegment extends SplineSegment {
+  private final LinearInterpolationControl startControl;
+  private final LinearInterpolationControl endControl;
 
-  public DTLinearInterpolationCurve(DTVector2dR p0, DTVector2dR p1) {
-    this(new DTLinearInterpolationControl(p0), new DTLinearInterpolationControl(p1));
+  public LinearInterpolationSegment(Vector2D_R p0, Vector2D_R p1) {
+    this(new LinearInterpolationControl(p0), new LinearInterpolationControl(p1));
   }
 
-  public DTLinearInterpolationCurve(DTLinearInterpolationControl startControl,
-                                    DTLinearInterpolationControl endControl) {
+  public LinearInterpolationSegment(LinearInterpolationControl startControl,
+                                    LinearInterpolationControl endControl) {
     super(1);
     this.startControl = startControl;
     this.endControl = endControl;
   }
 
   @Override
-  public DTVector2dR getPosition(double t) {
-    DTVector2dR start = startControl.getPosition();
+  public Vector2D_R getPosition(double t) {
+    Vector2D_R start = startControl.getPosition();
     return start.add(endControl.getPosition()
                                .subtract(start)
                                .multiply(t));
   }
 
   @Override
-  public DTVector2dR getVelocity(double t) {
+  public Vector2D_R getVelocity(double t) {
     return endControl.getPosition()
                      .subtract(startControl.getPosRaw());
   }
 
   @Override
-  public DTVector2dR getAcceleration(double t) {
-    return new DTVector2dR();
+  public Vector2D_R getAcceleration(double t) {
+    return new Vector2D_R();
   }
 
   @Override
-  public DTVector2dR getJolt(double t) {
-    return new DTVector2dR();
+  public Vector2D_R getJolt(double t) {
+    return new Vector2D_R();
   }
 
   @Override
-  public DTVector2dR getControlPoint(int index) {
+  public Vector2D_R getControlPoint(int index) {
     return switch (index) {
       case 0 -> startControl.getPosition();
       case 1 -> endControl.getPosition();
@@ -51,7 +51,7 @@ public class DTLinearInterpolationCurve extends DTCurve {
   }
 
   @Override
-  public void setControlPoint(int index, DTVector2dR control) {
+  public void setControlPoint(int index, Vector2D_R control) {
     switch (index) {
       case 0 -> startControl.setPosition(control);
       case 1 -> endControl.setPosition(control);
@@ -60,12 +60,12 @@ public class DTLinearInterpolationCurve extends DTCurve {
   }
 
   @Override
-  public DTLinearInterpolationControl getStartControl() {
+  public LinearInterpolationControl getStartControl() {
     return startControl;
   }
 
   @Override
-  public DTLinearInterpolationControl getEndControl() {
+  public LinearInterpolationControl getEndControl() {
     return endControl;
   }
 }

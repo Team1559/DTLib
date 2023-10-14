@@ -1,10 +1,10 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
 import org.ejml.data.DMatrixRMaj;
 
-public class DTCubicBezierCurve extends DTCurve {
+public class CubicBezierSegment extends SplineSegment {
   private static final double[][] POSITION_COEFFICIENTS = {
       // @format:off
       /* t^0 */ {  1,  0,  0,  0 },
@@ -46,16 +46,16 @@ public class DTCubicBezierCurve extends DTCurve {
   private static final DMatrixRMaj ACCELERATION_MATRIX = new DMatrixRMaj(ACCELERATION_COEFFICIENTS);
   private static final DMatrixRMaj JOLT_MATRIX         = new DMatrixRMaj(JOLT_COEFFICIENTS);
 
-  private final DTCubicBezierControl startControl;
-  private final DTCubicBezierControl endControl;
+  private final CubicBezierControl startControl;
+  private final CubicBezierControl endControl;
   private int                        startModCount;
   private int                        endModCount;
 
-  protected DTCubicBezierCurve(DTVector2dR p0, DTVector2dR p1, DTVector2dR p2, DTVector2dR p3) {
-    this(DTCubicBezierControl.createStart(p0, p1), DTCubicBezierControl.createEnd(p2, p3));
+  protected CubicBezierSegment(Vector2D_R p0, Vector2D_R p1, Vector2D_R p2, Vector2D_R p3) {
+    this(CubicBezierControl.createStart(p0, p1), CubicBezierControl.createEnd(p2, p3));
   }
 
-  protected DTCubicBezierCurve(DTCubicBezierControl startControl, DTCubicBezierControl endControl) {
+  protected CubicBezierSegment(CubicBezierControl startControl, CubicBezierControl endControl) {
     super(3);
     this.startControl = startControl;
     this.endControl = endControl;
@@ -64,27 +64,27 @@ public class DTCubicBezierCurve extends DTCurve {
   }
 
   @Override
-  public DTVector2dR getPosition(double t) {
+  public Vector2D_R getPosition(double t) {
     return compute(t, POSITION_MATRIX);
   }
 
   @Override
-  public DTVector2dR getVelocity(double t) {
+  public Vector2D_R getVelocity(double t) {
     return compute(t, VELOCITY_MATRIX);
   }
 
   @Override
-  public DTVector2dR getAcceleration(double t) {
+  public Vector2D_R getAcceleration(double t) {
     return compute(t, ACCELERATION_MATRIX);
   }
 
   @Override
-  public DTVector2dR getJolt(double t) {
+  public Vector2D_R getJolt(double t) {
     return compute(t, JOLT_MATRIX);
   }
 
   @Override
-  public DTVector2dR getControlPoint(int index) {
+  public Vector2D_R getControlPoint(int index) {
     return switch (index) {
       case 0 -> startControl.getP0();
       case 1 -> startControl.getP1();
@@ -95,7 +95,7 @@ public class DTCubicBezierCurve extends DTCurve {
   }
 
   @Override
-  public void setControlPoint(int index, DTVector2dR control) {
+  public void setControlPoint(int index, Vector2D_R control) {
     switch (index) {
       case 0 -> startControl.setP0(control);
       case 1 -> startControl.setP1(control);
@@ -110,8 +110,8 @@ public class DTCubicBezierCurve extends DTCurve {
     int startMod = startControl.getModCount();
     if (startMod != startModCount) {
       startModCount = startMod;
-      DTVector2dR p0 = startControl.getP0Raw();
-      DTVector2dR p1 = startControl.getP1Raw();
+      Vector2D_R p0 = startControl.getP0Raw();
+      Vector2D_R p1 = startControl.getP1Raw();
       controlMatrix.set(0, 0, p0.getX());
       controlMatrix.set(0, 1, p0.getY());
       controlMatrix.set(0, 2, p0.getR());
@@ -122,8 +122,8 @@ public class DTCubicBezierCurve extends DTCurve {
     int endMod = startControl.getModCount();
     if (endMod != endModCount) {
       endModCount = endMod;
-      DTVector2dR p2 = endControl.getP2();
-      DTVector2dR p3 = endControl.getP3Raw();
+      Vector2D_R p2 = endControl.getP2();
+      Vector2D_R p3 = endControl.getP3Raw();
       controlMatrix.set(2, 0, p2.getX());
       controlMatrix.set(2, 1, p2.getY());
       controlMatrix.set(2, 2, p2.getR());
@@ -134,12 +134,12 @@ public class DTCubicBezierCurve extends DTCurve {
   }
 
   @Override
-  public DTCubicBezierControl getStartControl() {
+  public CubicBezierControl getStartControl() {
     return startControl;
   }
 
   @Override
-  public DTCubicBezierControl getEndControl() {
+  public CubicBezierControl getEndControl() {
     return endControl;
   }
 }

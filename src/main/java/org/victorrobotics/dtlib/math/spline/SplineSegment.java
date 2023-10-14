@@ -1,18 +1,18 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 
-public abstract class DTCurve {
+public abstract class SplineSegment {
   protected final int         degree;
   protected final DMatrixRMaj controlMatrix;
   protected final DMatrixRMaj coefficientMatrix;
   protected final DMatrixRMaj resultMatrix;
   protected final DMatrixRMaj tMatrix;
 
-  protected DTCurve(int degree) {
+  protected SplineSegment(int degree) {
     int pointCount = degree + 1;
     this.degree = degree;
     controlMatrix = new DMatrixRMaj(pointCount, 3);
@@ -21,17 +21,17 @@ public abstract class DTCurve {
     tMatrix = new DMatrixRMaj(1, pointCount);
   }
 
-  public abstract DTVector2dR getControlPoint(int index);
+  public abstract Vector2D_R getControlPoint(int index);
 
-  public abstract DTCurveControl getStartControl();
+  public abstract SplineControl getStartControl();
 
-  public abstract DTCurveControl getEndControl();
+  public abstract SplineControl getEndControl();
 
-  public abstract void setControlPoint(int index, DTVector2dR control);
+  public abstract void setControlPoint(int index, Vector2D_R control);
 
   protected void fillControlMatrix() {
     for (int i = 0; i <= degree; i++) {
-      DTVector2dR controlPoint = getControlPoint(i);
+      Vector2D_R controlPoint = getControlPoint(i);
       controlMatrix.set(i, 0, controlPoint.getX());
       controlMatrix.set(i, 1, controlPoint.getY());
       controlMatrix.set(i, 2, controlPoint.getR());
@@ -44,20 +44,20 @@ public abstract class DTCurve {
     }
   }
 
-  protected DTVector2dR compute(double t, DMatrixRMaj coefficients) {
+  protected Vector2D_R compute(double t, DMatrixRMaj coefficients) {
     fillControlMatrix();
     fillTMatrix(t);
 
     CommonOps_DDRM.mult(tMatrix, coefficients, coefficientMatrix);
     CommonOps_DDRM.mult(coefficientMatrix, controlMatrix, resultMatrix);
-    return new DTVector2dR(resultMatrix.get(0), resultMatrix.get(1), resultMatrix.get(2));
+    return new Vector2D_R(resultMatrix.get(0), resultMatrix.get(1), resultMatrix.get(2));
   }
 
-  public abstract DTVector2dR getPosition(double t);
+  public abstract Vector2D_R getPosition(double t);
 
-  public abstract DTVector2dR getVelocity(double t);
+  public abstract Vector2D_R getVelocity(double t);
 
-  public abstract DTVector2dR getAcceleration(double t);
+  public abstract Vector2D_R getAcceleration(double t);
 
-  public abstract DTVector2dR getJolt(double t);
+  public abstract Vector2D_R getJolt(double t);
 }

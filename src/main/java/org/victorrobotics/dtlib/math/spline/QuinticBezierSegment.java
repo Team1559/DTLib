@@ -1,10 +1,10 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
 import org.ejml.data.DMatrixRMaj;
 
-public class DTQuinticBezierCurve extends DTCurve {
+public class QuinticBezierSegment extends SplineSegment {
   private static final double[][] POSITION_COEFFICIENTS = {
       // @format:off
       /* t^0 */ {   1,   0,   0,   0,   0,   0 },
@@ -54,19 +54,19 @@ public class DTQuinticBezierCurve extends DTCurve {
   private static final DMatrixRMaj ACCELERATION_MATRIX = new DMatrixRMaj(ACCELERATION_COEFFICIENTS);
   private static final DMatrixRMaj JOLT_MATRIX         = new DMatrixRMaj(JOLT_COEFFICIENTS);
 
-  private final DTQuinticBezierControl startControl;
-  private final DTQuinticBezierControl endControl;
+  private final QuinticBezierControl startControl;
+  private final QuinticBezierControl endControl;
   private int                          startModCount;
   private int                          endModCount;
 
-  protected DTQuinticBezierCurve(DTVector2dR p0, DTVector2dR p1, DTVector2dR p2, DTVector2dR p3,
-                                 DTVector2dR p4, DTVector2dR p5) {
-    this(DTQuinticBezierControl.createStart(p0, p1, p2),
-         DTQuinticBezierControl.createEnd(p3, p4, p5));
+  protected QuinticBezierSegment(Vector2D_R p0, Vector2D_R p1, Vector2D_R p2, Vector2D_R p3,
+                                 Vector2D_R p4, Vector2D_R p5) {
+    this(QuinticBezierControl.createStart(p0, p1, p2),
+         QuinticBezierControl.createEnd(p3, p4, p5));
   }
 
-  protected DTQuinticBezierCurve(DTQuinticBezierControl startControl,
-                                 DTQuinticBezierControl endControl) {
+  protected QuinticBezierSegment(QuinticBezierControl startControl,
+                                 QuinticBezierControl endControl) {
     super(5);
     this.startControl = startControl;
     this.endControl = endControl;
@@ -75,27 +75,27 @@ public class DTQuinticBezierCurve extends DTCurve {
   }
 
   @Override
-  public DTVector2dR getPosition(double t) {
+  public Vector2D_R getPosition(double t) {
     return compute(t, POSITION_MATRIX);
   }
 
   @Override
-  public DTVector2dR getVelocity(double t) {
+  public Vector2D_R getVelocity(double t) {
     return compute(t, VELOCITY_MATRIX);
   }
 
   @Override
-  public DTVector2dR getAcceleration(double t) {
+  public Vector2D_R getAcceleration(double t) {
     return compute(t, ACCELERATION_MATRIX);
   }
 
   @Override
-  public DTVector2dR getJolt(double t) {
+  public Vector2D_R getJolt(double t) {
     return compute(t, JOLT_MATRIX);
   }
 
   @Override
-  public DTVector2dR getControlPoint(int index) {
+  public Vector2D_R getControlPoint(int index) {
     return switch (index) {
       case 0 -> startControl.getP0();
       case 1 -> startControl.getP1();
@@ -108,7 +108,7 @@ public class DTQuinticBezierCurve extends DTCurve {
   }
 
   @Override
-  public void setControlPoint(int index, DTVector2dR control) {
+  public void setControlPoint(int index, Vector2D_R control) {
     switch (index) {
       case 0 -> startControl.setP0(control);
       case 1 -> startControl.setP1(control);
@@ -125,9 +125,9 @@ public class DTQuinticBezierCurve extends DTCurve {
     int startMod = startControl.getModCount();
     if (startMod != startModCount) {
       startModCount = startMod;
-      DTVector2dR p0 = startControl.getP0Raw();
-      DTVector2dR p1 = startControl.getP1Raw();
-      DTVector2dR p2 = startControl.getP2Raw();
+      Vector2D_R p0 = startControl.getP0Raw();
+      Vector2D_R p1 = startControl.getP1Raw();
+      Vector2D_R p2 = startControl.getP2Raw();
       controlMatrix.set(0, 0, p0.getX());
       controlMatrix.set(0, 1, p0.getY());
       controlMatrix.set(0, 2, p0.getR());
@@ -141,9 +141,9 @@ public class DTQuinticBezierCurve extends DTCurve {
     int endMod = startControl.getModCount();
     if (endMod != endModCount) {
       endModCount = endMod;
-      DTVector2dR p3 = endControl.getP3();
-      DTVector2dR p4 = endControl.getP4();
-      DTVector2dR p5 = endControl.getP5Raw();
+      Vector2D_R p3 = endControl.getP3();
+      Vector2D_R p4 = endControl.getP4();
+      Vector2D_R p5 = endControl.getP5Raw();
       controlMatrix.set(3, 0, p3.getX());
       controlMatrix.set(3, 1, p3.getY());
       controlMatrix.set(3, 2, p3.getR());
@@ -157,12 +157,12 @@ public class DTQuinticBezierCurve extends DTCurve {
   }
 
   @Override
-  public DTQuinticBezierControl getStartControl() {
+  public QuinticBezierControl getStartControl() {
     return startControl;
   }
 
   @Override
-  public DTQuinticBezierControl getEndControl() {
+  public QuinticBezierControl getEndControl() {
     return endControl;
   }
 }

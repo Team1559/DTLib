@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.math.trajectory;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 
 import edu.wpi.first.math.trajectory.Trajectory;
 
-public class DTHolonomicTrajectory implements Iterable<DTHolonomicTrajectory.Point> {
+public class HolonomicTrajectory implements Iterable<HolonomicTrajectory.Point> {
   public enum Constraint {
     VELOCITY,
     CENTRIPETAL,
@@ -18,10 +18,10 @@ public class DTHolonomicTrajectory implements Iterable<DTHolonomicTrajectory.Poi
   }
 
   public static class Point {
-    public DTVector2dR position;
-    public DTVector2dR velocity;
-    public DTVector2dR acceleration;
-    public double      jolt;
+    public Vector2D_R position;
+    public Vector2D_R velocity;
+    public Vector2D_R acceleration;
+    public double     jolt;
 
     public double distance;
     public double time;
@@ -43,7 +43,7 @@ public class DTHolonomicTrajectory implements Iterable<DTHolonomicTrajectory.Poi
   public final double  time;
   public final double  distance;
 
-  public DTHolonomicTrajectory(Point... points) {
+  public HolonomicTrajectory(Point... points) {
     this.points = points;
     time = points[points.length - 1].time;
     distance = points[points.length - 1].distance;

@@ -1,22 +1,22 @@
 package org.victorrobotics.dtlib.math.trajectory;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
-public final class DTVelocityLimit {
+public final class VelocityLimit {
   public final double maxVelocityTranslation;
   public final double maximumAngularVelocity;
   public final double minimumLinearVelocity;
   public final double minimumAngularVelocity;
 
-  public DTVelocityLimit() {
+  public VelocityLimit() {
     this(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
   }
 
-  public DTVelocityLimit(double translation, double rotation) {
+  public VelocityLimit(double translation, double rotation) {
     this(Double.NaN, translation, Double.NaN, rotation);
   }
 
-  public DTVelocityLimit(double minTranslation, double maxTranslation, double minRotation,
+  public VelocityLimit(double minTranslation, double maxTranslation, double minRotation,
                          double maxRotation) {
     maxVelocityTranslation =
         Double.isFinite(maxTranslation) ? Math.abs(maxTranslation) : Double.NaN;
@@ -32,7 +32,7 @@ public final class DTVelocityLimit {
     }
   }
 
-  public boolean apply(DTVector2dR speeds) {
+  public boolean apply(Vector2D_R speeds) {
     boolean change = false;
 
     double translationVelocity = speeds.getNorm();

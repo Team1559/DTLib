@@ -1,61 +1,61 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
-public class DTLinearSpline extends DTSpline<DTLinearInterpolationCurve> {
-  public DTLinearSpline() {
+public class LinearSpline extends Spline<LinearInterpolationSegment> {
+  public LinearSpline() {
     super();
   }
 
-  public DTLinearSpline(DTVector2dR p0, DTVector2dR p1) {
-    super(new DTLinearInterpolationCurve(p0, p1));
+  public LinearSpline(Vector2D_R p0, Vector2D_R p1) {
+    super(new LinearInterpolationSegment(p0, p1));
   }
 
-  public DTLinearSpline(DTLinearInterpolationCurve segment) {
+  public LinearSpline(LinearInterpolationSegment segment) {
     super(segment);
   }
 
-  public DTLinearInterpolationCurve appendSegment(DTVector2dR p1) {
-    DTLinearInterpolationControl prevControl;
+  public LinearInterpolationSegment appendSegment(Vector2D_R p1) {
+    LinearInterpolationControl prevControl;
     if (segments.isEmpty()) {
-      prevControl = new DTLinearInterpolationControl();
+      prevControl = new LinearInterpolationControl();
     } else {
-      DTLinearInterpolationCurve prevCurve = segments.get(segments.size() - 1);
+      LinearInterpolationSegment prevCurve = segments.get(segments.size() - 1);
       prevControl = prevCurve.getEndControl();
     }
 
-    DTLinearInterpolationControl endControl = new DTLinearInterpolationControl(p1);
-    DTLinearInterpolationCurve newSegment = new DTLinearInterpolationCurve(prevControl, endControl);
+    LinearInterpolationControl endControl = new LinearInterpolationControl(p1);
+    LinearInterpolationSegment newSegment = new LinearInterpolationSegment(prevControl, endControl);
     segments.add(newSegment);
     return newSegment;
   }
 
-  public DTLinearInterpolationCurve prependSegment(DTVector2dR p0) {
-    DTLinearInterpolationControl nextControl;
+  public LinearInterpolationSegment prependSegment(Vector2D_R p0) {
+    LinearInterpolationControl nextControl;
     if (segments.isEmpty()) {
-      nextControl = new DTLinearInterpolationControl();
+      nextControl = new LinearInterpolationControl();
     } else {
-      DTLinearInterpolationCurve nextCurve = segments.get(0);
+      LinearInterpolationSegment nextCurve = segments.get(0);
       nextControl = nextCurve.getEndControl();
     }
 
-    DTLinearInterpolationControl startControl = new DTLinearInterpolationControl(p0);
-    DTLinearInterpolationCurve newSegment =
-        new DTLinearInterpolationCurve(startControl, nextControl);
+    LinearInterpolationControl startControl = new LinearInterpolationControl(p0);
+    LinearInterpolationSegment newSegment =
+        new LinearInterpolationSegment(startControl, nextControl);
     segments.add(0, newSegment);
     return newSegment;
   }
 
   @Override
-  public DTLinearInterpolationCurve splitSegment(int index, double t) {
-    DTLinearInterpolationCurve toSplit = segments.get(index);
-    DTVector2dR pos = toSplit.getPosition(t);
-    DTLinearInterpolationControl splitControl = new DTLinearInterpolationControl(pos);
+  public LinearInterpolationSegment splitSegment(int index, double t) {
+    LinearInterpolationSegment toSplit = segments.get(index);
+    Vector2D_R pos = toSplit.getPosition(t);
+    LinearInterpolationControl splitControl = new LinearInterpolationControl(pos);
 
-    DTLinearInterpolationCurve before =
-        new DTLinearInterpolationCurve(toSplit.getStartControl(), splitControl);
-    DTLinearInterpolationCurve after =
-        new DTLinearInterpolationCurve(splitControl, toSplit.getEndControl());
+    LinearInterpolationSegment before =
+        new LinearInterpolationSegment(toSplit.getStartControl(), splitControl);
+    LinearInterpolationSegment after =
+        new LinearInterpolationSegment(splitControl, toSplit.getEndControl());
     segments.set(index, before);
     segments.add(index + 1, after);
 

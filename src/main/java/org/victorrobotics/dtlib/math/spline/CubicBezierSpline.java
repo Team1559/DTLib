@@ -1,60 +1,60 @@
 package org.victorrobotics.dtlib.math.spline;
 
-import org.victorrobotics.dtlib.math.geometry.DTVector2dR;
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
-public class DTCubicBezierSpline extends DTSpline<DTCubicBezierCurve> {
-  public DTCubicBezierSpline() {
+public class CubicBezierSpline extends Spline<CubicBezierSegment> {
+  public CubicBezierSpline() {
     super();
   }
 
-  public DTCubicBezierSpline(DTVector2dR p0, DTVector2dR p1, DTVector2dR p2, DTVector2dR p3) {
-    super(new DTCubicBezierCurve(p0, p1, p2, p3));
+  public CubicBezierSpline(Vector2D_R p0, Vector2D_R p1, Vector2D_R p2, Vector2D_R p3) {
+    super(new CubicBezierSegment(p0, p1, p2, p3));
   }
 
-  public DTCubicBezierSpline(DTCubicBezierCurve segment) {
+  public CubicBezierSpline(CubicBezierSegment segment) {
     super(segment);
   }
 
-  public DTCubicBezierCurve appendSegment(DTVector2dR p2, DTVector2dR p3) {
-    DTCubicBezierControl prevControl;
+  public CubicBezierSegment appendSegment(Vector2D_R p2, Vector2D_R p3) {
+    CubicBezierControl prevControl;
     if (segments.isEmpty()) {
-      prevControl = new DTCubicBezierControl();
+      prevControl = new CubicBezierControl();
     } else {
-      DTCubicBezierCurve prevCurve = segments.get(segments.size() - 1);
+      CubicBezierSegment prevCurve = segments.get(segments.size() - 1);
       prevControl = prevCurve.getEndControl();
     }
 
-    DTCubicBezierControl endControl = DTCubicBezierControl.createEnd(p2, p3);
-    DTCubicBezierCurve newSegment = new DTCubicBezierCurve(prevControl, endControl);
+    CubicBezierControl endControl = CubicBezierControl.createEnd(p2, p3);
+    CubicBezierSegment newSegment = new CubicBezierSegment(prevControl, endControl);
     segments.add(newSegment);
     return newSegment;
   }
 
-  public DTCubicBezierCurve prependSegment(DTVector2dR p0, DTVector2dR p1) {
-    DTCubicBezierControl nextControl;
+  public CubicBezierSegment prependSegment(Vector2D_R p0, Vector2D_R p1) {
+    CubicBezierControl nextControl;
     if (segments.isEmpty()) {
-      nextControl = new DTCubicBezierControl();
+      nextControl = new CubicBezierControl();
     } else {
-      DTCubicBezierCurve nextCurve = segments.get(0);
+      CubicBezierSegment nextCurve = segments.get(0);
       nextControl = nextCurve.getEndControl();
     }
 
-    DTCubicBezierControl startControl = DTCubicBezierControl.createStart(p0, p1);
-    DTCubicBezierCurve newSegment = new DTCubicBezierCurve(startControl, nextControl);
+    CubicBezierControl startControl = CubicBezierControl.createStart(p0, p1);
+    CubicBezierSegment newSegment = new CubicBezierSegment(startControl, nextControl);
     segments.add(0, newSegment);
     return newSegment;
   }
 
   @Override
-  public DTCubicBezierCurve splitSegment(int index, double t) {
-    DTCubicBezierCurve toSplit = segments.get(index);
-    DTVector2dR p0 = toSplit.getPosition(t);
-    DTVector2dR p1 = toSplit.getVelocity(t)
+  public CubicBezierSegment splitSegment(int index, double t) {
+    CubicBezierSegment toSplit = segments.get(index);
+    Vector2D_R p0 = toSplit.getPosition(t);
+    Vector2D_R p1 = toSplit.getVelocity(t)
                             .multiply(1 / 3D);
-    DTCubicBezierControl splitControl = DTCubicBezierControl.createStart(p0, p1);
+    CubicBezierControl splitControl = CubicBezierControl.createStart(p0, p1);
 
-    DTCubicBezierCurve before = new DTCubicBezierCurve(toSplit.getStartControl(), splitControl);
-    DTCubicBezierCurve after = new DTCubicBezierCurve(splitControl, toSplit.getEndControl());
+    CubicBezierSegment before = new CubicBezierSegment(toSplit.getStartControl(), splitControl);
+    CubicBezierSegment after = new CubicBezierSegment(splitControl, toSplit.getEndControl());
     segments.set(index, before);
     segments.add(index + 1, after);
 
