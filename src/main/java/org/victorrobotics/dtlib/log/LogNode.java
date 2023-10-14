@@ -26,7 +26,7 @@ public class LogNode {
   }
 
   protected final void init(Deque<Class<?>> stack, Set<Class<?>> clazzes,
-      List<StaticLogNode> staticVars) {
+      List<StaticLogVariable> staticVars) {
     if (stack.contains(type)) {
       // Prevent infinite recursion
       return;
@@ -64,7 +64,7 @@ public class LogNode {
   }
 
   private void initField(Field field, List<LogNode> childList,
-      List<StaticLogNode> staticVars, boolean includeStatic) {
+      List<StaticLogVariable> staticVars, boolean includeStatic) {
     DTLog annotation = field.getAnnotation(DTLog.class);
     if (annotation == null) {
       return;
@@ -90,7 +90,7 @@ public class LogNode {
         return;
       }
 
-      staticVars.add(new StaticLogNode(logType, field.getDeclaringClass(), name, () -> {
+      staticVars.add(new StaticLogVariable(logType, field.getDeclaringClass(), name, () -> {
         try {
           return field.get(null);
         } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -110,7 +110,7 @@ public class LogNode {
   }
 
   private void initMethod(Method method, List<LogNode> childList,
-      List<StaticLogNode> staticVars, boolean includeStatic) {
+      List<StaticLogVariable> staticVars, boolean includeStatic) {
     DTLog annotation = method.getAnnotation(DTLog.class);
     if (annotation == null) {
       return;
@@ -140,7 +140,7 @@ public class LogNode {
         return;
       }
 
-      staticVars.add(new StaticLogNode(logType, method.getDeclaringClass(), name, () -> {
+      staticVars.add(new StaticLogVariable(logType, method.getDeclaringClass(), name, () -> {
         try {
           return method.invoke(null, (Object[]) null);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -204,7 +204,7 @@ public class LogNode {
   }
 
   private static void initChildren(Deque<Class<?>> stack, Set<Class<?>> clazzes,
-      List<StaticLogNode> staticVars, List<LogNode> childList) {
+      List<StaticLogVariable> staticVars, List<LogNode> childList) {
     Iterator<LogNode> itr = childList.iterator();
     while (itr.hasNext()) {
       LogNode child = itr.next();

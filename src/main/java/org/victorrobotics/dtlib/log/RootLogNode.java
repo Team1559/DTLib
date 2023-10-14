@@ -7,21 +7,21 @@ import java.util.List;
 
 public class RootLogNode extends LogNode {
   private final Object           root;
-  private final StaticLogNode[] staticVars;
+  private final StaticLogVariable[] staticVars;
 
   public RootLogNode(Object root, String name) {
     super("", name, root.getClass(), dummy -> root);
     this.root = root;
 
-    List<StaticLogNode> staticVarList = new ArrayList<>();
+    List<StaticLogVariable> staticVarList = new ArrayList<>();
     init(new ArrayDeque<>(), new LinkedHashSet<>(), staticVarList);
-    staticVars = staticVarList.toArray(StaticLogNode[]::new);
+    staticVars = staticVarList.toArray(StaticLogVariable[]::new);
   }
 
   public void log() {
     // Input is discarded, but cannot be null
     log(root);
-    for (StaticLogNode staticVar : staticVars) {
+    for (StaticLogVariable staticVar : staticVars) {
       staticVar.log();
     }
   }
