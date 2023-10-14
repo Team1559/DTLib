@@ -1,8 +1,8 @@
 package org.victorrobotics.dtlib.hardware.phoenix5;
 
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.dtlib.hardware.DTMotor;
-import org.victorrobotics.dtlib.hardware.DTMotorFaults;
+import org.victorrobotics.dtlib.hardware.Motor;
+import org.victorrobotics.dtlib.hardware.MotorFaults;
 
 import com.ctre.phoenix.motorcontrol.Faults;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -10,7 +10,7 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
-public class DTTalonSRX implements DTMotor {
+public class DTTalonSRX implements Motor {
   private final WPI_TalonSRX internal;
 
   private String firmware;
@@ -156,7 +156,7 @@ public class DTTalonSRX implements DTMotor {
   }
 
   @Override
-  public DTMotorFaults getFaults() {
+  public MotorFaults getFaults() {
     Faults faults = new Faults();
     internal.getFaults(faults);
     return new DTTalonFaults(faults);

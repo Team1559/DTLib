@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.hardware;
 
-public interface DTMotorFaults {
+public interface MotorFaults {
   boolean hasAnyFault();
 
   boolean lowVoltage();

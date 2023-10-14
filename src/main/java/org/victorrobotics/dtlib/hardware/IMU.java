@@ -3,7 +3,7 @@ package org.victorrobotics.dtlib.hardware;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 
-public interface DTInertialMeasurementUnit extends Sendable, AutoCloseable {
+public interface IMU extends Sendable, AutoCloseable {
   Object getImuImpl();
 
   double getYaw();

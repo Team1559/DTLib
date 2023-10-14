@@ -1,11 +1,11 @@
 package org.victorrobotics.dtlib.hardware.phoenix5;
 
-import org.victorrobotics.dtlib.hardware.DTInertialMeasurementUnit;
+import org.victorrobotics.dtlib.hardware.IMU;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.ctre.phoenix.sensors.Pigeon2_Faults;
 
-public class DTPigeon2 implements DTInertialMeasurementUnit {
+public class DTPigeon2 implements IMU {
   private final Pigeon2 internal;
   private final short[] rawAccelerations;
 

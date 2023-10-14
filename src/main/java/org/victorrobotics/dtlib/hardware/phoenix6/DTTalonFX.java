@@ -1,8 +1,8 @@
 package org.victorrobotics.dtlib.hardware.phoenix6;
 
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.dtlib.hardware.DTMotor;
-import org.victorrobotics.dtlib.hardware.DTMotorFaults;
+import org.victorrobotics.dtlib.hardware.Motor;
+import org.victorrobotics.dtlib.hardware.MotorFaults;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 
@@ -22,7 +22,7 @@ import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-public class DTTalonFX implements DTMotor {
+public class DTTalonFX implements Motor {
   private static final double MAX_VELOCITY_RPM = 6380;
   private static final double STALL_TORQUE     = 4.69;
 
@@ -356,7 +356,7 @@ public class DTTalonFX implements DTMotor {
                   .doubleValue();
   }
 
-  public static class DTTalonFXFaults implements DTMotorFaults {
+  public static class DTTalonFXFaults implements MotorFaults {
     private final StatusSignal<Integer> allFaults;
     private final StatusSignal<Boolean> bootDuringEnable;
     private final StatusSignal<Boolean> deviceTemp;

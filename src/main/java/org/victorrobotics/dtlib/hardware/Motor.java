@@ -4,7 +4,7 @@ import org.victorrobotics.dtlib.network.DTSendable;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 
-public interface DTMotor extends DTSendable {
+public interface Motor extends DTSendable {
   @Override
   void close();
 
@@ -92,7 +92,7 @@ public interface DTMotor extends DTSendable {
 
   double getVelocityRPM();
 
-  DTMotorFaults getFaults();
+  MotorFaults getFaults();
 
   String getFirmwareVersion();
 

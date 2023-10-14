@@ -5,7 +5,7 @@ import org.victorrobotics.dtlib.network.DTSendable;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.util.sendable.SendableBuilder;
 
-public interface DTAbsoluteEncoder extends DTSendable {
+public interface AbsoluteEncoder extends DTSendable {
   Object getEncoderImpl();
 
   Rotation2d getPosition();
@@ -16,7 +16,7 @@ public interface DTAbsoluteEncoder extends DTSendable {
 
   String getFirmwareVersion();
 
-  DTAbsoluteEncoderFaults getFaults();
+  AbsoluteEncoderFaults getFaults();
 
   boolean isInverted();
 

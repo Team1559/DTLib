@@ -1,7 +1,7 @@
 package org.victorrobotics.dtlib.hardware.phoenix6;
 
-import org.victorrobotics.dtlib.hardware.DTAbsoluteEncoder;
-import org.victorrobotics.dtlib.hardware.DTAbsoluteEncoderFaults;
+import org.victorrobotics.dtlib.hardware.AbsoluteEncoder;
+import org.victorrobotics.dtlib.hardware.AbsoluteEncoderFaults;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 
@@ -11,7 +11,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
-public class DTCancoder implements DTAbsoluteEncoder {
+public class DTCancoder implements AbsoluteEncoder {
   private final CANcoder internal;
 
   private StatusSignal<Double> position;
@@ -149,7 +149,7 @@ public class DTCancoder implements DTAbsoluteEncoder {
     return faults;
   }
 
-  public static class DTCANCoderFaults implements DTAbsoluteEncoderFaults {
+  public static class DTCANCoderFaults implements AbsoluteEncoderFaults {
     private final StatusSignal<Integer> allFaults;
     private final StatusSignal<Boolean> badMagnet;
     private final StatusSignal<Boolean> bootDuringEnable;

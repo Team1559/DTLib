@@ -1,7 +1,7 @@
 package org.victorrobotics.dtlib.hardware.phoenix5;
 
-import org.victorrobotics.dtlib.hardware.DTAbsoluteEncoder;
-import org.victorrobotics.dtlib.hardware.DTAbsoluteEncoderFaults;
+import org.victorrobotics.dtlib.hardware.AbsoluteEncoder;
+import org.victorrobotics.dtlib.hardware.AbsoluteEncoderFaults;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 
@@ -9,7 +9,7 @@ import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderFaults;
 
-public class DTCancoder implements DTAbsoluteEncoder {
+public class DTCancoder implements AbsoluteEncoder {
   private final CANCoder internal;
 
   private String firmware;
@@ -95,13 +95,13 @@ public class DTCancoder implements DTAbsoluteEncoder {
   }
 
   @Override
-  public DTAbsoluteEncoderFaults getFaults() {
+  public AbsoluteEncoderFaults getFaults() {
     CANCoderFaults faults = new CANCoderFaults();
     internal.getFaults(faults);
     return new DTCANCoderFaults(faults);
   }
 
-  public static class DTCANCoderFaults implements DTAbsoluteEncoderFaults {
+  public static class DTCANCoderFaults implements AbsoluteEncoderFaults {
     private final CANCoderFaults internal;
 
     DTCANCoderFaults(CANCoderFaults internal) {

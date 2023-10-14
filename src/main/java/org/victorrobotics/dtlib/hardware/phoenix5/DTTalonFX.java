@@ -1,7 +1,7 @@
 package org.victorrobotics.dtlib.hardware.phoenix5;
 
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.dtlib.hardware.DTMotor;
+import org.victorrobotics.dtlib.hardware.Motor;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
@@ -14,7 +14,7 @@ import com.ctre.phoenix.motorcontrol.can.SlotConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
-public class DTTalonFX implements DTMotor {
+public class DTTalonFX implements Motor {
   private static final double TICKS_PER_REV      = 2048;
   private static final double SECONDS_PER_MINUTE = 60;
   private static final double MAX_VELOCITY_RPM   = 6380;

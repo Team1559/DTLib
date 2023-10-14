@@ -1,8 +1,8 @@
 package org.victorrobotics.dtlib.hardware.revrobotics;
 
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.dtlib.hardware.DTMotor;
-import org.victorrobotics.dtlib.hardware.DTMotorFaults;
+import org.victorrobotics.dtlib.hardware.Motor;
+import org.victorrobotics.dtlib.hardware.MotorFaults;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
@@ -10,7 +10,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 
-public class DTNeo implements DTMotor {
+public class DTNeo implements Motor {
   private static final double MAX_VELOCITY_RPM = 5676;
   private static final double STALL_TORQUE     = 2.6;
 
@@ -171,7 +171,7 @@ public class DTNeo implements DTMotor {
     return internal.getFirmwareString();
   }
 
-  public static class DTNeoFaults implements DTMotorFaults {
+  public static class DTNeoFaults implements MotorFaults {
     private static final short OTHER_FAULTS_MASK = 0b00001101_11110110;
 
     private final short internal;

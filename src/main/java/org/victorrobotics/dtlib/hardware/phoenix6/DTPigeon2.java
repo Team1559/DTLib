@@ -1,11 +1,11 @@
 package org.victorrobotics.dtlib.hardware.phoenix6;
 
-import org.victorrobotics.dtlib.hardware.DTInertialMeasurementUnit;
+import org.victorrobotics.dtlib.hardware.IMU;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
-public class DTPigeon2 implements DTInertialMeasurementUnit {
+public class DTPigeon2 implements IMU {
   private final Pigeon2 internal;
 
   private StatusSignal<Double> yaw;
