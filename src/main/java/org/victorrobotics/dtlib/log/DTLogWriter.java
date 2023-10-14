@@ -445,7 +445,7 @@ public final class DTLogWriter implements Closeable, Flushable {
 
   public static void init(DTLog.Level logLevel) {
     while (true) {
-      if (!RobotController.isSystemTimeValid()) {
+      if (RobotController.isSystemTimeValid()) {
         try {
           INSTANCE = new DTLogWriter(logLevel);
           return;
