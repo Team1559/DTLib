@@ -17,7 +17,7 @@ import edu.wpi.first.math.filter.Debouncer;
  * modified from edu.wpi.first.wpilibj2.command.button.Trigger, maintaining API
  * compatibility.
  */
-public class DTTrigger implements BooleanSupplier {
+public class Trigger implements BooleanSupplier {
   private final BooleanSupplier condition;
 
   private boolean value;
@@ -32,7 +32,7 @@ public class DTTrigger implements BooleanSupplier {
    * @param condition
    *        the condition represented by this DTTrigger
    */
-  public DTTrigger(BooleanSupplier condition) {
+  public Trigger(BooleanSupplier condition) {
     this.condition = Objects.requireNonNull(condition);
     CommandScheduler.bindCallback(this::refresh);
     refresh();
@@ -170,8 +170,8 @@ public class DTTrigger implements BooleanSupplier {
    *
    * @return A DTTrigger which is active when both conditions are true.
    */
-  public DTTrigger and(BooleanSupplier other) {
-    return new DTTrigger(() -> value && other.getAsBoolean());
+  public Trigger and(BooleanSupplier other) {
+    return new Trigger(() -> value && other.getAsBoolean());
   }
 
   /**
@@ -182,8 +182,8 @@ public class DTTrigger implements BooleanSupplier {
    *
    * @return A DTTrigger which is active when either condition is active.
    */
-  public DTTrigger or(BooleanSupplier other) {
-    return new DTTrigger(() -> value || other.getAsBoolean());
+  public Trigger or(BooleanSupplier other) {
+    return new Trigger(() -> value || other.getAsBoolean());
   }
 
   /**
@@ -195,8 +195,8 @@ public class DTTrigger implements BooleanSupplier {
    * @return A DTTrigger which is active when either condition is true, but not
    *         both.
    */
-  public DTTrigger xor(BooleanSupplier other) {
-    return new DTTrigger(() -> value != other.getAsBoolean());
+  public Trigger xor(BooleanSupplier other) {
+    return new Trigger(() -> value != other.getAsBoolean());
   }
 
   /**
@@ -208,8 +208,8 @@ public class DTTrigger implements BooleanSupplier {
    * @return A DTTrigger which is active when this condition is true and other
    *         is not.
    */
-  public DTTrigger unless(BooleanSupplier other) {
-    return new DTTrigger(() -> value && !other.getAsBoolean());
+  public Trigger unless(BooleanSupplier other) {
+    return new Trigger(() -> value && !other.getAsBoolean());
   }
 
   /**
@@ -217,8 +217,8 @@ public class DTTrigger implements BooleanSupplier {
    *
    * @return the negated DTTrigger
    */
-  public DTTrigger negate() {
-    return new DTTrigger(() -> !value);
+  public Trigger negate() {
+    return new Trigger(() -> !value);
   }
 
   /**
@@ -231,7 +231,7 @@ public class DTTrigger implements BooleanSupplier {
    *
    * @return The debounced DTTrigger (rising edges debounced only)
    */
-  public DTTrigger debounce(double seconds) {
+  public Trigger debounce(double seconds) {
     return debounce(seconds, Debouncer.DebounceType.kRising);
   }
 
@@ -247,8 +247,8 @@ public class DTTrigger implements BooleanSupplier {
    *
    * @return The debounced DTTrigger.
    */
-  public DTTrigger debounce(double seconds, Debouncer.DebounceType type) {
-    return new DTTrigger(new BooleanSupplier() {
+  public Trigger debounce(double seconds, Debouncer.DebounceType type) {
+    return new Trigger(new BooleanSupplier() {
       private final Debouncer debouncer = new Debouncer(seconds, type);
 
       @Override

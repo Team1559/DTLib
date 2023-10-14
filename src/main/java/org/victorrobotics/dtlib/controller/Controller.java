@@ -10,10 +10,10 @@ import edu.wpi.first.wpilibj.DriverStation;
  * A base class for command-based controller input from the DriverStation.
  * Buttons and joysticks are represented using
  */
-public class DTController {
+public class Controller {
   private static final int MAX_CONTROLLER_COUNT = DriverStation.kJoystickPorts;
 
-  private static final DTController[] INSTANCES = new DTController[MAX_CONTROLLER_COUNT];
+  private static final Controller[] INSTANCES = new Controller[MAX_CONTROLLER_COUNT];
 
   private final int port;
 
@@ -21,7 +21,7 @@ public class DTController {
   private int      buttons;
   private int[]    povs;
 
-  protected DTController(int port, int axisCount, int povCount) {
+  protected Controller(int port, int axisCount, int povCount) {
     if (port < -1 || port >= MAX_CONTROLLER_COUNT) {
       throw new ArrayIndexOutOfBoundsException(port);
     }
@@ -43,25 +43,25 @@ public class DTController {
     refresh();
   }
 
-  protected final DTTrigger getButton(int index) {
+  protected final Trigger getButton(int index) {
     if (index >= 32 || index < 0) {
       throw new ArrayIndexOutOfBoundsException(index);
     }
-    return new DTTrigger(() -> (buttons & (1 << index)) != 0);
+    return new Trigger(() -> (buttons & (1 << index)) != 0);
   }
 
-  protected final DTAxis getAxis(int index) {
+  protected final Axis getAxis(int index) {
     if (povs == null || index >= axes.length || index < 0) {
       throw new ArrayIndexOutOfBoundsException(index);
     }
-    return new DTAxis(() -> axes[index]);
+    return new Axis(() -> axes[index]);
   }
 
-  protected final DTPov getPov(int index) {
+  protected final Pov getPov(int index) {
     if (povs == null || index >= povs.length || index < 0) {
       throw new ArrayIndexOutOfBoundsException(index);
     }
-    return new DTPov(() -> povs[index]);
+    return new Pov(() -> povs[index]);
   }
 
   protected void refresh() {

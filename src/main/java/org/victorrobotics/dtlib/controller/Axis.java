@@ -7,12 +7,12 @@ import java.util.function.DoublePredicate;
 import java.util.function.DoubleSupplier;
 import java.util.function.DoubleUnaryOperator;
 
-public class DTAxis implements DoubleSupplier {
+public class Axis implements DoubleSupplier {
   private final DoubleSupplier supplier;
 
   private double value;
 
-  public DTAxis(DoubleSupplier input) {
+  public Axis(DoubleSupplier input) {
     this.supplier = input;
     CommandScheduler.bindCallback(this::refresh);
     refresh();
@@ -27,27 +27,27 @@ public class DTAxis implements DoubleSupplier {
     return value;
   }
 
-  public DTAxis filter(DoublePredicate filter, double defaultValue) {
-    return new DTAxis(() -> filter.test(value) ? value : defaultValue);
+  public Axis filter(DoublePredicate filter, double defaultValue) {
+    return new Axis(() -> filter.test(value) ? value : defaultValue);
   }
 
-  public DTAxis map(DoubleUnaryOperator mapper) {
-    return new DTAxis(() -> mapper.applyAsDouble(value));
+  public Axis map(DoubleUnaryOperator mapper) {
+    return new Axis(() -> mapper.applyAsDouble(value));
   }
 
-  public DTAxis negate() {
+  public Axis negate() {
     return map(d -> -d);
   }
 
-  public DTAxis absolute() {
+  public Axis absolute() {
     return map(Math::abs);
   }
 
-  public DTAxis squareKeepSign() {
+  public Axis squareKeepSign() {
     return map(d -> Math.copySign(d * d, d));
   }
 
-  public DTAxis deadband(double min, double max) {
+  public Axis deadband(double min, double max) {
     requireFinite(min);
     requireFinite(max);
 
@@ -66,36 +66,36 @@ public class DTAxis implements DoubleSupplier {
     });
   }
 
-  public DTTrigger whenGreater(double d) {
+  public Trigger whenGreater(double d) {
     requireFinite(d);
-    return new DTTrigger(() -> value > d);
+    return new Trigger(() -> value > d);
   }
 
-  public DTTrigger whenGreaterOrEqual(double d) {
+  public Trigger whenGreaterOrEqual(double d) {
     requireFinite(d);
-    return new DTTrigger(() -> value >= d);
+    return new Trigger(() -> value >= d);
   }
 
-  public DTTrigger whenLess(double d) {
+  public Trigger whenLess(double d) {
     requireFinite(d);
-    return new DTTrigger(() -> value < d);
+    return new Trigger(() -> value < d);
   }
 
-  public DTTrigger whenLessOrEqual(double d) {
+  public Trigger whenLessOrEqual(double d) {
     requireFinite(d);
-    return new DTTrigger(() -> value <= d);
+    return new Trigger(() -> value <= d);
   }
 
-  public DTTrigger whenInRange(double min, double max) {
+  public Trigger whenInRange(double min, double max) {
     requireFinite(min);
     requireFinite(max);
-    return new DTTrigger(() -> value > min && value < max);
+    return new Trigger(() -> value > min && value < max);
   }
 
-  public DTTrigger whenInRangeOrEqual(double min, double max) {
+  public Trigger whenInRangeOrEqual(double min, double max) {
     requireFinite(min);
     requireFinite(max);
-    return new DTTrigger(() -> value >= min && value <= max);
+    return new Trigger(() -> value >= min && value <= max);
   }
 
   private static void requireFinite(double param) {

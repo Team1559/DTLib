@@ -1,7 +1,7 @@
 package org.victorrobotics.dtlib.controller;
 
-public class DTXboxController extends DTController {
-  private enum Axis {
+public class XboxController extends Controller {
+  private enum XboxAxis {
     LEFT_X(0),
     LEFT_Y(1),
     LEFT_TRIGGER(2),
@@ -11,12 +11,12 @@ public class DTXboxController extends DTController {
 
     private final int value;
 
-    Axis(int value) {
+    XboxAxis(int value) {
       this.value = value;
     }
   }
 
-  private enum Button {
+  private enum XboxButton {
     A(0),
     B(1),
     X(2),
@@ -30,55 +30,55 @@ public class DTXboxController extends DTController {
 
     private final int value;
 
-    Button(int value) {
+    XboxButton(int value) {
       this.value = value;
     }
   }
 
-  private static final int AXIS_COUNT = Axis.values().length;
+  private static final int AXIS_COUNT = XboxAxis.values().length;
   private static final int POV_COUNT  = 1;
   private static final int DPAD_INDEX = 0;
 
-  public final DTTrigger aButton;
-  public final DTTrigger bButton;
-  public final DTTrigger xButton;
-  public final DTTrigger yButton;
-  public final DTTrigger leftBumper;
-  public final DTTrigger rightBumper;
-  public final DTTrigger leftMenuButton;
-  public final DTTrigger rightMenuButton;
-  public final DTTrigger leftStickButton;
-  public final DTTrigger rightStickButton;
+  public final Trigger aButton;
+  public final Trigger bButton;
+  public final Trigger xButton;
+  public final Trigger yButton;
+  public final Trigger leftBumper;
+  public final Trigger rightBumper;
+  public final Trigger leftMenuButton;
+  public final Trigger rightMenuButton;
+  public final Trigger leftStickButton;
+  public final Trigger rightStickButton;
 
-  public final DTAxis leftStickX;
-  public final DTAxis leftStickY;
-  public final DTAxis rightStickX;
-  public final DTAxis rightStickY;
-  public final DTAxis leftTrigger;
-  public final DTAxis rightTrigger;
+  public final Axis leftStickX;
+  public final Axis leftStickY;
+  public final Axis rightStickX;
+  public final Axis rightStickY;
+  public final Axis leftTrigger;
+  public final Axis rightTrigger;
 
-  public final DTPov dpad;
+  public final Pov dpad;
 
-  public DTXboxController(int port) {
+  public XboxController(int port) {
     super(port, AXIS_COUNT, POV_COUNT);
 
-    aButton = getButton(Button.A.value);
-    bButton = getButton(Button.B.value);
-    xButton = getButton(Button.X.value);
-    yButton = getButton(Button.Y.value);
-    leftBumper = getButton(Button.LEFT_BUMPER.value);
-    rightBumper = getButton(Button.RIGHT_BUMPER.value);
-    leftMenuButton = getButton(Button.LEFT_MENU.value);
-    rightMenuButton = getButton(Button.RIGHT_MENU.value);
-    leftStickButton = getButton(Button.LEFT_STICK.value);
-    rightStickButton = getButton(Button.RIGHT_STICK.value);
+    aButton = getButton(XboxButton.A.value);
+    bButton = getButton(XboxButton.B.value);
+    xButton = getButton(XboxButton.X.value);
+    yButton = getButton(XboxButton.Y.value);
+    leftBumper = getButton(XboxButton.LEFT_BUMPER.value);
+    rightBumper = getButton(XboxButton.RIGHT_BUMPER.value);
+    leftMenuButton = getButton(XboxButton.LEFT_MENU.value);
+    rightMenuButton = getButton(XboxButton.RIGHT_MENU.value);
+    leftStickButton = getButton(XboxButton.LEFT_STICK.value);
+    rightStickButton = getButton(XboxButton.RIGHT_STICK.value);
 
-    leftStickX = getAxis(Axis.LEFT_X.value);
-    leftStickY = getAxis(Axis.LEFT_Y.value);
-    rightStickX = getAxis(Axis.RIGHT_X.value);
-    rightStickY = getAxis(Axis.RIGHT_Y.value);
-    leftTrigger = getAxis(Axis.LEFT_TRIGGER.value);
-    rightTrigger = getAxis(Axis.RIGHT_TRIGGER.value);
+    leftStickX = getAxis(XboxAxis.LEFT_X.value);
+    leftStickY = getAxis(XboxAxis.LEFT_Y.value);
+    rightStickX = getAxis(XboxAxis.RIGHT_X.value);
+    rightStickY = getAxis(XboxAxis.RIGHT_Y.value);
+    leftTrigger = getAxis(XboxAxis.LEFT_TRIGGER.value);
+    rightTrigger = getAxis(XboxAxis.RIGHT_TRIGGER.value);
 
     dpad = getPov(DPAD_INDEX);
   }
