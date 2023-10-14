@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.subsystem.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -12,8 +12,8 @@ import java.util.Set;
  * directly.
  */
 public abstract class CommandBase implements Command {
-  private final Set<DTSubsystem> requirements;
-  private final Set<DTSubsystem> unmodifiableReqs;
+  private final Set<Subsystem> requirements;
+  private final Set<Subsystem> unmodifiableReqs;
 
   /**
    * Constructs a new DTCommandBase
@@ -24,7 +24,7 @@ public abstract class CommandBase implements Command {
   }
 
   @Override
-  public final Set<DTSubsystem> getRequirements() {
+  public final Set<Subsystem> getRequirements() {
     return unmodifiableReqs;
   }
 
@@ -36,8 +36,8 @@ public abstract class CommandBase implements Command {
    * @param requirements
    *        the subsystems to add
    */
-  public final void addRequirements(DTSubsystem... requirements) {
-    for (DTSubsystem subsystem : requirements) {
+  public final void addRequirements(Subsystem... requirements) {
+    for (Subsystem subsystem : requirements) {
       this.requirements.add(subsystem);
     }
   }
@@ -50,7 +50,7 @@ public abstract class CommandBase implements Command {
    * @param requirements
    *        the set of subsystems to add
    */
-  public final void addRequirements(Set<DTSubsystem> requirements) {
+  public final void addRequirements(Set<Subsystem> requirements) {
     this.requirements.addAll(requirements);
   }
 }

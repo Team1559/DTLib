@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.subsystem.DTWrapperSubsystem;
+import org.victorrobotics.dtlib.subsystem.WPILibSubsystem;
 
 import java.util.Objects;
 
@@ -30,7 +30,7 @@ public class WrapperCommand extends CommandBase {
                     .registerComposedCommands(command);
 
     for (Subsystem subsystem : command.getRequirements()) {
-      addRequirements(DTWrapperSubsystem.of(subsystem));
+      addRequirements(WPILibSubsystem.of(subsystem));
     }
   }
 

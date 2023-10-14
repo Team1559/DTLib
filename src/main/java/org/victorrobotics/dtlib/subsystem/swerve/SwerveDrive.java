@@ -5,7 +5,7 @@ import org.victorrobotics.dtlib.math.geometry.Vector2D;
 import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 import org.victorrobotics.dtlib.math.trajectory.AccelerationLimit;
 import org.victorrobotics.dtlib.math.trajectory.VelocityLimit;
-import org.victorrobotics.dtlib.subsystem.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Objects;
 
@@ -19,8 +19,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
-public abstract class DTSwerveDrive extends DTSubsystem {
-  private final DTSwerveModule[]         modules;
+public abstract class SwerveDrive extends Subsystem {
+  private final SwerveModule[]         modules;
   private final SwerveDriveKinematics    kinematics;
   private final SwerveDrivePoseEstimator poseEstimator;
 
@@ -34,12 +34,12 @@ public abstract class DTSwerveDrive extends DTSubsystem {
   private Field2d     virtualField;
   private Vector2D_R currentSpeeds;
 
-  protected DTSwerveDrive(DTSwerveModule... modules) {
+  protected SwerveDrive(SwerveModule... modules) {
     if (modules == null || modules.length < 2) {
       throw new IllegalArgumentException("Swerve drive requires at least 2 wheels");
     }
 
-    this.modules = new DTSwerveModule[modules.length];
+    this.modules = new SwerveModule[modules.length];
     for (int i = 0; i < modules.length; i++) {
       this.modules[i] = Objects.requireNonNull(modules[i]);
     }
@@ -133,7 +133,7 @@ public abstract class DTSwerveDrive extends DTSubsystem {
   }
 
   public void holdPosition() {
-    for (DTSwerveModule module : modules) {
+    for (SwerveModule module : modules) {
       // Orient wheels towards center of robot so they all collide
       module.holdPosition(module.getLocation()
                                 .getAngle()

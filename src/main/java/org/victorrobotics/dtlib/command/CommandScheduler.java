@@ -3,7 +3,7 @@ package org.victorrobotics.dtlib.command;
 import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.log.DTWatchdog;
-import org.victorrobotics.dtlib.subsystem.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -23,7 +23,7 @@ import edu.wpi.first.wpilibj.DriverStation;
  * The scheduler responsible for managing commands and subsystems.
  *
  * @see Command
- * @see DTSubsystem
+ * @see Subsystem
  */
 public final class CommandScheduler {
   private static final Set<Command> COMPOSED_COMMANDS  =
@@ -33,7 +33,7 @@ public final class CommandScheduler {
   private static final Set<Command> COMMANDS_TO_SCHEDULE = new LinkedHashSet<>();
   private static final Set<Command> COMMANDS_TO_CANCEL   = new LinkedHashSet<>();
 
-  private static final Map<DTSubsystem, Command> REQUIRING_COMMANDS = new LinkedHashMap<>();
+  private static final Map<Subsystem, Command> REQUIRING_COMMANDS = new LinkedHashMap<>();
 
   private static final List<Runnable> CALLBACKS = new LinkedList<>();
 
@@ -60,7 +60,7 @@ public final class CommandScheduler {
 
     CALLBACKS.forEach(Runnable::run);
 
-    for (DTSubsystem subsystem : REQUIRING_COMMANDS.keySet()) {
+    for (Subsystem subsystem : REQUIRING_COMMANDS.keySet()) {
       DTWatchdog.startEpoch();
       subsystem.periodic();
       DTWatchdog.addEpoch(subsystem.getName() + ".periodic()");
@@ -126,7 +126,7 @@ public final class CommandScheduler {
     COMMANDS_TO_CANCEL.forEach(CommandScheduler::cancel);
     COMMANDS_TO_CANCEL.clear();
 
-    for (Entry<DTSubsystem, Command> entry : REQUIRING_COMMANDS.entrySet()) {
+    for (Entry<Subsystem, Command> entry : REQUIRING_COMMANDS.entrySet()) {
       if (entry.getValue() == null) {
         schedule(entry.getKey()
                       .getDefaultCommand());
@@ -202,17 +202,17 @@ public final class CommandScheduler {
       return true;
     }
 
-    Set<DTSubsystem> requirements = command.getRequirements();
+    Set<Subsystem> requirements = command.getRequirements();
 
-    Map<DTSubsystem, Command> map = new LinkedHashMap<>(requirements.size());
-    for (DTSubsystem requirement : requirements) {
+    Map<Subsystem, Command> map = new LinkedHashMap<>(requirements.size());
+    for (Subsystem requirement : requirements) {
       Command requiring = getRequiringCommand(requirement);
       if (requiring == null) continue;
       if (!requiring.isInterruptible()) return false;
       map.put(requirement, requiring);
     }
 
-    for (Map.Entry<DTSubsystem, Command> entry : map.entrySet()) {
+    for (Map.Entry<Subsystem, Command> entry : map.entrySet()) {
       cancel(entry.getValue());
       REQUIRING_COMMANDS.put(entry.getKey(), command);
     }
@@ -302,14 +302,14 @@ public final class CommandScheduler {
 
   /**
    * Registers a subsystem with the scheduler. This is called automatically by
-   * the {@link DTSubsystem} constructor.
+   * the {@link Subsystem} constructor.
    *
    * @param subsystem
    *        the subsystem to register
    *
-   * @see DTSubsystem#DTSubsystem() DTSubsystem()
+   * @see Subsystem#DTSubsystem() DTSubsystem()
    */
-  public static void registerSubsystem(DTSubsystem subsystem) {
+  public static void registerSubsystem(Subsystem subsystem) {
     if (subsystem == null) {
       warn("Tried to register a null subsystem");
       return;
@@ -328,7 +328,7 @@ public final class CommandScheduler {
    * @return the command currently requiring the subsystem, or null if no
    *         command is currently scheduled
    */
-  public static Command getRequiringCommand(DTSubsystem subsystem) {
+  public static Command getRequiringCommand(Subsystem subsystem) {
     return REQUIRING_COMMANDS.get(subsystem);
   }
 

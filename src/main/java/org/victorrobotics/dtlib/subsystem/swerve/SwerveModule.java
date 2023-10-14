@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
-public interface DTSwerveModule {
+public interface SwerveModule {
   Translation2d getLocation();
 
   void setState(SwerveModuleState state);

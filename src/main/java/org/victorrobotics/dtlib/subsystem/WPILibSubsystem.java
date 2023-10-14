@@ -6,14 +6,14 @@ import org.victorrobotics.dtlib.command.WrapperCommand;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.wpi.first.wpilibj2.command.Subsystem;
+// import edu.wpi.first.wpilibj2.command.Subsystem;
 
-public class DTWrapperSubsystem extends DTSubsystem {
-  private static final Map<Subsystem, DTSubsystem> INSTANCES = new HashMap<>();
+public class WPILibSubsystem extends Subsystem {
+  private static final Map<edu.wpi.first.wpilibj2.command.Subsystem, WPILibSubsystem> INSTANCES = new HashMap<>();
 
-  private final Subsystem internal;
+  private final edu.wpi.first.wpilibj2.command.Subsystem internal;
 
-  protected DTWrapperSubsystem(Subsystem internal) {
+  protected WPILibSubsystem(edu.wpi.first.wpilibj2.command.Subsystem internal) {
     this.internal = internal;
   }
 
@@ -37,8 +37,8 @@ public class DTWrapperSubsystem extends DTSubsystem {
     }
   }
 
-  public static DTSubsystem of(Subsystem subsystem) {
-    return INSTANCES.computeIfAbsent(subsystem, DTWrapperSubsystem::new);
+  public static WPILibSubsystem of(edu.wpi.first.wpilibj2.command.Subsystem subsystem) {
+    return INSTANCES.computeIfAbsent(subsystem, WPILibSubsystem::new);
   }
 
   @Override

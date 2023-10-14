@@ -10,8 +10,8 @@ import java.util.Map;
 
 import edu.wpi.first.networktables.NetworkTable;
 
-public abstract class DTSubsystem implements AutoCloseable {
-  private static final Map<Class<? extends DTSubsystem>, Integer> SUBSYSTEM_COUUNTS =
+public abstract class Subsystem implements AutoCloseable {
+  private static final Map<Class<? extends Subsystem>, Integer> SUBSYSTEM_COUUNTS =
       new HashMap<>();
 
   private final NetworkTable dashboardTable;
@@ -19,7 +19,7 @@ public abstract class DTSubsystem implements AutoCloseable {
 
   private Command defaultCommand;
 
-  protected DTSubsystem() {
+  protected Subsystem() {
     identifier = getClass().getSimpleName() + "-"
         + SUBSYSTEM_COUUNTS.compute(getClass(), (c, i) -> i == null ? 1 : (i + 1));
     dashboardTable = DTDash.getMainTable()

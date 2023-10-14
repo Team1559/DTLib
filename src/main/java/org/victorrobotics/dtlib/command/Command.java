@@ -1,7 +1,7 @@
 package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.DTRobot;
-import org.victorrobotics.dtlib.subsystem.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -22,7 +22,7 @@ public interface Command {
    *
    * @return the set of required subsystems (may be empty)
    */
-  default Set<DTSubsystem> getRequirements() {
+  default Set<Subsystem> getRequirements() {
     return Set.of();
   }
 
@@ -121,7 +121,7 @@ public interface Command {
    *
    * @return whether the command requires the subsystem
    */
-  default boolean hasRequirement(DTSubsystem requirement) {
+  default boolean hasRequirement(Subsystem requirement) {
     return getRequirements().contains(requirement);
   }
 

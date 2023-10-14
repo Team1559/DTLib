@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.subsystem.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.function.BooleanSupplier;
 
@@ -40,7 +40,7 @@ public class FunctionalCommand extends CommandBase {
    * @see Command#isFinished()
    */
   public FunctionalCommand(Runnable init, Runnable execute, Runnable end, Runnable interrupt,
-                             BooleanSupplier isFinished, DTSubsystem... requirements) {
+                             BooleanSupplier isFinished, Subsystem... requirements) {
     addRequirements(requirements);
     this.init = init;
     this.execute = execute;

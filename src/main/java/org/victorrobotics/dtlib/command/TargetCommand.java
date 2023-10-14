@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.subsystem.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Set;
 
@@ -49,7 +49,7 @@ public class TargetCommand implements Command {
   }
 
   @Override
-  public Set<DTSubsystem> getRequirements() {
+  public Set<Subsystem> getRequirements() {
     return target.getRequirements();
   }
 

@@ -1,7 +1,7 @@
 package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.dtlib.subsystem.DTSubsystem;
+import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -74,7 +74,7 @@ public class DeadlineCommandGroup extends CommandBase {
     for (Command command : commands) {
       if (command == null) continue;
 
-      Set<DTSubsystem> commandReqs = command.getRequirements();
+      Set<Subsystem> commandReqs = command.getRequirements();
       if (!Collections.disjoint(getRequirements(), commandReqs)) {
         throw new DTIllegalArgumentException(command,
                                              "parallel commands may not share requirements");
