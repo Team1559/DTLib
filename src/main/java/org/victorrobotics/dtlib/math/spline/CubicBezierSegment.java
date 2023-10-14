@@ -4,6 +4,12 @@ import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
 import org.ejml.data.DMatrixRMaj;
 
+/**
+ * A single third-order Bézier curve segment, which has continuous acceleration
+ * and constant jolt. Comprised of two {@link CubicBezierControl}s, start and
+ * end, which can connect this segment to others and handle symmetric
+ * modifications.
+ */
 public class CubicBezierSegment extends SplineSegment {
   private static final double[][] POSITION_COEFFICIENTS = {
       // @format:off
@@ -51,10 +57,32 @@ public class CubicBezierSegment extends SplineSegment {
   private int                        startModCount;
   private int                        endModCount;
 
+  /**
+   * Constructs a CubicBezierSegment from the given points, with new controls at
+   * the start and end.
+   *
+   * @param p0
+   *        Bézier control point 0
+   * @param p1
+   *        Bézier control point 1
+   * @param p2
+   *        Bézier control point 2
+   * @param p3
+   *        Bézier control point 3
+   */
   protected CubicBezierSegment(Vector2D_R p0, Vector2D_R p1, Vector2D_R p2, Vector2D_R p3) {
     this(CubicBezierControl.createStart(p0, p1), CubicBezierControl.createEnd(p2, p3));
   }
 
+  /**
+   * Constructs a DTCubicBezierCurve backed by the specified start and end
+   * controls.
+   *
+   * @param startControl
+   *        the first two control points
+   * @param endControl
+   *        the last two control points
+   */
   protected CubicBezierSegment(CubicBezierControl startControl, CubicBezierControl endControl) {
     super(3);
     this.startControl = startControl;
