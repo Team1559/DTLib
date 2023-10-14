@@ -9,7 +9,7 @@ package org.victorrobotics.dtlib.command;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTRepeatCommand extends DTTargetCommand {
+public class RepeatCommand extends TargetCommand {
   private boolean wasSuccessful;
 
   /**
@@ -18,7 +18,7 @@ public class DTRepeatCommand extends DTTargetCommand {
    * @param target
    *        the command to repeat
    */
-  public DTRepeatCommand(DTCommand target) {
+  public RepeatCommand(Command target) {
     super(target);
   }
 

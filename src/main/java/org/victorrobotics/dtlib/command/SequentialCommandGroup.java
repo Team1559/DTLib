@@ -12,8 +12,8 @@ import java.util.List;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTSequentialCommandGroup extends DTCommandBase {
-  private final List<DTCommand> sequentialCommands;
+public class SequentialCommandGroup extends CommandBase {
+  private final List<Command> sequentialCommands;
 
   private boolean runsWhenDisabled = true;
 
@@ -26,7 +26,7 @@ public class DTSequentialCommandGroup extends DTCommandBase {
    * @param commands
    *        the commands to run, in sequence
    */
-  public DTSequentialCommandGroup(DTCommand... commands) {
+  public SequentialCommandGroup(Command... commands) {
     sequentialCommands = new ArrayList<>();
     cmdIndex = -1;
     addCommands(commands);
@@ -44,14 +44,14 @@ public class DTSequentialCommandGroup extends DTCommandBase {
    * @throws DTIllegalArgumentException
    *         if a given command is already part of another composition
    */
-  public void addCommands(DTCommand... commands) {
+  public void addCommands(Command... commands) {
     if (isScheduled()) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (commands == null || commands.length == 0) return;
 
-    DTCommandScheduler.registerComposed(commands);
+    CommandScheduler.registerComposed(commands);
 
-    for (DTCommand command : commands) {
+    for (Command command : commands) {
       if (command == null) continue;
 
       sequentialCommands.add(command);
@@ -74,7 +74,7 @@ public class DTSequentialCommandGroup extends DTCommandBase {
   public void execute() {
     if (sequentialCommands.isEmpty()) return;
 
-    DTCommand current = sequentialCommands.get(cmdIndex);
+    Command current = sequentialCommands.get(cmdIndex);
     current.execute();
 
     // Multiple commands can execute per loop cycle if they all finish
@@ -127,15 +127,15 @@ public class DTSequentialCommandGroup extends DTCommandBase {
   }
 
   @Override
-  public DTSequentialCommandGroup beforeStarting(DTCommand... before) {
+  public SequentialCommandGroup beforeStarting(Command... before) {
     if (cmdIndex != -1) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (before == null || before.length == 0) return this;
 
-    DTCommandScheduler.registerComposed(before);
+    CommandScheduler.registerComposed(before);
 
     int index = 0;
-    for (DTCommand command : before) {
+    for (Command command : before) {
       if (command == null) continue;
 
       sequentialCommands.add(index, command);
@@ -148,7 +148,7 @@ public class DTSequentialCommandGroup extends DTCommandBase {
   }
 
   @Override
-  public DTSequentialCommandGroup andThen(DTCommand... next) {
+  public SequentialCommandGroup andThen(Command... next) {
     addCommands(next);
     return this;
   }

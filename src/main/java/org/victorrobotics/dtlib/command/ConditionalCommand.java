@@ -13,12 +13,12 @@ import java.util.function.BooleanSupplier;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTConditionalCommand extends DTCommandBase {
-  private final DTCommand       trueCommand;
-  private final DTCommand       falseCommand;
+public class ConditionalCommand extends CommandBase {
+  private final Command       trueCommand;
+  private final Command       falseCommand;
   private final BooleanSupplier condition;
 
-  private DTCommand activeCommand;
+  private Command activeCommand;
 
   /**
    * Creates a new DTConditionalCommand
@@ -35,14 +35,14 @@ public class DTConditionalCommand extends DTCommandBase {
    * @throws NullPointerException
    *         if the condition is null
    */
-  public DTConditionalCommand(DTCommand onTrue, DTCommand onFalse, BooleanSupplier condition) {
-    trueCommand = onTrue != null ? onTrue : new DTNullCommand();
-    falseCommand = onFalse != null ? onFalse : new DTNullCommand();
+  public ConditionalCommand(Command onTrue, Command onFalse, BooleanSupplier condition) {
+    trueCommand = onTrue != null ? onTrue : new NullCommand();
+    falseCommand = onFalse != null ? onFalse : new NullCommand();
     this.condition = Objects.requireNonNull(condition);
 
     addRequirements(trueCommand.getRequirements());
     addRequirements(falseCommand.getRequirements());
-    DTCommandScheduler.registerComposed(onTrue, onFalse);
+    CommandScheduler.registerComposed(onTrue, onFalse);
 
     activeCommand = falseCommand;
   }

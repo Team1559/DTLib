@@ -10,12 +10,12 @@ import java.util.Set;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTTargetCommand implements DTCommand {
-  protected final DTCommand target;
+public class TargetCommand implements Command {
+  protected final Command target;
 
-  public DTTargetCommand(DTCommand target) {
+  public TargetCommand(Command target) {
     this.target = target;
-    DTCommandScheduler.registerComposed(target);
+    CommandScheduler.registerComposed(target);
   }
 
   @Override

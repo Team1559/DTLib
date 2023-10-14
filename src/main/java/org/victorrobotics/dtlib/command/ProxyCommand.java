@@ -8,8 +8,8 @@ package org.victorrobotics.dtlib.command;
  * The rules for command compositions do NOT apply, which must be taken into
  * consideration.
  */
-public class DTProxyCommand extends DTCommandBase {
-  private final DTCommand target;
+public class ProxyCommand extends CommandBase {
+  private final Command target;
 
   /**
    * Constructs a new DTProxyCommand.
@@ -17,7 +17,7 @@ public class DTProxyCommand extends DTCommandBase {
    * @param target
    *        the command to schedule upon execution
    */
-  public DTProxyCommand(DTCommand target) {
+  public ProxyCommand(Command target) {
     this.target = target;
   }
 
@@ -42,7 +42,7 @@ public class DTProxyCommand extends DTCommandBase {
   }
 
   @Override
-  public DTProxyCommand proxy() {
+  public ProxyCommand proxy() {
     return this;
   }
 }

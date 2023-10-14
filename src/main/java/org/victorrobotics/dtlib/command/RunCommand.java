@@ -6,7 +6,7 @@ import org.victorrobotics.dtlib.subsystem.DTSubsystem;
  * A command that continually runs a function every iteration of the scheduler
  * until it is cancelled.
  */
-public class DTRunCommand extends DTFunctionalCommand {
+public class RunCommand extends FunctionalCommand {
   /**
    * Constructs a new DTRunCommand.
    *
@@ -15,7 +15,7 @@ public class DTRunCommand extends DTFunctionalCommand {
    * @param requirements
    *        the required subsystems
    */
-  public DTRunCommand(Runnable toRun, DTSubsystem... requirements) {
+  public RunCommand(Runnable toRun, DTSubsystem... requirements) {
     super(() -> {}, toRun, () -> {}, () -> {}, () -> false, requirements);
   }
 }

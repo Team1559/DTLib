@@ -8,7 +8,7 @@ import java.util.function.BooleanSupplier;
  * composition it belongs to. Useful for delaying command execution or pausing
  * between actions.
  */
-public class DTWaitUntilCommand extends DTCommandBase {
+public class WaitUntilCommand extends CommandBase {
   private final BooleanSupplier condition;
 
   /**
@@ -17,7 +17,7 @@ public class DTWaitUntilCommand extends DTCommandBase {
    * @param condition
    *        the condition to wait for
    */
-  public DTWaitUntilCommand(BooleanSupplier condition) {
+  public WaitUntilCommand(BooleanSupplier condition) {
     this.condition = condition;
   }
 

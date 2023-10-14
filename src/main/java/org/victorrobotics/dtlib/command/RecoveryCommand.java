@@ -9,7 +9,7 @@ package org.victorrobotics.dtlib.command;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTRecoveryCommand extends DTTargetCommand {
+public class RecoveryCommand extends TargetCommand {
   private boolean threwException;
 
   /**
@@ -18,7 +18,7 @@ public class DTRecoveryCommand extends DTTargetCommand {
    * @param target
    *        the command to call
    */
-  public DTRecoveryCommand(DTCommand target) {
+  public RecoveryCommand(Command target) {
     super(target);
   }
 

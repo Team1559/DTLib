@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.controller;
 
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.CommandScheduler;
 
 import edu.wpi.first.hal.DriverStationJNI;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -39,7 +39,7 @@ public class DTController {
       povs = new int[povCount];
     }
 
-    DTCommandScheduler.bindCallback(this::refresh);
+    CommandScheduler.bindCallback(this::refresh);
     refresh();
   }
 

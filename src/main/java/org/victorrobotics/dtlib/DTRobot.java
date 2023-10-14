@@ -1,7 +1,7 @@
 package org.victorrobotics.dtlib;
 
-import org.victorrobotics.dtlib.command.DTCommand;
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.Command;
+import org.victorrobotics.dtlib.command.CommandScheduler;
 import org.victorrobotics.dtlib.log.DTLogRootNode;
 import org.victorrobotics.dtlib.log.DTLogWriter;
 import org.victorrobotics.dtlib.log.DTWatchdog;
@@ -78,7 +78,7 @@ public abstract class DTRobot {
 
   private Compressor compressor;
 
-  private DTCommand autoCommand;
+  private Command autoCommand;
 
   protected DTRobot() {
     logTreeRoot = new DTLogRootNode(this, getName());
@@ -112,12 +112,12 @@ public abstract class DTRobot {
    * @return the user-supplied command to be executed when autonomous mode is
    *         enabled
    */
-  protected abstract DTCommand getAutoCommand();
+  protected abstract Command getAutoCommand();
 
   /**
    * @return the user-supplied command to execute when the robot self-tests
    */
-  protected abstract DTCommand getSelfTestCommand();
+  protected abstract Command getSelfTestCommand();
 
   public String getName() {
     return getClass().getSimpleName();
@@ -133,9 +133,9 @@ public abstract class DTRobot {
       DTWatchdog.startEpoch();
       autoCommand = getAutoCommand();
       DTWatchdog.addEpoch("getAutoCommand()");
-      DTCommandScheduler.schedule(autoCommand);
+      CommandScheduler.schedule(autoCommand);
     } else if (previousMode == Mode.AUTO) {
-      DTCommandScheduler.cancel(autoCommand);
+      CommandScheduler.cancel(autoCommand);
     }
 
     if (compressor != null) {
@@ -230,7 +230,7 @@ public abstract class DTRobot {
       robot.periodic();
       DTWatchdog.addEpoch("periodic()");
 
-      DTCommandScheduler.run();
+      CommandScheduler.run();
       log(robot);
 
       if (DTWatchdog.isExpired()) {

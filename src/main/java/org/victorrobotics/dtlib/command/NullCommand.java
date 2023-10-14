@@ -4,11 +4,11 @@ package org.victorrobotics.dtlib.command;
  * A command that explicitly does nothing and finishes immediately. Useful for
  * temporarily disabling behavior or selective schedulling.
  */
-public class DTNullCommand extends DTInstantCommand {
+public class NullCommand extends InstantCommand {
   /**
    * Constructs a new DTNullCommand.
    */
-  public DTNullCommand() {
+  public NullCommand() {
     super(() -> {});
   }
 }

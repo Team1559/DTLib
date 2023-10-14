@@ -20,27 +20,27 @@ import java.util.WeakHashMap;
 import edu.wpi.first.wpilibj.DriverStation;
 
 /**
- * The scheduler responsible for managing DTCommands and DTSubsystems
+ * The scheduler responsible for managing commands and subsystems.
  *
- * @see DTCommand
+ * @see Command
  * @see DTSubsystem
  */
-public final class DTCommandScheduler {
-  private static final Set<DTCommand> COMPOSED_COMMANDS  =
+public final class CommandScheduler {
+  private static final Set<Command> COMPOSED_COMMANDS  =
       Collections.newSetFromMap(new WeakHashMap<>());
-  private static final Set<DTCommand> SCHEDULED_COMMANDS = new LinkedHashSet<>();
+  private static final Set<Command> SCHEDULED_COMMANDS = new LinkedHashSet<>();
 
-  private static final Set<DTCommand> COMMANDS_TO_SCHEDULE = new LinkedHashSet<>();
-  private static final Set<DTCommand> COMMANDS_TO_CANCEL   = new LinkedHashSet<>();
+  private static final Set<Command> COMMANDS_TO_SCHEDULE = new LinkedHashSet<>();
+  private static final Set<Command> COMMANDS_TO_CANCEL   = new LinkedHashSet<>();
 
-  private static final Map<DTSubsystem, DTCommand> REQUIRING_COMMANDS = new LinkedHashMap<>();
+  private static final Map<DTSubsystem, Command> REQUIRING_COMMANDS = new LinkedHashMap<>();
 
   private static final List<Runnable> CALLBACKS = new LinkedList<>();
 
   private static boolean schedulerDisabled;
   private static boolean isRunning;
 
-  private DTCommandScheduler() {}
+  private CommandScheduler() {}
 
   /**
    * Runs a single iteration of the scheduler. The execution occurs in the
@@ -72,8 +72,8 @@ public final class DTCommandScheduler {
     }
 
     isRunning = true;
-    for (Iterator<DTCommand> iterator = SCHEDULED_COMMANDS.iterator(); iterator.hasNext();) {
-      DTCommand command = iterator.next();
+    for (Iterator<Command> iterator = SCHEDULED_COMMANDS.iterator(); iterator.hasNext();) {
+      Command command = iterator.next();
 
       if (!DTRobot.getCurrentMode().isEnabled && !command.runsWhenDisabled()) {
         DTWatchdog.startEpoch();
@@ -120,13 +120,13 @@ public final class DTCommandScheduler {
     }
     isRunning = false;
 
-    COMMANDS_TO_SCHEDULE.forEach(DTCommandScheduler::schedule);
+    COMMANDS_TO_SCHEDULE.forEach(CommandScheduler::schedule);
     COMMANDS_TO_SCHEDULE.clear();
 
-    COMMANDS_TO_CANCEL.forEach(DTCommandScheduler::cancel);
+    COMMANDS_TO_CANCEL.forEach(CommandScheduler::cancel);
     COMMANDS_TO_CANCEL.clear();
 
-    for (Entry<DTSubsystem, DTCommand> entry : REQUIRING_COMMANDS.entrySet()) {
+    for (Entry<DTSubsystem, Command> entry : REQUIRING_COMMANDS.entrySet()) {
       if (entry.getValue() == null) {
         schedule(entry.getKey()
                       .getDefaultCommand());
@@ -144,7 +144,7 @@ public final class DTCommandScheduler {
    *
    * @return whether the command is currently scheduled
    */
-  public static boolean isScheduled(DTCommand command) {
+  public static boolean isScheduled(Command command) {
     return SCHEDULED_COMMANDS.contains(command);
   }
 
@@ -154,16 +154,16 @@ public final class DTCommandScheduler {
    * @param commands
    *        the commands to schedule. No-op on null.
    *
-   * @see #schedule(DTCommand)
+   * @see #schedule(Command)
    */
-  public static void schedule(DTCommand... commands) {
-    for (DTCommand command : commands) {
+  public static void schedule(Command... commands) {
+    for (Command command : commands) {
       schedule(command);
     }
   }
 
   /**
-   * Schedules a {@link DTCommand} for execution, provided all of the following
+   * Schedules a {@link Command} for execution, provided all of the following
    * conditions are met:
    * <ul>
    * <li>The command is not {@code null}</li>
@@ -177,12 +177,12 @@ public final class DTCommandScheduler {
    * @param command
    *        the command to schedule.
    *
-   * @see DTCommandScheduler#isScheduled(DTCommand)
-   * @see DTCommand#isInterruptible()
-   * @see DTCommand#runsWhenDisabled()
+   * @see CommandScheduler#isScheduled(Command)
+   * @see Command#isInterruptible()
+   * @see Command#runsWhenDisabled()
    * @see DTRobot#getCurrentMode()
    */
-  public static boolean schedule(DTCommand command) {
+  public static boolean schedule(Command command) {
     if (command == null) {
       warn("Tried to schedule a null command");
       return false;
@@ -204,15 +204,15 @@ public final class DTCommandScheduler {
 
     Set<DTSubsystem> requirements = command.getRequirements();
 
-    Map<DTSubsystem, DTCommand> map = new LinkedHashMap<>(requirements.size());
+    Map<DTSubsystem, Command> map = new LinkedHashMap<>(requirements.size());
     for (DTSubsystem requirement : requirements) {
-      DTCommand requiring = getRequiringCommand(requirement);
+      Command requiring = getRequiringCommand(requirement);
       if (requiring == null) continue;
       if (!requiring.isInterruptible()) return false;
       map.put(requirement, requiring);
     }
 
-    for (Map.Entry<DTSubsystem, DTCommand> entry : map.entrySet()) {
+    for (Map.Entry<DTSubsystem, Command> entry : map.entrySet()) {
       cancel(entry.getValue());
       REQUIRING_COMMANDS.put(entry.getKey(), command);
     }
@@ -235,10 +235,10 @@ public final class DTCommandScheduler {
    * @param commands
    *        the commands to cancel
    *
-   * @see #cancel(DTCommand)
+   * @see #cancel(Command)
    */
-  public static void cancel(DTCommand... commands) {
-    for (DTCommand command : commands) {
+  public static void cancel(Command... commands) {
+    for (Command command : commands) {
       cancel(command);
     }
   }
@@ -253,9 +253,9 @@ public final class DTCommandScheduler {
    * @param command
    *        the command to cancel
    *
-   * @see DTCommand#interrupt()
+   * @see Command#interrupt()
    */
-  public static void cancel(DTCommand command) {
+  public static void cancel(Command command) {
     if (command == null) {
       warn("Tried to cancel a null command");
       return;
@@ -285,9 +285,9 @@ public final class DTCommandScheduler {
       return;
     }
 
-    Iterator<DTCommand> itr = SCHEDULED_COMMANDS.iterator();
+    Iterator<Command> itr = SCHEDULED_COMMANDS.iterator();
     while (itr.hasNext()) {
-      DTCommand command = itr.next();
+      Command command = itr.next();
       itr.remove();
       command.getRequirements()
              .forEach(s -> REQUIRING_COMMANDS.put(s, null));
@@ -328,7 +328,7 @@ public final class DTCommandScheduler {
    * @return the command currently requiring the subsystem, or null if no
    *         command is currently scheduled
    */
-  public static DTCommand getRequiringCommand(DTSubsystem subsystem) {
+  public static Command getRequiringCommand(DTSubsystem subsystem) {
     return REQUIRING_COMMANDS.get(subsystem);
   }
 
@@ -352,7 +352,7 @@ public final class DTCommandScheduler {
    * @throws DTIllegalArgumentException
    *         if the given command has already been composed
    */
-  public static void registerComposed(DTCommand command) {
+  public static void registerComposed(Command command) {
     requireNotComposed(command);
     COMPOSED_COMMANDS.add(command);
   }
@@ -367,7 +367,7 @@ public final class DTCommandScheduler {
    * @throws DTIllegalArgumentException
    *         if the given commands have already been composed
    */
-  public static void registerComposed(DTCommand... commands) {
+  public static void registerComposed(Command... commands) {
     registerComposed(Set.of(commands));
   }
 
@@ -381,27 +381,27 @@ public final class DTCommandScheduler {
    * @throws DTIllegalArgumentException
    *         if the given commands have already been composed
    */
-  public static void registerComposed(Collection<DTCommand> commands) {
+  public static void registerComposed(Collection<Command> commands) {
     requireNotComposed(commands);
     COMPOSED_COMMANDS.addAll(commands);
 
   }
 
-  private static void requireNotComposed(DTCommand command) {
+  private static void requireNotComposed(Command command) {
     if (COMPOSED_COMMANDS.contains(command)) {
       throw new DTIllegalArgumentException(command,
                                            "composed commands may not be scheduled or added to another composition");
     }
   }
 
-  private static void requireNotComposed(Collection<DTCommand> commands) {
+  private static void requireNotComposed(Collection<Command> commands) {
     if (!Collections.disjoint(commands, COMPOSED_COMMANDS)) {
       throw new DTIllegalArgumentException(commands,
                                            "composed commands may not be scheduled or added to another composition");
     }
   }
 
-  private static void handleCommandException(DTCommand command, RuntimeException e) {
+  private static void handleCommandException(Command command, RuntimeException e) {
     warn(command.getName() + " threw an exception: " + e);
   }
 

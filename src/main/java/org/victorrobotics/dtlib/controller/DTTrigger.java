@@ -4,8 +4,8 @@
 
 package org.victorrobotics.dtlib.controller;
 
-import org.victorrobotics.dtlib.command.DTCommand;
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.Command;
+import org.victorrobotics.dtlib.command.CommandScheduler;
 
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
@@ -34,7 +34,7 @@ public class DTTrigger implements BooleanSupplier {
    */
   public DTTrigger(BooleanSupplier condition) {
     this.condition = Objects.requireNonNull(condition);
-    DTCommandScheduler.bindCallback(this::refresh);
+    CommandScheduler.bindCallback(this::refresh);
     refresh();
   }
 
@@ -55,9 +55,9 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to start
    */
-  public void onTrue(DTCommand command) {
+  public void onTrue(Command command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindCallback(() -> {
+    CommandScheduler.bindCallback(() -> {
       if (!previous && value) {
         command.schedule();
       }
@@ -71,9 +71,9 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to start
    */
-  public void onFalse(DTCommand command) {
+  public void onFalse(Command command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindCallback(() -> {
+    CommandScheduler.bindCallback(() -> {
       if (previous && !value) {
         command.schedule();
       }
@@ -91,9 +91,9 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to start
    */
-  public void whileTrue(DTCommand command) {
+  public void whileTrue(Command command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindCallback(() -> {
+    CommandScheduler.bindCallback(() -> {
       if (!previous && value) {
         command.schedule();
       } else if (previous && !value) {
@@ -113,9 +113,9 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to start
    */
-  public void whileFalse(DTCommand command) {
+  public void whileFalse(Command command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindCallback(() -> {
+    CommandScheduler.bindCallback(() -> {
       if (previous && !value) {
         command.schedule();
       } else if (!previous && value) {
@@ -130,9 +130,9 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to toggle
    */
-  public void toggleOnTrue(DTCommand command) {
+  public void toggleOnTrue(Command command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindCallback(() -> {
+    CommandScheduler.bindCallback(() -> {
       if (!previous && value) {
         if (command.isScheduled()) {
           command.cancel();
@@ -149,9 +149,9 @@ public class DTTrigger implements BooleanSupplier {
    * @param command
    *        the command to toggle
    */
-  public void toggleOnFalse(DTCommand command) {
+  public void toggleOnFalse(Command command) {
     Objects.requireNonNull(command);
-    DTCommandScheduler.bindCallback(() -> {
+    CommandScheduler.bindCallback(() -> {
       if (previous && !value) {
         if (command.isScheduled()) {
           command.cancel();

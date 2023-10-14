@@ -8,17 +8,17 @@ import java.util.Set;
 
 /**
  * A base class for commands, with integrated requirement management. Custom
- * commands may choose to subclass this class, or implement {@link DTCommand}
+ * commands may choose to subclass this class, or implement {@link Command}
  * directly.
  */
-public abstract class DTCommandBase implements DTCommand {
+public abstract class CommandBase implements Command {
   private final Set<DTSubsystem> requirements;
   private final Set<DTSubsystem> unmodifiableReqs;
 
   /**
    * Constructs a new DTCommandBase
    */
-  protected DTCommandBase() {
+  protected CommandBase() {
     requirements = new LinkedHashSet<>();
     unmodifiableReqs = Collections.unmodifiableSet(requirements);
   }

@@ -17,8 +17,8 @@ import java.util.Set;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTParallelCommandGroup extends DTCommandBase {
-  private final Map<DTCommand, Boolean> parallelCommands;
+public class ParallelCommandGroup extends CommandBase {
+  private final Map<Command, Boolean> parallelCommands;
 
   private boolean runsWhenDisabled = true;
   private boolean isInterruptible  = true;
@@ -31,7 +31,7 @@ public class DTParallelCommandGroup extends DTCommandBase {
    * @param commands
    *        the commands to run in parallel
    */
-  public DTParallelCommandGroup(DTCommand... commands) {
+  public ParallelCommandGroup(Command... commands) {
     parallelCommands = new LinkedHashMap<>();
     success = true;
     addCommands(commands);
@@ -50,14 +50,14 @@ public class DTParallelCommandGroup extends DTCommandBase {
    *         if a given command is already part of another composition, or if
    *         commands share requirements
    */
-  public void addCommands(DTCommand... commands) {
+  public void addCommands(Command... commands) {
     if (isScheduled()) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (commands == null || commands.length == 0) return;
 
-    DTCommandScheduler.registerComposed(commands);
+    CommandScheduler.registerComposed(commands);
 
-    for (DTCommand command : commands) {
+    for (Command command : commands) {
       if (command == null) continue;
 
       Set<DTSubsystem> commandReqs = command.getRequirements();
@@ -76,7 +76,7 @@ public class DTParallelCommandGroup extends DTCommandBase {
   @Override
   public void initialize() {
     success = true;
-    for (Entry<DTCommand, Boolean> commandEntry : parallelCommands.entrySet()) {
+    for (Entry<Command, Boolean> commandEntry : parallelCommands.entrySet()) {
       commandEntry.getKey()
                   .initialize();
       commandEntry.setValue(true);
@@ -85,10 +85,10 @@ public class DTParallelCommandGroup extends DTCommandBase {
 
   @Override
   public void execute() {
-    for (Entry<DTCommand, Boolean> commandEntry : parallelCommands.entrySet()) {
+    for (Entry<Command, Boolean> commandEntry : parallelCommands.entrySet()) {
       if (!commandEntry.getValue()) continue;
 
-      DTCommand command = commandEntry.getKey();
+      Command command = commandEntry.getKey();
       command.execute();
       if (command.isFinished()) {
         command.end();
@@ -103,9 +103,9 @@ public class DTParallelCommandGroup extends DTCommandBase {
 
   @Override
   public void interrupt() {
-    for (Entry<DTCommand, Boolean> commandEntry : parallelCommands.entrySet()) {
+    for (Entry<Command, Boolean> commandEntry : parallelCommands.entrySet()) {
       if (commandEntry.getValue()) {
-        DTCommand command = commandEntry.getKey();
+        Command command = commandEntry.getKey();
         command.interrupt();
         success &= command.wasSuccessful();
       }
@@ -133,7 +133,7 @@ public class DTParallelCommandGroup extends DTCommandBase {
   }
 
   @Override
-  public DTParallelCommandGroup alongWith(DTCommand... parallel) {
+  public ParallelCommandGroup alongWith(Command... parallel) {
     addCommands(parallel);
     return this;
   }

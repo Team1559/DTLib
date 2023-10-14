@@ -18,9 +18,9 @@ import java.util.Set;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTDeadlineCommandGroup extends DTCommandBase {
-  private final Map<DTCommand, Boolean> commands;
-  private final DTCommand               deadline;
+public class DeadlineCommandGroup extends CommandBase {
+  private final Map<Command, Boolean> commands;
+  private final Command               deadline;
 
   private boolean runsWhenDisabled = true;
   private boolean isInterruptible  = true;
@@ -39,11 +39,11 @@ public class DTDeadlineCommandGroup extends DTCommandBase {
    * @param commands
    *        the additional command(s) to be executed
    */
-  public DTDeadlineCommandGroup(DTCommand deadline, DTCommand... commands) {
+  public DeadlineCommandGroup(Command deadline, Command... commands) {
     this.deadline = Objects.requireNonNull(deadline);
     this.commands = new LinkedHashMap<>();
 
-    DTCommandScheduler.registerComposed(deadline);
+    CommandScheduler.registerComposed(deadline);
     addRequirements(deadline.getRequirements());
     runsWhenDisabled &= deadline.runsWhenDisabled();
     isInterruptible &= deadline.isInterruptible();
@@ -64,14 +64,14 @@ public class DTDeadlineCommandGroup extends DTCommandBase {
    *         if a given command is already part of another composition, or if
    *         commands share requirements
    */
-  public void addCommands(DTCommand... commands) {
+  public void addCommands(Command... commands) {
     if (isScheduled()) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (commands == null || commands.length == 0) return;
 
-    DTCommandScheduler.registerComposed(commands);
+    CommandScheduler.registerComposed(commands);
 
-    for (DTCommand command : commands) {
+    for (Command command : commands) {
       if (command == null) continue;
 
       Set<DTSubsystem> commandReqs = command.getRequirements();
@@ -91,7 +91,7 @@ public class DTDeadlineCommandGroup extends DTCommandBase {
   public void initialize() {
     isFinished = false;
     deadline.initialize();
-    for (Map.Entry<DTCommand, Boolean> commandEntry : commands.entrySet()) {
+    for (Map.Entry<Command, Boolean> commandEntry : commands.entrySet()) {
       commandEntry.getKey()
                   .initialize();
       commandEntry.setValue(true);
@@ -106,10 +106,10 @@ public class DTDeadlineCommandGroup extends DTCommandBase {
       isFinished = true;
     }
 
-    for (Map.Entry<DTCommand, Boolean> commandEntry : commands.entrySet()) {
+    for (Map.Entry<Command, Boolean> commandEntry : commands.entrySet()) {
       if (!commandEntry.getValue()) continue;
 
-      DTCommand command = commandEntry.getKey();
+      Command command = commandEntry.getKey();
       command.execute();
       if (command.isFinished()) {
         command.end();
@@ -126,7 +126,7 @@ public class DTDeadlineCommandGroup extends DTCommandBase {
 
   @Override
   public void end() {
-    for (Map.Entry<DTCommand, Boolean> commandEntry : commands.entrySet()) {
+    for (Map.Entry<Command, Boolean> commandEntry : commands.entrySet()) {
       if (commandEntry.getValue()) {
         commandEntry.getKey()
                     .interrupt();

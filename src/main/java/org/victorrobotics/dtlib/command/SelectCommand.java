@@ -13,11 +13,11 @@ import java.util.function.Supplier;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTSelectCommand<T> extends DTCommandBase {
-  private final Map<T, DTCommand> commandMap;
+public class SelectCommand<T> extends CommandBase {
+  private final Map<T, Command> commandMap;
   private final Supplier<T>       selector;
 
-  private DTCommand selectedCommand;
+  private Command selectedCommand;
 
   /**
    * Constructs a new DTSelectCommand.
@@ -28,7 +28,7 @@ public class DTSelectCommand<T> extends DTCommandBase {
    *        the key and command pairs to select from
    */
   @SafeVarargs
-  public DTSelectCommand(Supplier<T> selector, Map.Entry<T, DTCommand>... entries) {
+  public SelectCommand(Supplier<T> selector, Map.Entry<T, Command>... entries) {
     this(selector, Map.ofEntries(entries));
   }
 
@@ -40,10 +40,10 @@ public class DTSelectCommand<T> extends DTCommandBase {
    * @param commands
    *        the map of commands to select from
    */
-  public DTSelectCommand(Supplier<T> selector, Map<T, DTCommand> commands) {
+  public SelectCommand(Supplier<T> selector, Map<T, Command> commands) {
     this.commandMap = Objects.requireNonNull(commands);
     this.selector = Objects.requireNonNull(selector);
-    DTCommandScheduler.registerComposed(commands.values());
+    CommandScheduler.registerComposed(commands.values());
 
     commands.values()
             .forEach(command -> addRequirements(command.getRequirements()));
@@ -54,7 +54,7 @@ public class DTSelectCommand<T> extends DTCommandBase {
     T key = selector.get();
     selectedCommand = commandMap.get(key);
     if (selectedCommand == null) {
-      selectedCommand = new DTNullCommand();
+      selectedCommand = new NullCommand();
     }
 
     selectedCommand.initialize();

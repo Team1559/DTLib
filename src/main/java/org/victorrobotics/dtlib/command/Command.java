@@ -8,12 +8,12 @@ import java.util.function.BooleanSupplier;
 
 /**
  * A state machine representing a complete action to be performed. Commands are
- * run by the {@link DTCommandScheduler}, and can be composed into groups to
+ * run by the {@link CommandScheduler}, and can be composed into groups to
  * allow users to build complicated multistep actions without the need to write
  * complicated state machine logic themselves. By default, commands are run
  * sequentially from the main robot loop.
  */
-public interface DTCommand {
+public interface Command {
   /**
    * Specifies the subsystems used by the command. Two commands cannot use the
    * same subsystem at the same time. If another command is scheduled that
@@ -84,7 +84,7 @@ public interface DTCommand {
    * @return whether the command can be interrupted
    *
    * @see #interrupt()
-   * @see DTCommandScheduler#cancel(DTCommand)
+   * @see CommandScheduler#cancel(Command)
    */
   default boolean isInterruptible() {
     return true;
@@ -92,7 +92,7 @@ public interface DTCommand {
 
   /**
    * Whether the command is permitted to remain scheduled while the robot is
-   * disabled. Certain command types, for example {@link DTPrintCommand}, should
+   * disabled. Certain command types, for example {@link PrintCommand}, should
    * not be hindered based on enable status. If false (default), commands will
    * be canceled when the robot becomes disabled, and must be rescheduled to run
    * again.
@@ -133,10 +133,10 @@ public interface DTCommand {
    * DTCommandScheduler.schedule(this)
    * </pre>
    *
-   * @see DTCommandScheduler#schedule(DTCommand)
+   * @see CommandScheduler#schedule(Command)
    */
   default void schedule() {
-    DTCommandScheduler.schedule(this);
+    CommandScheduler.schedule(this);
   }
 
   /**
@@ -147,10 +147,10 @@ public interface DTCommand {
    * DTCommandScheduler.cancel(this)
    * </pre>
    *
-   * @see DTCommandScheduler#cancel(DTCommand)
+   * @see CommandScheduler#cancel(Command)
    */
   default void cancel() {
-    DTCommandScheduler.cancel(this);
+    CommandScheduler.cancel(this);
   }
 
   /**
@@ -164,7 +164,7 @@ public interface DTCommand {
    * @return whether the command is scheduled
    */
   default boolean isScheduled() {
-    return DTCommandScheduler.isScheduled(this);
+    return CommandScheduler.isScheduled(this);
   }
 
   /**
@@ -176,10 +176,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTRaceCommandGroup
+   * @see RaceCommandGroup
    */
-  default DTRaceCommandGroup withTimeout(double seconds) {
-    return raceWith(new DTWaitCommand(seconds));
+  default RaceCommandGroup withTimeout(double seconds) {
+    return raceWith(new WaitCommand(seconds));
   }
 
   /**
@@ -191,10 +191,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTRaceCommandGroup
+   * @see RaceCommandGroup
    */
-  default DTRaceCommandGroup until(BooleanSupplier condition) {
-    return raceWith(new DTWaitUntilCommand(condition));
+  default RaceCommandGroup until(BooleanSupplier condition) {
+    return raceWith(new WaitUntilCommand(condition));
   }
 
   /**
@@ -206,10 +206,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTConditionalCommand
+   * @see ConditionalCommand
    */
-  default DTConditionalCommand unless(BooleanSupplier condition) {
-    return new DTConditionalCommand(new DTNullCommand(), this, condition);
+  default ConditionalCommand unless(BooleanSupplier condition) {
+    return new ConditionalCommand(new NullCommand(), this, condition);
   }
 
   /**
@@ -221,10 +221,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTConditionalCommand
+   * @see ConditionalCommand
    */
-  default DTConditionalCommand onlyIf(BooleanSupplier condition) {
-    return new DTConditionalCommand(this, new DTNullCommand(), condition);
+  default ConditionalCommand onlyIf(BooleanSupplier condition) {
+    return new ConditionalCommand(this, new NullCommand(), condition);
   }
 
   /**
@@ -235,10 +235,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTSequentialCommandGroup
+   * @see SequentialCommandGroup
    */
-  default DTSequentialCommandGroup beforeStarting(DTCommand... before) {
-    return new DTSequentialCommandGroup(before).andThen(this);
+  default SequentialCommandGroup beforeStarting(Command... before) {
+    return new SequentialCommandGroup(before).andThen(this);
   }
 
   /**
@@ -249,10 +249,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTSequentialCommandGroup
+   * @see SequentialCommandGroup
    */
-  default DTSequentialCommandGroup andThen(DTCommand... next) {
-    return new DTSequentialCommandGroup(this).andThen(next);
+  default SequentialCommandGroup andThen(Command... next) {
+    return new SequentialCommandGroup(this).andThen(next);
   }
 
   /**
@@ -264,10 +264,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTParallelCommandGroup
+   * @see ParallelCommandGroup
    */
-  default DTParallelCommandGroup alongWith(DTCommand... parallel) {
-    return new DTParallelCommandGroup(this).alongWith(parallel);
+  default ParallelCommandGroup alongWith(Command... parallel) {
+    return new ParallelCommandGroup(this).alongWith(parallel);
   }
 
   /**
@@ -279,10 +279,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTRaceCommandGroup
+   * @see RaceCommandGroup
    */
-  default DTRaceCommandGroup raceWith(DTCommand... parallel) {
-    return new DTRaceCommandGroup(this).raceWith(parallel);
+  default RaceCommandGroup raceWith(Command... parallel) {
+    return new RaceCommandGroup(this).raceWith(parallel);
   }
 
   /**
@@ -291,10 +291,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTRepeatCommand
+   * @see RepeatCommand
    */
-  default DTRepeatCommand repeatedly() {
-    return new DTRepeatCommand(this);
+  default RepeatCommand repeatedly() {
+    return new RepeatCommand(this);
   }
 
   /**
@@ -307,10 +307,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTRepeatCommand
-   * @see DTRaceCommandGroup
+   * @see RepeatCommand
+   * @see RaceCommandGroup
    */
-  default DTRaceCommandGroup repeatUntil(BooleanSupplier condition) {
+  default RaceCommandGroup repeatUntil(BooleanSupplier condition) {
     return repeatedly().until(condition);
   }
 
@@ -320,10 +320,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTRecoveryCommand
+   * @see RecoveryCommand
    */
-  default DTRecoveryCommand catchExceptions() {
-    return new DTRecoveryCommand(this);
+  default RecoveryCommand catchExceptions() {
+    return new RecoveryCommand(this);
   }
 
   /**
@@ -332,10 +332,10 @@ public interface DTCommand {
    *
    * @return the decorated command
    *
-   * @see DTProxyCommand
+   * @see ProxyCommand
    */
-  default DTProxyCommand proxy() {
-    return new DTProxyCommand(this);
+  default ProxyCommand proxy() {
+    return new ProxyCommand(this);
   }
 
   /**
@@ -348,8 +348,8 @@ public interface DTCommand {
    *
    * @see #runsWhenDisabled()
    */
-  default DTTargetCommand overrideDisable(boolean runsWhenDisabled) {
-    return new DTTargetCommand(this) {
+  default TargetCommand overrideDisable(boolean runsWhenDisabled) {
+    return new TargetCommand(this) {
       @Override
       public boolean runsWhenDisabled() {
         return runsWhenDisabled;
@@ -367,8 +367,8 @@ public interface DTCommand {
    *
    * @see #isInterruptible()
    */
-  default DTTargetCommand overrideInterrupt(boolean isInterruptible) {
-    return new DTTargetCommand(this) {
+  default TargetCommand overrideInterrupt(boolean isInterruptible) {
+    return new TargetCommand(this) {
       @Override
       public boolean isInterruptible() {
         return isInterruptible;
@@ -387,8 +387,8 @@ public interface DTCommand {
    *
    * @see #getName()
    */
-  default DTTargetCommand withName(String name) {
-    return new DTTargetCommand(this) {
+  default TargetCommand withName(String name) {
+    return new TargetCommand(this) {
       @Override
       public String getName() {
         return name;

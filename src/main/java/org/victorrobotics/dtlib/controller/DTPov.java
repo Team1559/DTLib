@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.controller;
 
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.CommandScheduler;
 
 import java.util.function.IntSupplier;
 
@@ -13,7 +13,7 @@ public class DTPov implements IntSupplier {
 
   public DTPov(IntSupplier supplier) {
     this.supplier = supplier;
-    DTCommandScheduler.bindCallback(this::refresh);
+    CommandScheduler.bindCallback(this::refresh);
     refresh();
   }
 

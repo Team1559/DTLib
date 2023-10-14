@@ -1,6 +1,6 @@
 package org.victorrobotics.dtlib.controller;
 
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.CommandScheduler;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 
 import java.util.function.DoublePredicate;
@@ -14,7 +14,7 @@ public class DTAxis implements DoubleSupplier {
 
   public DTAxis(DoubleSupplier input) {
     this.supplier = input;
-    DTCommandScheduler.bindCallback(this::refresh);
+    CommandScheduler.bindCallback(this::refresh);
     refresh();
   }
 

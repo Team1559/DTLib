@@ -13,9 +13,9 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
  * A command that provides a compatibility layer between WPILib's commands and
  * DTLib's commands.
  *
- * @see DTTargetCommand
+ * @see TargetCommand
  */
-public class DTWrapperCommand extends DTCommandBase {
+public class WrapperCommand extends CommandBase {
   private final Command target;
 
   /**
@@ -24,7 +24,7 @@ public class DTWrapperCommand extends DTCommandBase {
    * @param command
    *        the command to execute
    */
-  public DTWrapperCommand(Command command) {
+  public WrapperCommand(Command command) {
     this.target = Objects.requireNonNull(command);
     CommandScheduler.getInstance()
                     .registerComposedCommands(command);

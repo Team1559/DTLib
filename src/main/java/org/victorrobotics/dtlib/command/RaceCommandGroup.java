@@ -17,8 +17,8 @@ import java.util.Set;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DTRaceCommandGroup extends DTCommandBase {
-  private final Map<DTCommand, Boolean> raceCommands;
+public class RaceCommandGroup extends CommandBase {
+  private final Map<Command, Boolean> raceCommands;
 
   private boolean runsWhenDisabled = true;
   private boolean isInterruptible  = true;
@@ -32,7 +32,7 @@ public class DTRaceCommandGroup extends DTCommandBase {
    * @param commands
    *        the commands to race in parallel
    */
-  public DTRaceCommandGroup(DTCommand... commands) {
+  public RaceCommandGroup(Command... commands) {
     raceCommands = new HashMap<>(commands.length);
     isFinished = true;
     addCommands(commands);
@@ -51,14 +51,14 @@ public class DTRaceCommandGroup extends DTCommandBase {
    *         if a given command is already part of another composition, or if
    *         commands share requirements
    */
-  public void addCommands(DTCommand... commands) {
+  public void addCommands(Command... commands) {
     if (isScheduled()) {
       throw new IllegalStateException("Cannot add commands to a running composition");
     } else if (commands == null || commands.length == 0) return;
 
-    DTCommandScheduler.registerComposed(commands);
+    CommandScheduler.registerComposed(commands);
 
-    for (DTCommand command : commands) {
+    for (Command command : commands) {
       if (command == null) continue;
 
       Set<DTSubsystem> commandReqs = command.getRequirements();
@@ -78,15 +78,15 @@ public class DTRaceCommandGroup extends DTCommandBase {
   public void initialize() {
     isFinished = false;
     success = true;
-    for (DTCommand command : raceCommands.keySet()) {
+    for (Command command : raceCommands.keySet()) {
       command.initialize();
     }
   }
 
   @Override
   public void execute() {
-    for (Entry<DTCommand, Boolean> commandEntry : raceCommands.entrySet()) {
-      DTCommand command = commandEntry.getKey();
+    for (Entry<Command, Boolean> commandEntry : raceCommands.entrySet()) {
+      Command command = commandEntry.getKey();
       command.execute();
       if (command.isFinished()) {
         command.end();
@@ -99,10 +99,10 @@ public class DTRaceCommandGroup extends DTCommandBase {
 
   @Override
   public void end() {
-    for (Entry<DTCommand, Boolean> commandEntry : raceCommands.entrySet()) {
+    for (Entry<Command, Boolean> commandEntry : raceCommands.entrySet()) {
       if (commandEntry.getValue()) continue;
 
-      DTCommand command = commandEntry.getKey();
+      Command command = commandEntry.getKey();
       command.interrupt();
       success &= command.wasSuccessful();
     }
@@ -129,7 +129,7 @@ public class DTRaceCommandGroup extends DTCommandBase {
   }
 
   @Override
-  public DTRaceCommandGroup raceWith(DTCommand... parallel) {
+  public RaceCommandGroup raceWith(Command... parallel) {
     addCommands(parallel);
     return this;
   }

@@ -1,7 +1,7 @@
 package org.victorrobotics.dtlib.subsystem;
 
-import org.victorrobotics.dtlib.command.DTCommand;
-import org.victorrobotics.dtlib.command.DTWrapperCommand;
+import org.victorrobotics.dtlib.command.Command;
+import org.victorrobotics.dtlib.command.WrapperCommand;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +28,8 @@ public class DTWrapperSubsystem extends DTSubsystem {
   }
 
   @Override
-  public void setDefaultCommand(DTCommand command) {
-    if (command instanceof DTWrapperCommand wrapper) {
+  public void setDefaultCommand(Command command) {
+    if (command instanceof WrapperCommand wrapper) {
       internal.setDefaultCommand(wrapper.getWPILibCommand());
       super.setDefaultCommand(command);
     } else {
