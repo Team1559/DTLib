@@ -22,7 +22,7 @@ import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-public class DTTalonFX implements Motor {
+public class Falcon500 implements Motor {
   private static final double MAX_VELOCITY_RPM = 6380;
   private static final double STALL_TORQUE     = 4.69;
 
@@ -38,15 +38,15 @@ public class DTTalonFX implements Motor {
   private String          firmware;
   private int             pidSlot;
 
-  public DTTalonFX(TalonFX motor) {
+  public Falcon500(TalonFX motor) {
     internal = motor;
   }
 
-  public DTTalonFX(int canID) {
+  public Falcon500(int canID) {
     this(new TalonFX(canID));
   }
 
-  public DTTalonFX(int canID, String canBus) {
+  public Falcon500(int canID, String canBus) {
     this(new TalonFX(canID, canBus));
   }
 

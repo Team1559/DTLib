@@ -4,12 +4,12 @@ import org.victorrobotics.dtlib.hardware.MotorFaults;
 
 import com.ctre.phoenix.motorcontrol.Faults;
 
-public class DTTalonFaults implements MotorFaults {
+public class TalonFaults implements MotorFaults {
   private static final int OTHER_FAULTS_MASK = 0b00111111_10000000;
 
   private final Faults internal;
 
-  DTTalonFaults(Faults internal) {
+  TalonFaults(Faults internal) {
     this.internal = internal;
   }
 

@@ -6,24 +6,23 @@ import org.victorrobotics.dtlib.hardware.AbsoluteEncoderFaults;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
-import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderFaults;
 
-public class DTCancoder implements AbsoluteEncoder {
-  private final CANCoder internal;
+public class CANCoder implements AbsoluteEncoder {
+  private final com.ctre.phoenix.sensors.CANCoder internal;
 
   private String firmware;
 
-  public DTCancoder(int canID) {
+  public CANCoder(int canID) {
     this(canID, "");
   }
 
-  public DTCancoder(int canID, String canBus) {
-    internal = new CANCoder(canID, canBus);
+  public CANCoder(int canID, String canBus) {
+    internal = new com.ctre.phoenix.sensors.CANCoder(canID, canBus);
   }
 
   @Override
-  public CANCoder getEncoderImpl() {
+  public com.ctre.phoenix.sensors.CANCoder getEncoderImpl() {
     return internal;
   }
 

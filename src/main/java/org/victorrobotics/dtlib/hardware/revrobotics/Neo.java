@@ -10,7 +10,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 
-public class DTNeo implements Motor {
+public class Neo implements Motor {
   private static final double MAX_VELOCITY_RPM = 5676;
   private static final double STALL_TORQUE     = 2.6;
 
@@ -20,7 +20,7 @@ public class DTNeo implements Motor {
 
   private int pidSlot;
 
-  public DTNeo(int canID) {
+  public Neo(int canID) {
     internal = new CANSparkMax(canID, MotorType.kBrushless);
     pidController = internal.getPIDController();
     encoder = internal.getEncoder();

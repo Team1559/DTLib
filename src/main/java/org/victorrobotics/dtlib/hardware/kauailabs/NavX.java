@@ -6,10 +6,10 @@ import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.kauailabs.navx.frc.AHRS;
 
-public class DTNavX implements IMU {
+public class NavX implements IMU {
   private final AHRS internal;
 
-  public DTNavX() {
+  public NavX() {
     internal = new AHRS();
     SendableRegistry.remove(internal);
   }

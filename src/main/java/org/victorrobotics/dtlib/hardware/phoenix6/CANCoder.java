@@ -11,7 +11,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
-public class DTCancoder implements AbsoluteEncoder {
+public class CANCoder implements AbsoluteEncoder {
   private final CANcoder internal;
 
   private StatusSignal<Double> position;
@@ -21,15 +21,15 @@ public class DTCancoder implements AbsoluteEncoder {
   private DTCANCoderFaults faults;
   private String           firmware;
 
-  public DTCancoder(CANcoder cancoder) {
+  public CANCoder(CANcoder cancoder) {
     internal = cancoder;
   }
 
-  public DTCancoder(int canID) {
+  public CANCoder(int canID) {
     this(new CANcoder(canID));
   }
 
-  public DTCancoder(int canID, String canBus) {
+  public CANCoder(int canID, String canBus) {
     this(new CANcoder(canID, canBus));
   }
 

@@ -10,16 +10,16 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
-public class DTTalonSRX implements Motor {
+public class TalonSRX implements Motor {
   private final WPI_TalonSRX internal;
 
   private String firmware;
 
-  public DTTalonSRX(WPI_TalonSRX motor) {
+  public TalonSRX(WPI_TalonSRX motor) {
     internal = motor;
   }
 
-  public DTTalonSRX(int canID) {
+  public TalonSRX(int canID) {
     this(new WPI_TalonSRX(canID));
   }
 
@@ -159,7 +159,7 @@ public class DTTalonSRX implements Motor {
   public MotorFaults getFaults() {
     Faults faults = new Faults();
     internal.getFaults(faults);
-    return new DTTalonFaults(faults);
+    return new TalonFaults(faults);
   }
 
   @Override

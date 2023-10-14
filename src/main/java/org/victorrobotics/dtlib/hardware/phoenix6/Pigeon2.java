@@ -3,10 +3,9 @@ package org.victorrobotics.dtlib.hardware.phoenix6;
 import org.victorrobotics.dtlib.hardware.IMU;
 
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.hardware.Pigeon2;
 
-public class DTPigeon2 implements IMU {
-  private final Pigeon2 internal;
+public class Pigeon2 implements IMU {
+  private final com.ctre.phoenix6.hardware.Pigeon2 internal;
 
   private StatusSignal<Double> yaw;
   private StatusSignal<Double> pitch;
@@ -23,20 +22,20 @@ public class DTPigeon2 implements IMU {
   private StatusSignal<Integer> faults;
   private String                firmware;
 
-  public DTPigeon2(int canID) {
-    this(new Pigeon2(canID));
+  public Pigeon2(int canID) {
+    this(new com.ctre.phoenix6.hardware.Pigeon2(canID));
   }
 
-  public DTPigeon2(int canID, String canBus) {
-    this(new Pigeon2(canID, canBus));
+  public Pigeon2(int canID, String canBus) {
+    this(new com.ctre.phoenix6.hardware.Pigeon2(canID, canBus));
   }
 
-  public DTPigeon2(Pigeon2 pigeon) {
+  public Pigeon2(com.ctre.phoenix6.hardware.Pigeon2 pigeon) {
     internal = pigeon;
   }
 
   @Override
-  public Pigeon2 getImuImpl() {
+  public com.ctre.phoenix6.hardware.Pigeon2 getImuImpl() {
     return internal;
   }
 

@@ -2,20 +2,20 @@ package org.victorrobotics.dtlib.hardware.phoenix5;
 
 import org.victorrobotics.dtlib.hardware.IMU;
 
-import com.ctre.phoenix.sensors.Pigeon2;
 import com.ctre.phoenix.sensors.Pigeon2_Faults;
 
-public class DTPigeon2 implements IMU {
-  private final Pigeon2 internal;
+public class Pigeon2 implements IMU {
+  private final com.ctre.phoenix.sensors.Pigeon2 internal;
+
   private final short[] rawAccelerations;
 
-  public DTPigeon2(int canID) {
-    internal = new Pigeon2(canID);
+  public Pigeon2(int canID) {
+    internal = new com.ctre.phoenix.sensors.Pigeon2(canID);
     rawAccelerations = new short[3];
   }
 
   @Override
-  public Pigeon2 getImuImpl() {
+  public com.ctre.phoenix.sensors.Pigeon2 getImuImpl() {
     return internal;
   }
 

@@ -14,7 +14,7 @@ import com.ctre.phoenix.motorcontrol.can.SlotConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
-public class DTTalonFX implements Motor {
+public class Falcon500 implements Motor {
   private static final double TICKS_PER_REV      = 2048;
   private static final double SECONDS_PER_MINUTE = 60;
   private static final double MAX_VELOCITY_RPM   = 6380;
@@ -24,11 +24,11 @@ public class DTTalonFX implements Motor {
 
   private String firmware;
 
-  public DTTalonFX(int canID) {
+  public Falcon500(int canID) {
     this(canID, "");
   }
 
-  public DTTalonFX(int canID, String canBus) {
+  public Falcon500(int canID, String canBus) {
     internal = new WPI_TalonFX(canID, canBus);
     SendableRegistry.remove(internal);
   }
@@ -158,10 +158,10 @@ public class DTTalonFX implements Motor {
     return internal.getSelectedSensorVelocity() / TICKS_PER_REV * 10 * SECONDS_PER_MINUTE;
   }
 
-  public DTTalonFaults getFaults() {
+  public TalonFaults getFaults() {
     Faults faults = new Faults();
     internal.getFaults(faults);
-    return new DTTalonFaults(faults);
+    return new TalonFaults(faults);
   }
 
   @Override
