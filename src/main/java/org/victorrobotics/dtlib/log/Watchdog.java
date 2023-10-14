@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import edu.wpi.first.wpilibj.DriverStation;
-
 public final class Watchdog {
   private static class Epoch {
     private final String label;
@@ -54,19 +52,12 @@ public final class Watchdog {
     epochStartTime = time;
   }
 
-  public static void printEpochs() {
-    printEpochs(str -> DriverStation.reportWarning(str, false));
-  }
-
-  public static void printEpochs(Consumer<String> action) {
+  public static void printEpochs(Consumer<String> header, Consumer<String> details) {
     long time = DTRobot.currentTimeMicros();
     if (time < minPrintTime) return;
     minPrintTime = time + MIN_PRINT_DELAY;
 
-    StringBuilder builder =
-        new StringBuilder("Loop Overrun: ").append((time - loopStartTime) * 1e-6)
-                                           .append(" seconds")
-                                           .append(System.lineSeparator());
+    header.accept("Loop Overrun: " + (time - loopStartTime) * 1e-6 + " seconds");
 
     int labelLength = 0;
     for (Epoch epoch : EPOCHS) {
@@ -75,11 +66,13 @@ public final class Watchdog {
         labelLength = len;
       }
     }
+
     String format = "%-" + labelLength + "s - %.6f%n";
+    StringBuilder builder = new StringBuilder();
     EPOCHS.forEach(epoch -> builder.append(String.format(format, epoch.label,
                                                          epoch.duration * 1e-6)));
 
-    action.accept(builder.toString());
+    details.accept(builder.toString());
   }
 
   public static void startEpoch() {

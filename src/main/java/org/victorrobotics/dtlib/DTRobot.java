@@ -2,11 +2,11 @@ package org.victorrobotics.dtlib;
 
 import org.victorrobotics.dtlib.command.Command;
 import org.victorrobotics.dtlib.command.CommandScheduler;
+import org.victorrobotics.dtlib.log.DTLog;
 import org.victorrobotics.dtlib.log.RootLogNode;
 import org.victorrobotics.dtlib.log.LogWriter;
 import org.victorrobotics.dtlib.log.Watchdog;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DSControlWord;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.RuntimeType;
 
 public abstract class DTRobot {
@@ -74,14 +75,21 @@ public abstract class DTRobot {
 
   private static AllianceStation alliance;
 
+  private final DTLog.Level   logLevel;
   private final RootLogNode logTreeRoot;
+
 
   private Compressor compressor;
 
   private Command autoCommand;
 
   protected DTRobot() {
-    logTreeRoot = new RootLogNode(this, getName());
+    this(DTLog.Level.INFO);
+  }
+
+  protected DTRobot(DTLog.Level logLevel) {
+    this.logLevel = logLevel;
+    logTreeRoot = new RootLogNode(this, logLevel);
   }
 
   /**
@@ -119,15 +127,16 @@ public abstract class DTRobot {
    */
   protected abstract Command getSelfTestCommand();
 
-  public String getName() {
+  /**
+   * @return the name of the robot
+   */
+  @Override
+  public String toString() {
     return getClass().getSimpleName();
   }
 
   private void runModeChange() {
     if (currentMode == previousMode) return;
-
-    LogWriter.getInstance()
-               .writeShort(currentMode.identifier);
 
     if (currentMode == Mode.AUTO) {
       Watchdog.startEpoch();
@@ -156,11 +165,9 @@ public abstract class DTRobot {
                  .writeShort(currentMode.identifier);
     }
     robot.logTreeRoot.log();
-    try {
-      LogWriter.getInstance()
-                 .flush();
-    } catch (IOException e) {}
-    Watchdog.addEpoch("DTLog");
+    LogWriter.getInstance()
+              .tryFlush();
+    Watchdog.addEpoch("log()");
   }
 
   protected final void configCompressor(int module, PneumaticsModuleType type) {
@@ -180,7 +187,6 @@ public abstract class DTRobot {
 
     startNTServer();
     refreshDriverStation();
-    LogWriter.init();
 
     DTRobot robot;
     try {
@@ -190,20 +196,28 @@ public abstract class DTRobot {
       if (cause != null) {
         t = cause;
       }
-      System.err.println("[DTLib] Unhandled exception thrown while instantiating robot:");
+      System.err.println("Unhandled exception thrown while instantiating robot:");
       t.printStackTrace();
       return;
     }
 
-    System.out.println("[DTLib] " + robot.getName() + " initializing...");
-    robot.init();
-    if (isSimulation()) {
-      robot.simulationInit();
+    LogWriter.init(robot.logLevel);
+    LogWriter.info(robot + " initializing...");
+
+    waitForNTServer();
+    try {
+      robot.init();
+      if (isSimulation()) {
+        robot.simulationInit();
+      }
+      robot.bindCommands();
+    } catch (Throwable t) {
+      LogWriter.logException(t, DTLog.Level.ERROR);
+      return;
     }
-    robot.bindCommands();
 
     DriverStationJNI.observeUserProgramStarting();
-    System.out.println("[DTLib] " + robot.getName() + " ready");
+    LogWriter.info(robot + " ready");
 
     int notifierHandle = NotifierJNI.initializeNotifier();
     NotifierJNI.setNotifierName(notifierHandle, "DTRobot");
@@ -228,13 +242,13 @@ public abstract class DTRobot {
       // Execute code for this cycle
       Watchdog.startEpoch();
       robot.periodic();
-      Watchdog.addEpoch("periodic()");
+      Watchdog.addEpoch(robot + ".periodic()");
 
       CommandScheduler.run();
       log(robot);
 
       if (Watchdog.isExpired()) {
-        Watchdog.printEpochs();
+        Watchdog.printEpochs(LogWriter::warn, LogWriter::info);
       }
     }
 
@@ -245,18 +259,23 @@ public abstract class DTRobot {
     String persistFilename = isReal() ? "/home/lvuser/networktables.json" : "networktables.json";
     NetworkTableInstance.getDefault()
                         .startServer(persistFilename);
+  }
+
+  private static void waitForNTServer() {
     int count = 0;
     while (NetworkTableInstance.getDefault()
                                .getNetworkMode()
                                .contains(NetworkMode.kStarting)) {
       count++;
       if (count >= 100) {
-        System.err.println("[DTLib] NT server start timeeout, continuing");
+        LogWriter.warn("NT server start timeeout, continuing");
         break;
       }
       try {
         Thread.sleep(10);
-      } catch (InterruptedException e) {}
+      } catch (InterruptedException e) {
+        LogWriter.logException(e, DTLog.Level.INFO);
+      }
     }
   }
 
@@ -294,6 +313,10 @@ public abstract class DTRobot {
     return alliance;
   }
 
+  public static int getTeamNumber() {
+    return RobotController.getTeamNumber();
+  }
+
   public static boolean isSimulation() {
     return IS_SIMULATION;
   }
@@ -307,7 +330,7 @@ public abstract class DTRobot {
   }
 
   public static long currentTimeMicros() {
-    return HALUtil.getFPGATime();
+    return RobotController.getFPGATime();
   }
 
   public static double currentTime() {

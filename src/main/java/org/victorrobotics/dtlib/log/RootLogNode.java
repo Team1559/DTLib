@@ -1,26 +1,32 @@
 package org.victorrobotics.dtlib.log;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Map;
 
 public class RootLogNode extends LogNode {
-  private final Object           root;
+  private static final Object NO_PARENT_OBJ = new Object();
+
   private final StaticLogVariable[] staticVars;
 
-  public RootLogNode(Object root, String name) {
-    super("", name, root.getClass(), dummy -> root);
-    this.root = root;
+  public RootLogNode(Object robot, DTLog.Level robotLogLevel) {
+    super("", robot.toString(), robot.getClass(), unused -> robot);
 
-    List<StaticLogVariable> staticVarList = new ArrayList<>();
-    init(new ArrayDeque<>(), new LinkedHashSet<>(), staticVarList);
-    staticVars = staticVarList.toArray(StaticLogVariable[]::new);
+    Map<StaticLogVariable, DTLog.Level> staticVarList = new LinkedHashMap<>();
+    init(new ArrayDeque<>(), new LinkedHashSet<>(), staticVarList, robotLogLevel);
+
+    staticVarList.entrySet()
+                 .removeIf(entry -> {
+                   DTLog.Level varLogLevel = entry.getValue();
+                   return varLogLevel.ordinal() < robotLogLevel.ordinal();
+                 });
+    staticVars = staticVarList.keySet()
+                              .toArray(StaticLogVariable[]::new);
   }
 
   public void log() {
-    // Input is discarded, but cannot be null
-    log(root);
+    log(NO_PARENT_OBJ);
     for (StaticLogVariable staticVar : staticVars) {
       staticVar.log();
     }

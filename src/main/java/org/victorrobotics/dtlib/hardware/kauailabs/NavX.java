@@ -16,11 +16,7 @@ public class NavX implements IMU {
 
   @Override
   public void close() {
-    try {
-      internal.close();
-    } catch (Exception e) {
-      // ignore
-    }
+    internal.close();
   }
 
   @Override
