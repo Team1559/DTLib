@@ -66,7 +66,6 @@ public interface Command {
    * a robot self test.
    *
    * @return whether the command completed without issue
-   *
    * @see DTRobot#getSelfTestCommand()
    */
   default boolean wasSuccessful() {
@@ -82,7 +81,6 @@ public interface Command {
    * By default, commands are interruptible unless overriden.
    *
    * @return whether the command can be interrupted
-   *
    * @see #interrupt()
    * @see CommandScheduler#cancel(Command)
    */
@@ -98,7 +96,6 @@ public interface Command {
    * again.
    *
    * @return whether the command runs when the robot is disabled
-   *
    * @see DTRobot#getCurrentMode()
    */
   default boolean runsWhenDisabled() {
@@ -116,9 +113,7 @@ public interface Command {
   }
 
   /**
-   * @param requirement
-   *        the subsystem to check
-   *
+   * @param requirement the subsystem to check
    * @return whether the command requires the subsystem
    */
   default boolean hasRequirement(Subsystem requirement) {
@@ -171,11 +166,8 @@ public interface Command {
    * Decorates this command with an interrupt timeout. If the timeout is past
    * before this command finishes, it will be interrupted.
    *
-   * @param seconds
-   *        the timeout duration
-   *
+   * @param seconds the timeout duration
    * @return the decorated command
-   *
    * @see RaceCommandGroup
    */
   default RaceCommandGroup withTimeout(double seconds) {
@@ -186,11 +178,8 @@ public interface Command {
    * Decorates this command with an interrupt condition. If the condition is met
    * before this command finishes, it will be interrupted.
    *
-   * @param condition
-   *        the interrupt condition
-   *
+   * @param condition the interrupt condition
    * @return the decorated command
-   *
    * @see RaceCommandGroup
    */
   default RaceCommandGroup until(BooleanSupplier condition) {
@@ -201,11 +190,8 @@ public interface Command {
    * If the condition is true when this command is scheduled, ignores this
    * command's execution.
    *
-   * @param condition
-   *        the condition
-   *
+   * @param condition the condition
    * @return the decorated command
-   *
    * @see ConditionalCommand
    */
   default ConditionalCommand unless(BooleanSupplier condition) {
@@ -216,11 +202,8 @@ public interface Command {
    * If the condition is false when this command is scheduled, ignores this
    * command's execution.
    *
-   * @param condition
-   *        the condition
-   *
+   * @param condition the condition
    * @return the decorated command
-   *
    * @see ConditionalCommand
    */
   default ConditionalCommand onlyIf(BooleanSupplier condition) {
@@ -230,11 +213,8 @@ public interface Command {
   /**
    * Decorates this command with commands to run before this command starts.
    *
-   * @param before
-   *        the command(s) to run before this one
-   *
+   * @param before the command(s) to run before this one
    * @return the decorated command
-   *
    * @see SequentialCommandGroup
    */
   default SequentialCommandGroup beforeStarting(Command... before) {
@@ -244,11 +224,8 @@ public interface Command {
   /**
    * Decorates this command with commands to be run afterwards in sequence.
    *
-   * @param next
-   *        the command(s) to run next
-   *
+   * @param next the command(s) to run next
    * @return the decorated command
-   *
    * @see SequentialCommandGroup
    */
   default SequentialCommandGroup andThen(Command... next) {
@@ -259,11 +236,8 @@ public interface Command {
    * Decorates this command with commands to run parallel to it, ending all
    * commands have ended.
    *
-   * @param parallel
-   *        the command(s) to run in parallel
-   *
+   * @param parallel the command(s) to run in parallel
    * @return the decorated command
-   *
    * @see ParallelCommandGroup
    */
   default ParallelCommandGroup alongWith(Command... parallel) {
@@ -274,11 +248,8 @@ public interface Command {
    * Decorates this command with commands to run parallel to it, ending when the
    * first command ends and interrupting the rest.
    *
-   * @param parallel
-   *        the command(s) to run in parallel
-   *
+   * @param parallel the command(s) to run in parallel
    * @return the decorated command
-   *
    * @see RaceCommandGroup
    */
   default RaceCommandGroup raceWith(Command... parallel) {
@@ -290,7 +261,6 @@ public interface Command {
    * forever until it is interrupted. It can still be canceled.
    *
    * @return the decorated command
-   *
    * @see RepeatCommand
    */
   default RepeatCommand repeatedly() {
@@ -302,11 +272,8 @@ public interface Command {
    * until the specified condition is met or it is interrupted. It can still be
    * canceled.
    *
-   * @param condition
-   *        the end condition
-   *
+   * @param condition the end condition
    * @return the decorated command
-   *
    * @see RepeatCommand
    * @see RaceCommandGroup
    */
@@ -319,7 +286,6 @@ public interface Command {
    * them to the scheduler.
    *
    * @return the decorated command
-   *
    * @see RecoveryCommand
    */
   default RecoveryCommand catchExceptions() {
@@ -331,7 +297,6 @@ public interface Command {
    * command's attributes (e.g. name, requirements) from its execution.
    *
    * @return the decorated command
-   *
    * @see ProxyCommand
    */
   default ProxyCommand proxy() {
@@ -341,11 +306,8 @@ public interface Command {
   /**
    * Decorates this command to have the given disabled behavior.
    *
-   * @param runsWhenDisabled
-   *        whether to run when the robot is disabled
-   *
+   * @param runsWhenDisabled whether to run when the robot is disabled
    * @return the decorated command
-   *
    * @see #runsWhenDisabled()
    */
   default TargetCommand overrideDisable(boolean runsWhenDisabled) {
@@ -360,11 +322,8 @@ public interface Command {
   /**
    * Decorates this command to have the given interruption behavior.
    *
-   * @param isInterruptible
-   *        whether the command should be interruptible
-   *
+   * @param isInterruptible whether the command should be interruptible
    * @return the decorated command
-   *
    * @see #isInterruptible()
    */
   default TargetCommand overrideInterrupt(boolean isInterruptible) {
@@ -380,11 +339,8 @@ public interface Command {
    * Decorates this command with a new name, which is useful for logging and
    * debugging.
    *
-   * @param name
-   *        the new name
-   *
+   * @param name the new name
    * @return the decorated command
-   *
    * @see #getName()
    */
   default TargetCommand withName(String name) {

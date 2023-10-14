@@ -28,8 +28,7 @@ public class RaceCommandGroup extends CommandBase {
   /**
    * Constructs a DTRaceCommandGroup
    *
-   * @param commands
-   *        the commands to race in parallel
+   * @param commands the commands to race in parallel
    */
   public RaceCommandGroup(Command... commands) {
     raceCommands = new HashMap<>(commands.length);
@@ -41,14 +40,10 @@ public class RaceCommandGroup extends CommandBase {
    * Adds additional commands to the composition, which will run parallel to
    * current commands.
    *
-   * @param commands
-   *        the commands to add
-   *
-   * @throws IllegalStateException
-   *         if the composition is currently scheduled
-   * @throws IllegalArgumentException
-   *         if a given command is already part of another composition, or if
-   *         commands share requirements
+   * @param commands the commands to add
+   * @throws IllegalStateException if the composition is currently scheduled
+   * @throws IllegalArgumentException if a given command is already part of
+   *         another composition, or if commands share requirements
    */
   public void addCommands(Command... commands) {
     if (isScheduled()) {

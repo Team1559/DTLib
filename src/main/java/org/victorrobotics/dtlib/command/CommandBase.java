@@ -33,8 +33,7 @@ public abstract class CommandBase implements Command {
    * exclusive access to their requirements while they are scheduled: if another
    * command tries to schedule at the same time, one of them will be canceled.
    *
-   * @param requirements
-   *        the subsystems to add
+   * @param requirements the subsystems to add
    */
   public final void addRequirements(Subsystem... requirements) {
     for (Subsystem subsystem : requirements) {
@@ -47,8 +46,7 @@ public abstract class CommandBase implements Command {
    * exclusive access to their requirements while they are scheduled: if another
    * command tries to schedule at the same time, one of them will be canceled.
    *
-   * @param requirements
-   *        the set of subsystems to add
+   * @param requirements the set of subsystems to add
    */
   public final void addRequirements(Set<Subsystem> requirements) {
     this.requirements.addAll(requirements);

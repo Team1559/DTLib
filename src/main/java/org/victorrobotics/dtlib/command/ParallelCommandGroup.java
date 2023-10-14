@@ -27,8 +27,7 @@ public class ParallelCommandGroup extends CommandBase {
   /**
    * Constructs a DTParallelCommandGroup
    *
-   * @param commands
-   *        the commands to run in parallel
+   * @param commands the commands to run in parallel
    */
   public ParallelCommandGroup(Command... commands) {
     parallelCommands = new LinkedHashMap<>();
@@ -40,14 +39,10 @@ public class ParallelCommandGroup extends CommandBase {
    * Adds additional commands to the composition, which will run parallel to
    * current commands.
    *
-   * @param commands
-   *        the commands to add
-   *
-   * @throws IllegalStateException
-   *         if the composition is currently scheduled
-   * @throws IllegalArgumentException
-   *         if a given command is already part of another composition, or if
-   *         commands share requirements
+   * @param commands the commands to add
+   * @throws IllegalStateException if the composition is currently scheduled
+   * @throws IllegalArgumentException if a given command is already part of
+   *         another composition, or if commands share requirements
    */
   public void addCommands(Command... commands) {
     if (isScheduled()) {

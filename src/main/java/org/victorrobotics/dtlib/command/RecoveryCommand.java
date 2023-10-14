@@ -18,8 +18,7 @@ public class RecoveryCommand extends TargetCommand {
   /**
    * Constructs a new DTRecoveryCommand.
    *
-   * @param target
-   *        the command to call
+   * @param target the command to call
    */
   public RecoveryCommand(Command target) {
     super(target);

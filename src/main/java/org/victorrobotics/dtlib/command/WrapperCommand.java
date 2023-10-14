@@ -21,8 +21,7 @@ public class WrapperCommand extends CommandBase {
   /**
    * Constructs a new DTWrapperCommand.
    *
-   * @param command
-   *        the command to execute
+   * @param command the command to execute
    */
   public WrapperCommand(Command command) {
     this.target = Objects.requireNonNull(command);
@@ -38,7 +37,6 @@ public class WrapperCommand extends CommandBase {
    * Gets the corresponding WPILib Command object.
    *
    * @return the WPILib command run by this command
-   *
    * @see Command
    */
   public Command getWPILibCommand() {

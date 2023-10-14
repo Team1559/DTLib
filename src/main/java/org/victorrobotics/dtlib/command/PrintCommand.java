@@ -10,8 +10,7 @@ public class PrintCommand extends InstantCommand {
   /**
    * Constructs a new DTPrintCommand.
    *
-   * @param message
-   *        the text to be printed
+   * @param message the text to be printed
    */
   public PrintCommand(String message) {
     super(() -> {

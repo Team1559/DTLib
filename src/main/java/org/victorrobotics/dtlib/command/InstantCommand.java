@@ -8,8 +8,7 @@ public class InstantCommand extends FunctionalCommand {
   /**
    * Constructs a new DTInstantCommand.
    *
-   * @param toRun
-   *        the action to be run
+   * @param toRun the action to be run
    */
   public InstantCommand(Runnable toRun) {
     super(toRun, () -> {}, () -> {}, () -> {}, () -> true);

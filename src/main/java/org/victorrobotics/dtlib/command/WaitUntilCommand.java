@@ -14,8 +14,7 @@ public class WaitUntilCommand extends CommandBase {
   /**
    * Constructs a new DTWaitUntilCommand.
    *
-   * @param condition
-   *        the condition to wait for
+   * @param condition the condition to wait for
    */
   public WaitUntilCommand(BooleanSupplier condition) {
     this.condition = condition;

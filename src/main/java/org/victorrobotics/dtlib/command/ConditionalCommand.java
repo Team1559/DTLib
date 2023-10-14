@@ -21,17 +21,12 @@ public class ConditionalCommand extends CommandBase {
   /**
    * Creates a new DTConditionalCommand
    *
-   * @param onTrue
-   *        the command to run if the condition is true
-   * @param onFalse
-   *        the command to run if the condition is false
-   * @param condition
-   *        the condition to determine which command to run
-   *
-   * @throws IllegalArgumentException
-   *         if either command is part of another composition
-   * @throws NullPointerException
-   *         if the condition is null
+   * @param onTrue the command to run if the condition is true
+   * @param onFalse the command to run if the condition is false
+   * @param condition the condition to determine which command to run
+   * @throws IllegalArgumentException if either command is part of another
+   *         composition
+   * @throws NullPointerException if the condition is null
    */
   public ConditionalCommand(Command onTrue, Command onFalse, BooleanSupplier condition) {
     trueCommand = onTrue != null ? onTrue : new NullCommand();

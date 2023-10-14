@@ -14,8 +14,7 @@ public class ProxyCommand extends CommandBase {
   /**
    * Constructs a new DTProxyCommand.
    *
-   * @param target
-   *        the command to schedule upon execution
+   * @param target the command to schedule upon execution
    */
   public ProxyCommand(Command target) {
     this.target = target;

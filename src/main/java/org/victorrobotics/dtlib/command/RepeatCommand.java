@@ -15,8 +15,7 @@ public class RepeatCommand extends TargetCommand {
   /**
    * Constructs a new DTRepeatCommand.
    *
-   * @param target
-   *        the command to repeat
+   * @param target the command to repeat
    */
   public RepeatCommand(Command target) {
     super(target);

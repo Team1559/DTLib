@@ -15,8 +15,7 @@ public class WaitCommand extends CommandBase {
   /**
    * Constructs a new DTWaitCommand.
    *
-   * @param duration
-   *        the time to wait (in seconds)
+   * @param duration the time to wait (in seconds)
    */
   public WaitCommand(double duration) {
     this.duration = (long) (duration * 1e6);

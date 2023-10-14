@@ -33,10 +33,8 @@ public class DeadlineCommandGroup extends CommandBase {
    * the composition is interrupted, only the commands still running will be
    * interrupted.
    *
-   * @param deadline
-   *        the command that determines when the composition ends
-   * @param commands
-   *        the additional command(s) to be executed
+   * @param deadline the command that determines when the composition ends
+   * @param commands the additional command(s) to be executed
    */
   public DeadlineCommandGroup(Command deadline, Command... commands) {
     this.deadline = Objects.requireNonNull(deadline);
@@ -54,14 +52,10 @@ public class DeadlineCommandGroup extends CommandBase {
    * Adds additional commands to the composition, which will run parallel to
    * existing commands.
    *
-   * @param commands
-   *        the commands to add
-   *
-   * @throws IllegalStateException
-   *         if the composition is currently scheduled
-   * @throws IllegalArgumentException
-   *         if a given command is already part of another composition, or if
-   *         commands share requirements
+   * @param commands the commands to add
+   * @throws IllegalStateException if the composition is currently scheduled
+   * @throws IllegalArgumentException if a given command is already part of
+   *         another composition, or if commands share requirements
    */
   public void addCommands(Command... commands) {
     if (isScheduled()) {

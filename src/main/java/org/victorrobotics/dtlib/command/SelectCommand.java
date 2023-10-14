@@ -22,10 +22,8 @@ public class SelectCommand<T> extends CommandBase {
   /**
    * Constructs a new DTSelectCommand.
    *
-   * @param selector
-   *        the key supplier that decides which command to execute
-   * @param entries
-   *        the key and command pairs to select from
+   * @param selector the key supplier that decides which command to execute
+   * @param entries the key and command pairs to select from
    */
   @SafeVarargs
   public SelectCommand(Supplier<T> selector, Map.Entry<T, Command>... entries) {
@@ -35,10 +33,8 @@ public class SelectCommand<T> extends CommandBase {
   /**
    * Constructs a new DTSelectCommand.
    *
-   * @param selector
-   *        the key supplier that decides which command to execute
-   * @param commands
-   *        the map of commands to select from
+   * @param selector the key supplier that decides which command to execute
+   * @param commands the map of commands to select from
    */
   public SelectCommand(Supplier<T> selector, Map<T, Command> commands) {
     this.commandMap = Objects.requireNonNull(commands);

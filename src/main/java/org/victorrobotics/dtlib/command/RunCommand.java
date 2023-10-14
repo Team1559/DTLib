@@ -10,10 +10,8 @@ public class RunCommand extends FunctionalCommand {
   /**
    * Constructs a new DTRunCommand.
    *
-   * @param toRun
-   *        the function to run on loop
-   * @param requirements
-   *        the required subsystems
+   * @param toRun the function to run on loop
+   * @param requirements the required subsystems
    */
   public RunCommand(Runnable toRun, Subsystem... requirements) {
     super(() -> {}, toRun, () -> {}, () -> {}, () -> false, requirements);

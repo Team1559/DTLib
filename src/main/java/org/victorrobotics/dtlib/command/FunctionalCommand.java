@@ -20,19 +20,12 @@ public class FunctionalCommand extends CommandBase {
   /**
    * Constructs a new DTFunctionalCommand.
    *
-   * @param init
-   *        the initialization function
-   * @param execute
-   *        the execution function
-   * @param end
-   *        the end function
-   * @param interrupt
-   *        the interrupt handler
-   * @param isFinished
-   *        the condition to end this command
-   * @param requirements
-   *        the subsystems required by this command
-   *
+   * @param init the initialization function
+   * @param execute the execution function
+   * @param end the end function
+   * @param interrupt the interrupt handler
+   * @param isFinished the condition to end this command
+   * @param requirements the subsystems required by this command
    * @see Command#initialize()
    * @see Command#execute()
    * @see Command#end()
