@@ -29,8 +29,7 @@ public class Trigger implements BooleanSupplier {
    * Polled by the default scheduler button
    * CommandScheduler.getInstance().getDefaultButtonLoop().
    *
-   * @param condition
-   *        the condition represented by this DTTrigger
+   * @param condition the condition represented by this DTTrigger
    */
   public Trigger(BooleanSupplier condition) {
     this.condition = Objects.requireNonNull(condition);
@@ -52,8 +51,7 @@ public class Trigger implements BooleanSupplier {
    * Starts the given command whenever the condition changes from `false` to
    * `true`.
    *
-   * @param command
-   *        the command to start
+   * @param command the command to start
    */
   public void onTrue(Command command) {
     Objects.requireNonNull(command);
@@ -68,8 +66,7 @@ public class Trigger implements BooleanSupplier {
    * Starts the given command whenever the condition changes from `true` to
    * `false`.
    *
-   * @param command
-   *        the command to start
+   * @param command the command to start
    */
   public void onFalse(Command command) {
     Objects.requireNonNull(command);
@@ -88,8 +85,7 @@ public class Trigger implements BooleanSupplier {
    * `true`. If the command should restart, see
    * {@link edu.wpi.first.wpilibj2.command.RepeatCommand}.
    *
-   * @param command
-   *        the command to start
+   * @param command the command to start
    */
   public void whileTrue(Command command) {
     Objects.requireNonNull(command);
@@ -110,8 +106,7 @@ public class Trigger implements BooleanSupplier {
    * `false`. If the command should restart, see
    * {@link edu.wpi.first.wpilibj2.command.RepeatCommand}.
    *
-   * @param command
-   *        the command to start
+   * @param command the command to start
    */
   public void whileFalse(Command command) {
     Objects.requireNonNull(command);
@@ -127,8 +122,7 @@ public class Trigger implements BooleanSupplier {
   /**
    * Toggles a command when the condition changes from `false` to `true`.
    *
-   * @param command
-   *        the command to toggle
+   * @param command the command to toggle
    */
   public void toggleOnTrue(Command command) {
     Objects.requireNonNull(command);
@@ -146,8 +140,7 @@ public class Trigger implements BooleanSupplier {
   /**
    * Toggles a command when the condition changes from `true` to `false`.
    *
-   * @param command
-   *        the command to toggle
+   * @param command the command to toggle
    */
   public void toggleOnFalse(Command command) {
     Objects.requireNonNull(command);
@@ -165,9 +158,7 @@ public class Trigger implements BooleanSupplier {
   /**
    * Composes two conditions with logical AND.
    *
-   * @param other
-   *        the condition to compose with
-   *
+   * @param other the condition to compose with
    * @return A DTTrigger which is active when both conditions are true.
    */
   public Trigger and(BooleanSupplier other) {
@@ -177,9 +168,7 @@ public class Trigger implements BooleanSupplier {
   /**
    * Composes two conditions with logical OR.
    *
-   * @param other
-   *        the condition to compose with
-   *
+   * @param other the condition to compose with
    * @return A DTTrigger which is active when either condition is active.
    */
   public Trigger or(BooleanSupplier other) {
@@ -189,11 +178,9 @@ public class Trigger implements BooleanSupplier {
   /**
    * Composes two conditions with logical XOR.
    *
-   * @param other
-   *        the condition to compose with
-   *
+   * @param other the condition to compose with
    * @return A DTTrigger which is active when either condition is true, but not
-   *         both.
+   *           both.
    */
   public Trigger xor(BooleanSupplier other) {
     return new Trigger(() -> value != other.getAsBoolean());
@@ -202,11 +189,9 @@ public class Trigger implements BooleanSupplier {
   /**
    * Composes two conditions with logical AND NOT.
    *
-   * @param other
-   *        the condition to compose with
-   *
+   * @param other the condition to compose with
    * @return A DTTrigger which is active when this condition is true and other
-   *         is not.
+   *           is not.
    */
   public Trigger unless(BooleanSupplier other) {
     return new Trigger(() -> value && !other.getAsBoolean());
@@ -226,9 +211,7 @@ public class Trigger implements BooleanSupplier {
    * active when this DTTrigger has been active for longer than the specified
    * period.
    *
-   * @param seconds
-   *        The debounce period.
-   *
+   * @param seconds The debounce period.
    * @return The debounced DTTrigger (rising edges debounced only)
    */
   public Trigger debounce(double seconds) {
@@ -240,11 +223,8 @@ public class Trigger implements BooleanSupplier {
    * active when this DTTrigger has been active for longer than the specified
    * period.
    *
-   * @param seconds
-   *        The debounce period.
-   * @param type
-   *        The debounce type.
-   *
+   * @param seconds The debounce period.
+   * @param type The debounce type.
    * @return The debounced DTTrigger.
    */
   public Trigger debounce(double seconds, Debouncer.DebounceType type) {

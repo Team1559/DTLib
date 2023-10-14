@@ -21,7 +21,7 @@ public interface AbsoluteEncoderFaults {
 
   /**
    * @return true if the device is reporting a fault that doesn't fall into a
-   *         category specified here.
+   *           category specified here.
    */
   boolean other();
 }
