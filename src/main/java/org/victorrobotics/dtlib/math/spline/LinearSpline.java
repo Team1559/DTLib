@@ -47,7 +47,7 @@ public class LinearSpline extends Spline<LinearInterpolationSegment> {
   }
 
   @Override
-  public LinearInterpolationSegment splitSegment(int index, double t) {
+  public LinearInterpolationControl splitSegment(int index, double t) {
     LinearInterpolationSegment toSplit = segments.get(index);
     Vector2D_R pos = toSplit.getPosition(t);
     LinearInterpolationControl splitControl = new LinearInterpolationControl(pos);
@@ -59,6 +59,6 @@ public class LinearSpline extends Spline<LinearInterpolationSegment> {
     segments.set(index, before);
     segments.add(index + 1, after);
 
-    return toSplit;
+    return splitControl;
   }
 }

@@ -47,7 +47,7 @@ public class QuinticBezierSpline extends Spline<QuinticBezierSegment> {
   }
 
   @Override
-  public QuinticBezierSegment splitSegment(int index, double t) {
+  public QuinticBezierControl splitSegment(int index, double t) {
     QuinticBezierSegment toSplit = segments.get(index);
     Vector2D_R p0 = toSplit.getPosition(t);
     Vector2D_R vel = toSplit.getVelocity(t);
@@ -65,6 +65,6 @@ public class QuinticBezierSpline extends Spline<QuinticBezierSegment> {
     segments.set(index, before);
     segments.add(index + 1, after);
 
-    return toSplit;
+    return splitControl;
   }
 }

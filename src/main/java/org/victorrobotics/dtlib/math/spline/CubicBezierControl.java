@@ -79,8 +79,7 @@ public class CubicBezierControl extends SplineControl {
   /**
    * Sets Bézier control point 0 to the given vector
    *
-   * @param p0
-   *        the new vector to set
+   * @param p0 the new vector to set
    */
   public void setP0(Vector2D_R p0) {
     this.p0.set(p0);
@@ -90,8 +89,7 @@ public class CubicBezierControl extends SplineControl {
   /**
    * Sets Bézier control point 1 to the given vector
    *
-   * @param p1
-   *        the new vector to set
+   * @param p1 the new vector to set
    */
   public void setP1(Vector2D_R p1) {
     this.p1.set(p1);
@@ -101,8 +99,7 @@ public class CubicBezierControl extends SplineControl {
   /**
    * Sets Bézier control point 2 to the given vector
    *
-   * @param p2
-   *        the new vector to set
+   * @param p2 the new vector to set
    */
   public void setP2(Vector2D_R p2) {
     this.p1.set(p0.clone()
@@ -114,8 +111,7 @@ public class CubicBezierControl extends SplineControl {
   /**
    * Sets Bézier control point 3 to the given vector
    *
-   * @param p3
-   *        the new vector to set
+   * @param p3 the new vector to set
    */
   public void setP3(Vector2D_R p3) {
     this.p0.set(p3);
@@ -126,11 +122,8 @@ public class CubicBezierControl extends SplineControl {
    * Constructs a CubicBezierControl using the two points at the beginning of
    * a curve segment.
    *
-   * @param p0
-   *        Bézier control point 0
-   * @param p1
-   *        Bézier control point 1
-   *
+   * @param p0 Bézier control point 0
+   * @param p1 Bézier control point 1
    * @return the control points
    */
   public static CubicBezierControl createStart(Vector2D_R p0, Vector2D_R p1) {
@@ -141,11 +134,8 @@ public class CubicBezierControl extends SplineControl {
    * Constructs a CubicBezierControl using the two points at the end of a
    * curve segment.
    *
-   * @param p2
-   *        Bézier control point 2
-   * @param p3
-   *        Bézier control point 3
-   *
+   * @param p2 Bézier control point 2
+   * @param p3 Bézier control point 3
    * @return the control points
    */
   public static CubicBezierControl createEnd(Vector2D_R p2, Vector2D_R p3) {

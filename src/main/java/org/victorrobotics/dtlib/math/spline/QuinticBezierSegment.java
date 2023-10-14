@@ -121,7 +121,7 @@ public class QuinticBezierSegment extends SplineSegment {
   }
 
   @Override
-  protected void fillControlMatrix() {
+  protected void fillControlMatrix(DMatrixRMaj controlMatrix) {
     int startMod = startControl.getModCount();
     if (startMod != startModCount) {
       startModCount = startMod;
