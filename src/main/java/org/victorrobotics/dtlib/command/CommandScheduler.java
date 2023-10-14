@@ -307,7 +307,7 @@ public final class CommandScheduler {
    * @param subsystem
    *        the subsystem to register
    *
-   * @see Subsystem#DTSubsystem() DTSubsystem()
+   * @see Subsystem#Subsystem() the Subsystem constructor
    */
   public static void registerSubsystem(Subsystem subsystem) {
     if (subsystem == null) {
