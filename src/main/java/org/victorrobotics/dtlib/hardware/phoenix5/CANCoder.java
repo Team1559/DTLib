@@ -72,11 +72,6 @@ public class CANCoder implements AbsoluteEncoder {
   }
 
   @Override
-  public void close() {
-    // nothing here
-  }
-
-  @Override
   public Rotation2d getVelocity() {
     return Rotation2d.fromDegrees(internal.getVelocity());
   }

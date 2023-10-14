@@ -40,11 +40,6 @@ public class Pigeon2 implements IMU {
   }
 
   @Override
-  public void close() {
-    internal.close();
-  }
-
-  @Override
   public double getYaw() {
     if (yaw == null) {
       yaw = internal.getYaw();

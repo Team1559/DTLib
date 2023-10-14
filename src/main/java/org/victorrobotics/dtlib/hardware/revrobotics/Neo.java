@@ -26,11 +26,6 @@ public class Neo implements Motor {
   }
 
   @Override
-  public void close() {
-    internal.close();
-  }
-
-  @Override
   public CANSparkMax getMotorImpl() {
     return internal;
   }
