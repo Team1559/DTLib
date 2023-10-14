@@ -1,5 +1,8 @@
 package org.victorrobotics.dtlib.command;
 
+import org.victorrobotics.dtlib.log.DTLog;
+import org.victorrobotics.dtlib.log.DTLogWriter;
+
 /**
  * A command that runs another command, but catches runtime exceptions instead
  * of propogating them back to the scheduler. If an exception is thrown, the
@@ -29,6 +32,7 @@ public class DTRecoveryCommand extends DTTargetCommand {
     try {
       target.initialize();
     } catch (RuntimeException e) {
+      DTLogWriter.logException(e, DTLog.Level.DEBUG);
       threwException = true;
     }
   }
@@ -42,6 +46,7 @@ public class DTRecoveryCommand extends DTTargetCommand {
     try {
       target.execute();
     } catch (RuntimeException e) {
+      DTLogWriter.logException(e, DTLog.Level.DEBUG);
       threwException = true;
     }
   }
@@ -51,13 +56,16 @@ public class DTRecoveryCommand extends DTTargetCommand {
     if (threwException) {
       try {
         target.interrupt();
-      } catch (RuntimeException e) {}
+      } catch (RuntimeException e) {
+        DTLogWriter.logException(e, DTLog.Level.DEBUG);
+      }
       return;
     }
 
     try {
       target.end();
     } catch (RuntimeException e) {
+      DTLogWriter.logException(e, DTLog.Level.DEBUG);
       threwException = true;
     }
   }
@@ -67,6 +75,7 @@ public class DTRecoveryCommand extends DTTargetCommand {
     try {
       target.interrupt();
     } catch (RuntimeException e) {
+      DTLogWriter.logException(e, DTLog.Level.DEBUG);
       threwException = true;
     }
   }
@@ -76,6 +85,7 @@ public class DTRecoveryCommand extends DTTargetCommand {
     try {
       return threwException || target.isFinished();
     } catch (RuntimeException e) {
+      DTLogWriter.logException(e, DTLog.Level.DEBUG);
       threwException = true;
       return true;
     }
@@ -86,6 +96,7 @@ public class DTRecoveryCommand extends DTTargetCommand {
     try {
       return !threwException && target.wasSuccessful();
     } catch (RuntimeException e) {
+      DTLogWriter.logException(e, DTLog.Level.DEBUG);
       threwException = true;
       return false;
     }

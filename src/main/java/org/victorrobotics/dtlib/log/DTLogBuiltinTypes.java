@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.geometry.Twist3d;
 
+@SuppressWarnings("java:S1602") // "Useless" curly braces around lambdas
 public final class DTLogBuiltinTypes {
   private DTLogBuiltinTypes() {}
 

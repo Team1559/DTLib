@@ -157,7 +157,7 @@ Each log file begins with a 32-byte header containing metadata about the log. Th
     - 1 byte for the major version
     - 1 byte for the minor version
 4. Team Number
-    - 2 bytes for the team number, or `0xFFFF` if unknown
+    - 2 bytes for the team number, or 0 if unknown
 5. Timestamp
     - A 6-byte integer of the current system time since the Unix epoch in milliseconds
 6. Checksum

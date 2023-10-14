@@ -1,38 +1,38 @@
 package org.victorrobotics.dtlib.log;
 
-import org.victorrobotics.dtlib.DTLibInfo;
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 
+import org.victorrobotics.dtlib.DTLibInfo;
+import org.victorrobotics.dtlib.DTRobot;
+import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
+
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.Flushable;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.BitSet;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
 
 public final class DTLogWriter implements Closeable, Flushable {
+  public static final String LOG_PATH_SEPARATOR = "/";
+
   private static final DateTimeFormatter TIME_FORMATTER = // UTC
       DateTimeFormatter.ofPattern("uuuu-MM-dd_HH-mm-ss")
                        .withZone(ZoneId.of("Z"));
@@ -40,16 +40,16 @@ public final class DTLogWriter implements Closeable, Flushable {
   private static final String LOG_DIRECTORY      = "/dev/sda/logs";
   private static final byte[] HEADER_MAGIC_BYTES = "DTLib Logger".getBytes(StandardCharsets.UTF_8);
 
-  // @format:off
+  @SuppressWarnings("java:S1764") // XOR identical elements
   private static final int HEADER_MAGIC_XOR =
+  // @format:off
       (('D' ^ 'b' ^ 'g') << 24) |
       (('T' ^ ' ' ^ 'g') << 16) |
       (('L' ^ 'L' ^ 'e') <<  8) |
       (('i' ^ 'o' ^ 'r') <<  0);
   // @format:on
 
-  private static final int BUFFER_SIZE         = 65536;
-  private static final int UNKNOWN_TEAM_NUMBER = 0xFFFF;
+  private static final int BUFFER_SIZE_BYTES = 64 * 1024;
 
   private static DTLogWriter INSTANCE;
 
@@ -63,31 +63,34 @@ public final class DTLogWriter implements Closeable, Flushable {
   private final FileChannel channel;
   private final ByteBuffer  buffer;
   private final BitSet      bitSet;
+  private final DTLog.Level level;
 
   private long lastTimestamp;
   private int  nextVarHandle = 0x0100;
 
-  private DTLogWriter() throws IOException {
+  private DTLogWriter(DTLog.Level logLevel) throws IOException {
     Instant now = Clock.systemUTC()
                        .instant();
-    lastTimestamp = RobotController.getFPGATime() / 1_000;
+    lastTimestamp = DTRobot.currentTimeMicros() / 1000;
     long startTimeMillis = now.toEpochMilli();
     String name = "LOG_" + TIME_FORMATTER.format(now) + ".dtlog";
 
     file = new File(LOG_DIRECTORY, name);
     channel = FileChannel.open(file.toPath(), WRITE, CREATE, TRUNCATE_EXISTING);
-    buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
+    buffer = ByteBuffer.allocateDirect(BUFFER_SIZE_BYTES);
     bitSet = new BitSet();
+    level = logLevel;
 
     writeBytes(HEADER_MAGIC_BYTES);
     int checksum = HEADER_MAGIC_XOR;
 
-    int dtlibVersion = (DTLibInfo.Version.YEAR << 16) | (DTLibInfo.Version.MAJOR << 8)
-        | DTLibInfo.Version.MINOR;
+    int dtlibVersion =
+        (DTLibInfo.Version.YEAR << 16) | (DTLibInfo.Version.MAJOR << 8) | DTLibInfo.Version.MINOR;
     writeInt(dtlibVersion);
     checksum ^= dtlibVersion;
 
-    String[] wpilibVersions = WPILibVersion.Version.split("\\.");
+    String[] wpilibVersions = WPILibVersion.Version.substring(0, WPILibVersion.Version.indexOf('-'))
+                                                   .split("\\.");
     int wpilibYear = Integer.parseInt(wpilibVersions[0]);
     int wpilibMajor = Integer.parseInt(wpilibVersions[1]);
     int wpilibMinor = Integer.parseInt(wpilibVersions[2]);
@@ -95,12 +98,12 @@ public final class DTLogWriter implements Closeable, Flushable {
     writeInt(wpilibVersion);
     checksum ^= wpilibVersion;
 
-    int team = getTeamNumber();
-    writeLong(((long) team << 48) | startTimeMillis);
+    long team = DTRobot.getTeamNumber();
+    writeLong((team << 48) | startTimeMillis);
     checksum ^= team << 16;
     checksum ^= (int) ((startTimeMillis >> 32) | startTimeMillis);
-
     writeInt(checksum);
+
     flush();
   }
 
@@ -146,6 +149,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
+  @SuppressWarnings("java:S2301") // boolean "flag" as method parameter
   public DTLogWriter writeBoolean(boolean b) {
     checkBufferRemaining(1);
     buffer.put((byte) (b ? 1 : 0));
@@ -315,13 +319,17 @@ public final class DTLogWriter implements Closeable, Flushable {
   }
 
   public boolean tryFlush() {
+    int bufferPos = buffer.position();
+    buffer.flip();
     try {
-      flush();
-      return true;
+      channel.write(buffer);
     } catch (IOException e) {
-      // TODO: don't ignore this
+      buffer.position(bufferPos);
+      buffer.limit(buffer.capacity());
       return false;
     }
+    buffer.compact();
+    return true;
   }
 
   private boolean checkBufferRemaining(int newDataLength) {
@@ -350,14 +358,12 @@ public final class DTLogWriter implements Closeable, Flushable {
   }
 
   public boolean logNewTimestamp() {
-    long newTime = RobotController.getFPGATime() / 1000;
-    long diff = newTime - lastTimestamp;
-    if (diff <= 0) {
-      // Same time, no change
-      return false;
-    }
-    lastTimestamp = newTime;
+    long newTime = DTRobot.currentTimeMicros() / 1000;
 
+    long diff = newTime - lastTimestamp;
+    if (diff <= 0) return false;
+
+    lastTimestamp = newTime;
     if (diff <= 0xFFFF) {
       // write increment, maximum of 65.535 seconds
       INSTANCE.writeInt((0x01 << 16) | (int) diff);
@@ -368,77 +374,91 @@ public final class DTLogWriter implements Closeable, Flushable {
     return true;
   }
 
-  public void logMessage(String msg, DTLog.Level level) {
-    writeShort(level.typeID);
+  private boolean logMessage(String msg, DTLog.Level logLevel) {
+    if (logLevel.ordinal() < level.ordinal()) {
+      return false;
+    }
+
+    if (logLevel == DTLog.Level.ERROR) {
+      DriverStation.reportError(msg, false);
+    } else if (logLevel == DTLog.Level.WARN) {
+      DriverStation.reportWarning(msg, false);
+    } else {
+      System.out.println(msg);
+    }
+
+    writeShort(logLevel.typeID);
     writeStringUTF8(msg);
+    return true;
   }
 
-  public static void init() {
+  public static boolean debug(String msg) {
+    return getInstance().logMessage(msg, DTLog.Level.DEBUG);
+  }
+
+  public static boolean info(String msg) {
+    return getInstance().logMessage(msg, DTLog.Level.INFO);
+  }
+
+  public static boolean warn(String msg) {
+    return getInstance().logMessage(msg, DTLog.Level.WARN);
+  }
+
+  public static boolean error(String msg) {
+    return getInstance().logMessage(msg, DTLog.Level.ERROR);
+  }
+
+  private boolean logMessage(Supplier<String> msgSupplier, DTLog.Level logLevel) {
+    if (logLevel.ordinal() < level.ordinal()) {
+      return false;
+    }
+
+    return logMessage(msgSupplier.get(), logLevel);
+  }
+
+  public static boolean debug(Supplier<String> msgSupplier) {
+    return getInstance().logMessage(msgSupplier, DTLog.Level.DEBUG);
+  }
+
+  public static boolean info(Supplier<String> msgSupplier) {
+    return getInstance().logMessage(msgSupplier, DTLog.Level.INFO);
+  }
+
+  public static boolean warn(Supplier<String> msgSupplier) {
+    return getInstance().logMessage(msgSupplier, DTLog.Level.WARN);
+  }
+
+  public static boolean error(Supplier<String> msgSupplier) {
+    return getInstance().logMessage(msgSupplier, DTLog.Level.ERROR);
+  }
+
+  public static void logException(Throwable exception, DTLog.Level logLevel) {
+    getInstance().logMessage(exception.toString(), logLevel);
+    debug(() -> {
+      ByteArrayOutputStream debugOutput = new ByteArrayOutputStream();
+      PrintStream debugPrinter = new PrintStream(debugOutput);
+      exception.printStackTrace(debugPrinter);
+      String str = new String(debugOutput.toByteArray());
+      return str.substring(str.indexOf('\t'));
+    });
+  }
+
+  public static void init(DTLog.Level logLevel) {
     while (true) {
+      if (RobotController.isSystemTimeValid()) {
+        try {
+          INSTANCE = new DTLogWriter(logLevel);
+          return;
+        } catch (IOException e) {}
+      }
+
       try {
         Thread.sleep(100);
-      } catch (InterruptedException e) {
-        // ignore
-      }
-
-      if (!isTimeSynchronized()) {
-        continue;
-      }
-
-      try {
-        INSTANCE = new DTLogWriter();
-        return;
-      } catch (IOException e) {
-        // ignore
-      }
+      } catch (InterruptedException e) {}
     }
-  }
-
-  private static boolean isTimeSynchronized() {
-    return DriverStation.isDSAttached() && LocalDate.now(Clock.systemUTC())
-                                                    .getYear() >= 2000;
   }
 
   public static DTLogWriter getInstance() {
     return INSTANCE;
-  }
-
-  private static int getTeamNumber() {
-    if (RobotBase.isSimulation()) {
-      return UNKNOWN_TEAM_NUMBER;
-    }
-
-    Enumeration<NetworkInterface> interfaces;
-    try {
-      interfaces = NetworkInterface.getNetworkInterfaces();
-    } catch (SocketException e) {
-      return UNKNOWN_TEAM_NUMBER;
-    }
-
-    // Use IP address 10.??.??.2 to obtain team number
-    while (interfaces.hasMoreElements()) {
-      NetworkInterface i = interfaces.nextElement();
-      Enumeration<InetAddress> addresses = i.getInetAddresses();
-      while (addresses.hasMoreElements()) {
-        String[] split = addresses.nextElement()
-                                  .getHostAddress()
-                                  .split("\\.");
-        if (!"10".equals(split[0]) || !"41".equals(split[3])) {
-          continue;
-        }
-
-        try {
-          int hundreds = Integer.parseInt(split[1]);
-          int ones = Integer.parseInt(split[2]);
-          if (hundreds < 100 && ones < 100) {
-            return hundreds * 100 + ones;
-          }
-        } catch (NumberFormatException e) {
-          // ignore
-        }
-      }
-    }
-
-    return UNKNOWN_TEAM_NUMBER;
   }
 }

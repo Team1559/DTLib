@@ -15,10 +15,7 @@ public class DTLogVar {
 
   @SuppressWarnings("unchecked")
   void logValue(Object value) {
-    if (type.equals.test(prevValue, value)) {
-      return;
-    }
-    prevValue = value;
+    if (type.equals.test(prevValue, value)) return;
 
     if (handle < 0) {
       handle = DTLogWriter.getInstance()
@@ -34,6 +31,7 @@ public class DTLogVar {
                  .writeShort(handle);
       type.writer.accept(value);
     }
+    prevValue = value;
   }
 
   @Override

@@ -16,11 +16,7 @@ public class DTNavX implements DTInertialMeasurementUnit {
 
   @Override
   public void close() {
-    try {
-      internal.close();
-    } catch (Exception e) {
-      // ignore
-    }
+    internal.close();
   }
 
   @Override
