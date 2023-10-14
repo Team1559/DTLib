@@ -1,11 +1,11 @@
 package org.victorrobotics.dtlib;
 
-import org.victorrobotics.dtlib.command.DTCommand;
-import org.victorrobotics.dtlib.command.DTCommandScheduler;
+import org.victorrobotics.dtlib.command.Command;
+import org.victorrobotics.dtlib.command.CommandScheduler;
 import org.victorrobotics.dtlib.log.DTLog;
-import org.victorrobotics.dtlib.log.DTLogRootNode;
-import org.victorrobotics.dtlib.log.DTLogWriter;
-import org.victorrobotics.dtlib.log.DTWatchdog;
+import org.victorrobotics.dtlib.log.RootLogNode;
+import org.victorrobotics.dtlib.log.LogWriter;
+import org.victorrobotics.dtlib.log.Watchdog;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -76,11 +76,12 @@ public abstract class DTRobot {
   private static AllianceStation alliance;
 
   private final DTLog.Level   logLevel;
-  private final DTLogRootNode logTreeRoot;
+  private final RootLogNode logTreeRoot;
+
 
   private Compressor compressor;
 
-  private DTCommand autoCommand;
+  private Command autoCommand;
 
   protected DTRobot() {
     this(DTLog.Level.INFO);
@@ -88,7 +89,7 @@ public abstract class DTRobot {
 
   protected DTRobot(DTLog.Level logLevel) {
     this.logLevel = logLevel;
-    logTreeRoot = new DTLogRootNode(this, logLevel);
+    logTreeRoot = new RootLogNode(this, logLevel);
   }
 
   /**
@@ -119,12 +120,12 @@ public abstract class DTRobot {
    * @return the user-supplied command to be executed when autonomous mode is
    *         enabled
    */
-  protected abstract DTCommand getAutoCommand();
+  protected abstract Command getAutoCommand();
 
   /**
    * @return the user-supplied command to execute when the robot self-tests
    */
-  protected abstract DTCommand getSelfTestCommand();
+  protected abstract Command getSelfTestCommand();
 
   /**
    * @return the name of the robot
@@ -138,12 +139,12 @@ public abstract class DTRobot {
     if (currentMode == previousMode) return;
 
     if (currentMode == Mode.AUTO) {
-      DTWatchdog.startEpoch();
+      Watchdog.startEpoch();
       autoCommand = getAutoCommand();
-      DTWatchdog.addEpoch("getAutoCommand()");
-      DTCommandScheduler.schedule(autoCommand);
+      Watchdog.addEpoch("getAutoCommand()");
+      CommandScheduler.schedule(autoCommand);
     } else if (previousMode == Mode.AUTO) {
-      DTCommandScheduler.cancel(autoCommand);
+      CommandScheduler.cancel(autoCommand);
     }
 
     if (compressor != null) {
@@ -156,17 +157,17 @@ public abstract class DTRobot {
   }
 
   private static void log(DTRobot robot) {
-    DTWatchdog.startEpoch();
-    DTLogWriter.getInstance()
+    Watchdog.startEpoch();
+    LogWriter.getInstance()
                .logNewTimestamp();
     if (currentMode != previousMode) {
-      DTLogWriter.getInstance()
+      LogWriter.getInstance()
                  .writeShort(currentMode.identifier);
     }
     robot.logTreeRoot.log();
-    DTLogWriter.getInstance()
-               .tryFlush();
-    DTWatchdog.addEpoch("log()");
+    LogWriter.getInstance()
+              .tryFlush();
+    Watchdog.addEpoch("log()");
   }
 
   protected final void configCompressor(int module, PneumaticsModuleType type) {
@@ -200,8 +201,8 @@ public abstract class DTRobot {
       return;
     }
 
-    DTLogWriter.init(robot.logLevel);
-    DTLogWriter.info(robot + " initializing...");
+    LogWriter.init(robot.logLevel);
+    LogWriter.info(robot + " initializing...");
 
     waitForNTServer();
     try {
@@ -211,12 +212,12 @@ public abstract class DTRobot {
       }
       robot.bindCommands();
     } catch (Throwable t) {
-      DTLogWriter.logException(t, DTLog.Level.ERROR);
+      LogWriter.logException(t, DTLog.Level.ERROR);
       return;
     }
 
     DriverStationJNI.observeUserProgramStarting();
-    DTLogWriter.info(robot + " ready");
+    LogWriter.info(robot + " ready");
 
     int notifierHandle = NotifierJNI.initializeNotifier();
     NotifierJNI.setNotifierName(notifierHandle, "DTRobot");
@@ -234,20 +235,20 @@ public abstract class DTRobot {
         break;
       }
 
-      DTWatchdog.reset();
+      Watchdog.reset();
       refreshDriverStation();
       robot.runModeChange();
 
       // Execute code for this cycle
-      DTWatchdog.startEpoch();
+      Watchdog.startEpoch();
       robot.periodic();
-      DTWatchdog.addEpoch(robot + ".periodic()");
+      Watchdog.addEpoch(robot + ".periodic()");
 
-      DTCommandScheduler.run();
+      CommandScheduler.run();
       log(robot);
 
-      if (DTWatchdog.isExpired()) {
-        DTWatchdog.printEpochs(DTLogWriter::warn, DTLogWriter::info);
+      if (Watchdog.isExpired()) {
+        Watchdog.printEpochs(LogWriter::warn, LogWriter::info);
       }
     }
 
@@ -267,19 +268,19 @@ public abstract class DTRobot {
                                .contains(NetworkMode.kStarting)) {
       count++;
       if (count >= 100) {
-        DTLogWriter.warn("NT server start timeeout, continuing");
+        LogWriter.warn("NT server start timeeout, continuing");
         break;
       }
       try {
         Thread.sleep(10);
       } catch (InterruptedException e) {
-        DTLogWriter.logException(e, DTLog.Level.INFO);
+        LogWriter.logException(e, DTLog.Level.INFO);
       }
     }
   }
 
   private static void refreshDriverStation() {
-    DTWatchdog.startEpoch();
+    Watchdog.startEpoch();
     DriverStation.refreshData();
     CONTROL_WORD.refresh();
     alliance = AllianceStation.fromDS(DriverStationJNI.getAllianceStation());
@@ -301,7 +302,7 @@ public abstract class DTRobot {
       currentMode = Mode.TELEOP;
       DriverStationJNI.observeUserProgramTeleop();
     }
-    DTWatchdog.addEpoch("refreshDriverStation()");
+    Watchdog.addEpoch("refreshDriverStation()");
   }
 
   public static Mode getCurrentMode() {
