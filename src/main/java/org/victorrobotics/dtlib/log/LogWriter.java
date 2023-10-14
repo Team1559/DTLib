@@ -32,7 +32,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
 
-public final class DTLogWriter implements Closeable, Flushable {
+public final class LogWriter implements Closeable, Flushable {
   private static final DateTimeFormatter TIME_FORMATTER = // UTC
       DateTimeFormatter.ofPattern("uuuu-MM-dd_HH-mm-ss")
                        .withZone(ZoneId.of("Z"));
@@ -51,12 +51,12 @@ public final class DTLogWriter implements Closeable, Flushable {
   private static final int BUFFER_SIZE         = 65536;
   private static final int UNKNOWN_TEAM_NUMBER = 0xFFFF;
 
-  private static DTLogWriter INSTANCE;
+  private static LogWriter INSTANCE;
 
-  static final Map<Class<?>, DTLogType> LOG_TYPES = new HashMap<>();
+  static final Map<Class<?>, LogType> LOG_TYPES = new HashMap<>();
 
   static {
-    DTLogBuiltinTypes.load();
+    BuiltinLogTypes.load();
   }
 
   private final File        file;
@@ -67,7 +67,7 @@ public final class DTLogWriter implements Closeable, Flushable {
   private long lastTimestamp;
   private int  nextVarHandle = 0x0100;
 
-  private DTLogWriter() throws IOException {
+  private LogWriter() throws IOException {
     Instant now = Clock.systemUTC()
                        .instant();
     lastTimestamp = RobotController.getFPGATime() / 1_000;
@@ -104,68 +104,68 @@ public final class DTLogWriter implements Closeable, Flushable {
     flush();
   }
 
-  public DTLogWriter writeByte(int b) {
+  public LogWriter writeByte(int b) {
     checkBufferRemaining(1);
     buffer.put((byte) b);
     return this;
   }
 
-  public DTLogWriter writeShort(int s) {
+  public LogWriter writeShort(int s) {
     checkBufferRemaining(2);
     buffer.putShort((short) s);
     return this;
   }
 
-  public DTLogWriter writeInt(int i) {
+  public LogWriter writeInt(int i) {
     checkBufferRemaining(4);
     buffer.putInt(i);
     return this;
   }
 
-  public DTLogWriter writeLong(long l) {
+  public LogWriter writeLong(long l) {
     checkBufferRemaining(8);
     buffer.putLong(l);
     return this;
   }
 
-  public DTLogWriter writeDouble(double d) {
+  public LogWriter writeDouble(double d) {
     checkBufferRemaining(8);
     buffer.putDouble(d);
     return this;
   }
 
-  public DTLogWriter writeFloat(float f) {
+  public LogWriter writeFloat(float f) {
     checkBufferRemaining(4);
     buffer.putFloat(f);
     return this;
   }
 
-  public DTLogWriter writeChar(char c) {
+  public LogWriter writeChar(char c) {
     checkBufferRemaining(2);
     buffer.putChar(c);
     return this;
   }
 
-  public DTLogWriter writeBoolean(boolean b) {
+  public LogWriter writeBoolean(boolean b) {
     checkBufferRemaining(1);
     buffer.put((byte) (b ? 1 : 0));
     return this;
   }
 
-  public DTLogWriter writeBytes(byte[] b) {
+  public LogWriter writeBytes(byte[] b) {
     checkBufferRemaining(b.length);
     buffer.put(b);
     return this;
   }
 
-  public DTLogWriter writeByteArray(byte[] b) {
+  public LogWriter writeByteArray(byte[] b) {
     checkWriteArrayLength(b.length);
     checkBufferRemaining(b.length);
     buffer.put(b);
     return this;
   }
 
-  public DTLogWriter writeShorts(short[] s) {
+  public LogWriter writeShorts(short[] s) {
     checkBufferRemaining(s.length * 2);
     for (int i = 0; i < s.length; i++) {
       buffer.putShort(s[i]);
@@ -173,7 +173,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeShortArray(short[] s) {
+  public LogWriter writeShortArray(short[] s) {
     checkWriteArrayLength(s.length);
     checkBufferRemaining(s.length * 2);
     for (int i = 0; i < s.length; i++) {
@@ -182,7 +182,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeInts(int[] i) {
+  public LogWriter writeInts(int[] i) {
     checkBufferRemaining(i.length * 4);
     for (int j = 0; j < i.length; j++) {
       buffer.putInt(i[j]);
@@ -190,7 +190,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeIntArray(int[] i) {
+  public LogWriter writeIntArray(int[] i) {
     checkWriteArrayLength(i.length);
     checkBufferRemaining(i.length * 4);
     for (int j = 0; j < i.length; j++) {
@@ -199,7 +199,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeLongs(long[] l) {
+  public LogWriter writeLongs(long[] l) {
     checkBufferRemaining(l.length * 8);
     for (int i = 0; i < l.length; i++) {
       buffer.putLong(l[i]);
@@ -207,7 +207,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeLongArray(long[] l) {
+  public LogWriter writeLongArray(long[] l) {
     checkWriteArrayLength(l.length);
     checkBufferRemaining(l.length * 8);
     for (int i = 0; i < l.length; i++) {
@@ -216,7 +216,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeDoubles(double[] d) {
+  public LogWriter writeDoubles(double[] d) {
     checkBufferRemaining(d.length * 8);
     for (int i = 0; i < d.length; i++) {
       buffer.putDouble(d[i]);
@@ -224,7 +224,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeDoubleArray(double[] d) {
+  public LogWriter writeDoubleArray(double[] d) {
     checkWriteArrayLength(d.length);
     checkBufferRemaining(d.length * 8);
     for (int i = 0; i < d.length; i++) {
@@ -233,7 +233,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeFloats(float[] f) {
+  public LogWriter writeFloats(float[] f) {
     checkBufferRemaining(f.length * 4);
     for (int i = 0; i < f.length; i++) {
       buffer.putDouble(f[i]);
@@ -241,7 +241,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeFloatArray(float[] f) {
+  public LogWriter writeFloatArray(float[] f) {
     checkWriteArrayLength(f.length);
     checkBufferRemaining(f.length * 4);
     for (int i = 0; i < f.length; i++) {
@@ -250,7 +250,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeChars(char[] c) {
+  public LogWriter writeChars(char[] c) {
     checkBufferRemaining(c.length * 2);
     for (int i = 0; i < c.length; i++) {
       buffer.putChar(c[i]);
@@ -258,7 +258,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeCharArray(char[] c) {
+  public LogWriter writeCharArray(char[] c) {
     checkWriteArrayLength(c.length);
     checkBufferRemaining(c.length * 2);
     for (int i = 0; i < c.length; i++) {
@@ -267,7 +267,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeBooleans(boolean[] b) {
+  public LogWriter writeBooleans(boolean[] b) {
     int len = (b.length + 7) / 8;
     checkBufferRemaining(len);
     byte[] data = booleansToBytes(b);
@@ -275,7 +275,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return this;
   }
 
-  public DTLogWriter writeBooleanArray(boolean[] b) {
+  public LogWriter writeBooleanArray(boolean[] b) {
     int len = (b.length + 7) / 8;
     checkWriteArrayLength(b.length);
     checkBufferRemaining(len);
@@ -296,7 +296,7 @@ public final class DTLogWriter implements Closeable, Flushable {
     return bitSet.toByteArray();
   }
 
-  public DTLogWriter writeStringUTF8(String s) {
+  public LogWriter writeStringUTF8(String s) {
     byte[] data = s.getBytes(StandardCharsets.UTF_8);
     writeByteArray(data);
     return this;
@@ -386,7 +386,7 @@ public final class DTLogWriter implements Closeable, Flushable {
       }
 
       try {
-        INSTANCE = new DTLogWriter();
+        INSTANCE = new LogWriter();
         return;
       } catch (IOException e) {
         // ignore
@@ -399,7 +399,7 @@ public final class DTLogWriter implements Closeable, Flushable {
                                                     .getYear() >= 2000;
   }
 
-  public static DTLogWriter getInstance() {
+  public static LogWriter getInstance() {
     return INSTANCE;
   }
 

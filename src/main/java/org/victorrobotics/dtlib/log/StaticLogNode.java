@@ -2,10 +2,10 @@ package org.victorrobotics.dtlib.log;
 
 import java.util.function.Supplier;
 
-public class DTLogStaticVar extends DTLogVar {
+public class StaticLogNode extends LogVariable {
   private final Supplier<?> accessor;
 
-  protected DTLogStaticVar(DTLogType type, Class<?> enclosingClazz, String name, Supplier<?> accessor) {
+  protected StaticLogNode(LogType type, Class<?> enclosingClazz, String name, Supplier<?> accessor) {
     super(type, "static/" + enclosingClazz.getSimpleName() + "/" + name);
     this.accessor = accessor;
   }

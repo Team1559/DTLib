@@ -2,9 +2,9 @@ package org.victorrobotics.dtlib;
 
 import org.victorrobotics.dtlib.command.Command;
 import org.victorrobotics.dtlib.command.CommandScheduler;
-import org.victorrobotics.dtlib.log.DTLogRootNode;
-import org.victorrobotics.dtlib.log.DTLogWriter;
-import org.victorrobotics.dtlib.log.DTWatchdog;
+import org.victorrobotics.dtlib.log.RootLogNode;
+import org.victorrobotics.dtlib.log.LogWriter;
+import org.victorrobotics.dtlib.log.Watchdog;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,14 +74,14 @@ public abstract class DTRobot {
 
   private static AllianceStation alliance;
 
-  private final DTLogRootNode logTreeRoot;
+  private final RootLogNode logTreeRoot;
 
   private Compressor compressor;
 
   private Command autoCommand;
 
   protected DTRobot() {
-    logTreeRoot = new DTLogRootNode(this, getName());
+    logTreeRoot = new RootLogNode(this, getName());
   }
 
   /**
@@ -126,13 +126,13 @@ public abstract class DTRobot {
   private void runModeChange() {
     if (currentMode == previousMode) return;
 
-    DTLogWriter.getInstance()
+    LogWriter.getInstance()
                .writeShort(currentMode.identifier);
 
     if (currentMode == Mode.AUTO) {
-      DTWatchdog.startEpoch();
+      Watchdog.startEpoch();
       autoCommand = getAutoCommand();
-      DTWatchdog.addEpoch("getAutoCommand()");
+      Watchdog.addEpoch("getAutoCommand()");
       CommandScheduler.schedule(autoCommand);
     } else if (previousMode == Mode.AUTO) {
       CommandScheduler.cancel(autoCommand);
@@ -148,19 +148,19 @@ public abstract class DTRobot {
   }
 
   private static void log(DTRobot robot) {
-    DTWatchdog.startEpoch();
-    DTLogWriter.getInstance()
+    Watchdog.startEpoch();
+    LogWriter.getInstance()
                .logNewTimestamp();
     if (currentMode != previousMode) {
-      DTLogWriter.getInstance()
+      LogWriter.getInstance()
                  .writeShort(currentMode.identifier);
     }
     robot.logTreeRoot.log();
     try {
-      DTLogWriter.getInstance()
+      LogWriter.getInstance()
                  .flush();
     } catch (IOException e) {}
-    DTWatchdog.addEpoch("DTLog");
+    Watchdog.addEpoch("DTLog");
   }
 
   protected final void configCompressor(int module, PneumaticsModuleType type) {
@@ -180,7 +180,7 @@ public abstract class DTRobot {
 
     startNTServer();
     refreshDriverStation();
-    DTLogWriter.init();
+    LogWriter.init();
 
     DTRobot robot;
     try {
@@ -221,20 +221,20 @@ public abstract class DTRobot {
         break;
       }
 
-      DTWatchdog.reset();
+      Watchdog.reset();
       refreshDriverStation();
       robot.runModeChange();
 
       // Execute code for this cycle
-      DTWatchdog.startEpoch();
+      Watchdog.startEpoch();
       robot.periodic();
-      DTWatchdog.addEpoch("periodic()");
+      Watchdog.addEpoch("periodic()");
 
       CommandScheduler.run();
       log(robot);
 
-      if (DTWatchdog.isExpired()) {
-        DTWatchdog.printEpochs();
+      if (Watchdog.isExpired()) {
+        Watchdog.printEpochs();
       }
     }
 
@@ -261,7 +261,7 @@ public abstract class DTRobot {
   }
 
   private static void refreshDriverStation() {
-    DTWatchdog.startEpoch();
+    Watchdog.startEpoch();
     DriverStation.refreshData();
     CONTROL_WORD.refresh();
     alliance = AllianceStation.fromDS(DriverStationJNI.getAllianceStation());
@@ -283,7 +283,7 @@ public abstract class DTRobot {
       currentMode = Mode.TELEOP;
       DriverStationJNI.observeUserProgramTeleop();
     }
-    DTWatchdog.addEpoch("refreshDriverStation()");
+    Watchdog.addEpoch("refreshDriverStation()");
   }
 
   public static Mode getCurrentMode() {

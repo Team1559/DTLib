@@ -2,7 +2,7 @@ package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-import org.victorrobotics.dtlib.log.DTWatchdog;
+import org.victorrobotics.dtlib.log.Watchdog;
 import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Collection;
@@ -61,13 +61,13 @@ public final class CommandScheduler {
     CALLBACKS.forEach(Runnable::run);
 
     for (Subsystem subsystem : REQUIRING_COMMANDS.keySet()) {
-      DTWatchdog.startEpoch();
+      Watchdog.startEpoch();
       subsystem.periodic();
-      DTWatchdog.addEpoch(subsystem.getName() + ".periodic()");
+      Watchdog.addEpoch(subsystem.getName() + ".periodic()");
       if (DTRobot.isSimulation()) {
-        DTWatchdog.startEpoch();
+        Watchdog.startEpoch();
         subsystem.simulationPeriodic();
-        DTWatchdog.addEpoch(subsystem.getName() + ".simulationPeriodic()");
+        Watchdog.addEpoch(subsystem.getName() + ".simulationPeriodic()");
       }
     }
 
@@ -76,7 +76,7 @@ public final class CommandScheduler {
       Command command = iterator.next();
 
       if (!DTRobot.getCurrentMode().isEnabled && !command.runsWhenDisabled()) {
-        DTWatchdog.startEpoch();
+        Watchdog.startEpoch();
         try {
           command.interrupt();
         } catch (RuntimeException e) {
@@ -85,17 +85,17 @@ public final class CommandScheduler {
         command.getRequirements()
                .forEach(s -> REQUIRING_COMMANDS.put(s, null));
         iterator.remove();
-        DTWatchdog.addEpoch(command.getName() + ".interrupt()");
+        Watchdog.addEpoch(command.getName() + ".interrupt()");
         continue;
       }
 
-      DTWatchdog.startEpoch();
+      Watchdog.startEpoch();
       try {
         command.execute();
       } catch (RuntimeException e) {
         handleCommandException(command, e);
       }
-      DTWatchdog.addEpoch(command.getName() + ".execute()");
+      Watchdog.addEpoch(command.getName() + ".execute()");
 
       boolean finished = true;
       try {
@@ -105,7 +105,7 @@ public final class CommandScheduler {
       }
 
       if (finished) {
-        DTWatchdog.startEpoch();
+        Watchdog.startEpoch();
         try {
           command.end();
         } catch (RuntimeException e) {
@@ -115,7 +115,7 @@ public final class CommandScheduler {
 
         command.getRequirements()
                .forEach(s -> REQUIRING_COMMANDS.put(s, null));
-        DTWatchdog.addEpoch(command.getName() + ".end()");
+        Watchdog.addEpoch(command.getName() + ".end()");
       }
     }
     isRunning = false;

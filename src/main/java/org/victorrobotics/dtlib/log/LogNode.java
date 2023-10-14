@@ -11,34 +11,34 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
-public class DTLogTreeNode {
+public class LogNode {
   private final String                path;
   private final Class<?>              type;
   private final UnaryOperator<Object> getter;
 
-  private DTLogTreeNode[] children;
-  private DTLogVar        variable;
+  private LogNode[] children;
+  private LogVariable        variable;
 
-  public DTLogTreeNode(String path, String name, Class<?> type, UnaryOperator<Object> getter) {
+  public LogNode(String path, String name, Class<?> type, UnaryOperator<Object> getter) {
     this.path = path + "/" + name;
     this.type = type;
     this.getter = getter;
   }
 
   protected final void init(Deque<Class<?>> stack, Set<Class<?>> clazzes,
-      List<DTLogStaticVar> staticVars) {
+      List<StaticLogNode> staticVars) {
     if (stack.contains(type)) {
       // Prevent infinite recursion
       return;
     }
 
-    List<DTLogTreeNode> childList = new ArrayList<>();
+    List<LogNode> childList = new ArrayList<>();
     Class<?> clazz = type;
     do {
       if (childList.isEmpty()) {
-        DTLogType logType = DTLogWriter.LOG_TYPES.get(clazz);
+        LogType logType = LogWriter.LOG_TYPES.get(clazz);
         if (logType != null) {
-          variable = new DTLogVar(logType, path);
+          variable = new LogVariable(logType, path);
           return;
         }
       }
@@ -60,11 +60,11 @@ public class DTLogTreeNode {
     initChildren(stack, clazzes, staticVars, childList);
     stack.removeFirst();
 
-    children = childList.isEmpty() ? null : childList.toArray(DTLogTreeNode[]::new);
+    children = childList.isEmpty() ? null : childList.toArray(LogNode[]::new);
   }
 
-  private void initField(Field field, List<DTLogTreeNode> childList,
-      List<DTLogStaticVar> staticVars, boolean includeStatic) {
+  private void initField(Field field, List<LogNode> childList,
+      List<StaticLogNode> staticVars, boolean includeStatic) {
     DTLog annotation = field.getAnnotation(DTLog.class);
     if (annotation == null) {
       return;
@@ -85,12 +85,12 @@ public class DTLogTreeNode {
     }
 
     if (isStatic) {
-      DTLogType logType = DTLogWriter.LOG_TYPES.get(field.getType());
+      LogType logType = LogWriter.LOG_TYPES.get(field.getType());
       if (logType == null) {
         return;
       }
 
-      staticVars.add(new DTLogStaticVar(logType, field.getDeclaringClass(), name, () -> {
+      staticVars.add(new StaticLogNode(logType, field.getDeclaringClass(), name, () -> {
         try {
           return field.get(null);
         } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -100,7 +100,7 @@ public class DTLogTreeNode {
       return;
     }
 
-    childList.add(new DTLogTreeNode(path, name, field.getType(), parent -> {
+    childList.add(new LogNode(path, name, field.getType(), parent -> {
       try {
         return field.get(parent);
       } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -109,8 +109,8 @@ public class DTLogTreeNode {
     }));
   }
 
-  private void initMethod(Method method, List<DTLogTreeNode> childList,
-      List<DTLogStaticVar> staticVars, boolean includeStatic) {
+  private void initMethod(Method method, List<LogNode> childList,
+      List<StaticLogNode> staticVars, boolean includeStatic) {
     DTLog annotation = method.getAnnotation(DTLog.class);
     if (annotation == null) {
       return;
@@ -135,12 +135,12 @@ public class DTLogTreeNode {
     }
 
     if (isStatic) {
-      DTLogType logType = DTLogWriter.LOG_TYPES.get(method.getReturnType());
+      LogType logType = LogWriter.LOG_TYPES.get(method.getReturnType());
       if (logType == null) {
         return;
       }
 
-      staticVars.add(new DTLogStaticVar(logType, method.getDeclaringClass(), name, () -> {
+      staticVars.add(new StaticLogNode(logType, method.getDeclaringClass(), name, () -> {
         try {
           return method.invoke(null, (Object[]) null);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -150,7 +150,7 @@ public class DTLogTreeNode {
       return;
     }
 
-    childList.add(new DTLogTreeNode(path, name, method.getReturnType(), parent -> {
+    childList.add(new LogNode(path, name, method.getReturnType(), parent -> {
       try {
         return method.invoke(parent, (Object[]) null);
       } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -171,7 +171,7 @@ public class DTLogTreeNode {
       return;
     }
 
-    for (DTLogTreeNode child : children) {
+    for (LogNode child : children) {
       child.log(value);
     }
   }
@@ -183,7 +183,7 @@ public class DTLogTreeNode {
       return;
     }
 
-    for (DTLogTreeNode child : children) {
+    for (LogNode child : children) {
       child.logNull();
     }
   }
@@ -204,10 +204,10 @@ public class DTLogTreeNode {
   }
 
   private static void initChildren(Deque<Class<?>> stack, Set<Class<?>> clazzes,
-      List<DTLogStaticVar> staticVars, List<DTLogTreeNode> childList) {
-    Iterator<DTLogTreeNode> itr = childList.iterator();
+      List<StaticLogNode> staticVars, List<LogNode> childList) {
+    Iterator<LogNode> itr = childList.iterator();
     while (itr.hasNext()) {
-      DTLogTreeNode child = itr.next();
+      LogNode child = itr.next();
       child.init(stack, clazzes, staticVars);
       if (child.variable == null && child.children == null) {
         itr.remove();

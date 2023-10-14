@@ -1,13 +1,13 @@
 package org.victorrobotics.dtlib.log;
 
-public class DTLogVar {
-  private final DTLogType type;
+public class LogVariable {
+  private final LogType type;
   private final String    path;
 
   private Object prevValue;
   private int    handle;
 
-  DTLogVar(DTLogType type, String path) {
+  LogVariable(LogType type, String path) {
     this.type = type;
     this.path = path;
     this.handle = -1;
@@ -21,16 +21,16 @@ public class DTLogVar {
     prevValue = value;
 
     if (handle < 0) {
-      handle = DTLogWriter.getInstance()
+      handle = LogWriter.getInstance()
                           .declareNewVariableHandle(type.id, path);
     }
 
     if (value == null) {
-      DTLogWriter.getInstance()
+      LogWriter.getInstance()
                  .writeShort(0x0000)
                  .writeShort(handle);
     } else {
-      DTLogWriter.getInstance()
+      LogWriter.getInstance()
                  .writeShort(handle);
       type.writer.accept(value);
     }

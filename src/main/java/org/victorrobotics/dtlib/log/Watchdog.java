@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 import edu.wpi.first.wpilibj.DriverStation;
 
-public final class DTWatchdog {
+public final class Watchdog {
   private static class Epoch {
     private final String label;
     private final long   duration;
@@ -31,7 +31,7 @@ public final class DTWatchdog {
   private static long loopExpireTime;
   private static long minPrintTime;
 
-  private DTWatchdog() {}
+  private Watchdog() {}
 
   public static double getTime() {
     return (DTRobot.currentTimeMicros() - loopStartTime) * 1e-6;
