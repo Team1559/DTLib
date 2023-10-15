@@ -6,7 +6,6 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 import org.victorrobotics.dtlib.DTLibInfo;
 import org.victorrobotics.dtlib.DTRobot;
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -346,7 +345,7 @@ public final class LogWriter implements Closeable, Flushable {
 
   private void checkWriteArrayLength(int len) {
     if (len > 0xFFFF) {
-      throw new DTIllegalArgumentException(len, "array is too large to log");
+      throw new IllegalArgumentException("array is too large to log");
     }
     writeShort(len);
   }

@@ -1,7 +1,6 @@
 package org.victorrobotics.dtlib.command;
 
 import org.victorrobotics.dtlib.DTRobot;
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.log.DTLog;
 import org.victorrobotics.dtlib.log.LogWriter;
 import org.victorrobotics.dtlib.log.Watchdog;
@@ -376,7 +375,7 @@ public final class CommandScheduler {
    * @param command
    *        the command to register
    *
-   * @throws DTIllegalArgumentException
+   * @throws IllegalArgumentException
    *         if the given command has already been composed
    */
   public static void registerComposed(Command command) {
@@ -391,7 +390,7 @@ public final class CommandScheduler {
    * @param commands
    *        the commands to register
    *
-   * @throws DTIllegalArgumentException
+   * @throws IllegalArgumentException
    *         if the given commands have already been composed
    */
   public static void registerComposed(Command... commands) {
@@ -405,7 +404,7 @@ public final class CommandScheduler {
    * @param commands
    *        the commands to register
    *
-   * @throws DTIllegalArgumentException
+   * @throws IllegalArgumentException
    *         if the given commands have already been composed
    */
   public static void registerComposed(Collection<Command> commands) {
@@ -416,15 +415,13 @@ public final class CommandScheduler {
 
   private static void requireNotComposed(Command command) {
     if (COMPOSED_COMMANDS.contains(command)) {
-      throw new DTIllegalArgumentException(command,
-                                           "composed commands may not be scheduled or added to another composition");
+      throw new IllegalArgumentException("composed commands may not be scheduled or added to another composition");
     }
   }
 
   private static void requireNotComposed(Collection<Command> commands) {
     if (!Collections.disjoint(commands, COMPOSED_COMMANDS)) {
-      throw new DTIllegalArgumentException(commands,
-                                           "composed commands may not be scheduled or added to another composition");
+      throw new IllegalArgumentException("composed commands may not be scheduled or added to another composition");
     }
   }
 

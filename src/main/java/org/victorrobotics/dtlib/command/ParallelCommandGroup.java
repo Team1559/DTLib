@@ -1,6 +1,5 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Collections;
@@ -46,7 +45,7 @@ public class ParallelCommandGroup extends CommandBase {
    *
    * @throws IllegalStateException
    *         if the composition is currently scheduled
-   * @throws DTIllegalArgumentException
+   * @throws IllegalArgumentException
    *         if a given command is already part of another composition, or if
    *         commands share requirements
    */
@@ -62,8 +61,7 @@ public class ParallelCommandGroup extends CommandBase {
 
       Set<Subsystem> commandReqs = command.getRequirements();
       if (!Collections.disjoint(getRequirements(), commandReqs)) {
-        throw new DTIllegalArgumentException(command,
-                                             "parallel commands may not share requirements");
+        throw new IllegalArgumentException("parallel commands may not share requirements");
       }
       addRequirements(commandReqs);
 

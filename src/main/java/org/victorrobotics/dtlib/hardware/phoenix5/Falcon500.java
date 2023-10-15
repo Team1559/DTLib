@@ -1,6 +1,5 @@
 package org.victorrobotics.dtlib.hardware.phoenix5;
 
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.hardware.Motor;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -66,7 +65,7 @@ public class Falcon500 implements Motor {
   public void configPID(int slot, double proportional, double integral, double derivative,
                         double velocityFF, double staticFF, double integralZone) {
     if (slot < 0 || slot > 3) {
-      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+      throw new IllegalArgumentException("slot must be in range 0-3");
     }
 
     // velocityFF unused
@@ -204,7 +203,7 @@ public class Falcon500 implements Motor {
   @Override
   public void setPIDSlot(int slot) {
     if (slot < 0 || slot > 3) {
-      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+      throw new IllegalArgumentException("slot must be in range 0-3");
     }
     internal.selectProfileSlot(slot, 0);
   }
@@ -212,7 +211,7 @@ public class Falcon500 implements Motor {
   @Override
   public double[] getPIDConstants(int slot) {
     if (slot < 0 || slot > 3) {
-      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+      throw new IllegalArgumentException("slot must be in range 0-3");
     }
     TalonFXConfiguration allConfigs = new TalonFXConfiguration();
     internal.getAllConfigs(allConfigs);

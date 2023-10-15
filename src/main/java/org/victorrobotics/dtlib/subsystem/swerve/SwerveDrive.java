@@ -1,6 +1,5 @@
 package org.victorrobotics.dtlib.subsystem.swerve;
 
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.math.geometry.Vector2D;
 import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 import org.victorrobotics.dtlib.math.trajectory.AccelerationLimit;
@@ -20,7 +19,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 public abstract class SwerveDrive extends Subsystem {
-  private final SwerveModule[]         modules;
+  private final SwerveModule[]           modules;
   private final SwerveDriveKinematics    kinematics;
   private final SwerveDrivePoseEstimator poseEstimator;
 
@@ -29,9 +28,9 @@ public abstract class SwerveDrive extends Subsystem {
   private Vector2D          centerOfRotation;
   private AccelerationLimit accelerationLimit;
   private VelocityLimit     velocityLimit;
-  private boolean             isFieldRelative;
+  private boolean           isFieldRelative;
 
-  private Field2d     virtualField;
+  private Field2d    virtualField;
   private Vector2D_R currentSpeeds;
 
   protected SwerveDrive(SwerveModule... modules) {
@@ -111,8 +110,8 @@ public abstract class SwerveDrive extends Subsystem {
 
   public final void setStates(SwerveModuleState... states) {
     if (states.length != modules.length) {
-      throw new DTIllegalArgumentException(states, "received " + states.length
-          + " module states for " + modules.length + " modules");
+      throw new IllegalArgumentException("received " + states.length + " module states for "
+          + modules.length + " modules");
     }
 
     double minCosine = 1;

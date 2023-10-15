@@ -1,7 +1,6 @@
 package org.victorrobotics.dtlib.controller;
 
 import org.victorrobotics.dtlib.command.CommandScheduler;
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 
 import java.util.function.DoublePredicate;
 import java.util.function.DoubleSupplier;
@@ -100,7 +99,7 @@ public class Axis implements DoubleSupplier {
 
   private static void requireFinite(double param) {
     if (!Double.isFinite(param)) {
-      throw new DTIllegalArgumentException(param, "expected a finite floating-point parameter");
+      throw new IllegalArgumentException("expected a finite floating-point parameter");
     }
   }
 }
