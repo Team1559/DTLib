@@ -122,11 +122,7 @@ public class SwerveDriveKinematics {
    * @param robotVelocity
    *        The desired chassis speed.
    *
-   * @return An array containing the module states. Use caution because these
-   *         module states are not normalized. Sometimes, a user input may cause
-   *         one of the module speeds to go above the attainable max velocity.
-   *         Use the {@link #desaturateWheelSpeeds(SwerveModuleState[], double)
-   *         DesaturateWheelSpeeds} function to rectify this issue.
+   * @return An array containing the module states.
    */
   @SuppressWarnings("java:S3518") // "possible" divide by zero
   public SwerveModuleState[] computeModuleStates(Vector2D_R robotVelocity) {
