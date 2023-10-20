@@ -33,7 +33,7 @@ dependencies {
   implementation 'edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:' + wpilibVersion
   implementation 'edu.wpi.first.wpimath:wpimath-java:' + wpilibVersion
   implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
-  implementation 'org.ejml:ejml-simple:' + ejmlVersion
+  implementation 'org.ejml:ejml-ddense:' + ejmlVersion
 
   implementation 'com.kauailabs.navx.frc:navx-java:' + navxVersion
   implementation 'com.ctre.phoenix:api-java:' + phoenix5Version
