@@ -18,7 +18,7 @@ dependencies {
   // Current GradleRIO versions at https://github.com/wpilibsuite/GradleRIO/blob/main/src/main/java/edu/wpi/first/gradlerio/wpi/WPIVersionsExtension.java
   String wpilibVersion = '2024.1.1-beta-2'
   String jacksonVersion = '2.12.4'
-  String ejmlVersion = '0.42'
+  String ejmlVersion = '0.43.1'
 
   String navxVersion = '4.0.447'
   String phoenix5Version = '5.31.0'
@@ -33,7 +33,7 @@ dependencies {
   implementation 'edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:' + wpilibVersion
   implementation 'edu.wpi.first.wpimath:wpimath-java:' + wpilibVersion
   implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
-  implementation 'org.ejml:ejml-simple:' + ejmlVersion
+  implementation 'org.ejml:ejml-ddense:' + ejmlVersion
 
   implementation 'com.kauailabs.navx.frc:navx-java:' + navxVersion
   implementation 'com.ctre.phoenix:api-java:' + phoenix5Version
