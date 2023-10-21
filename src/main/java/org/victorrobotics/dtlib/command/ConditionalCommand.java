@@ -1,7 +1,5 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
@@ -14,8 +12,8 @@ import java.util.function.BooleanSupplier;
  * the composition requires all subsystems its components require.
  */
 public class ConditionalCommand extends CommandBase {
-  private final Command       trueCommand;
-  private final Command       falseCommand;
+  private final Command         trueCommand;
+  private final Command         falseCommand;
   private final BooleanSupplier condition;
 
   private Command activeCommand;
@@ -30,7 +28,7 @@ public class ConditionalCommand extends CommandBase {
    * @param condition
    *        the condition to determine which command to run
    *
-   * @throws DTIllegalArgumentException
+   * @throws IllegalArgumentException
    *         if either command is part of another composition
    * @throws NullPointerException
    *         if the condition is null

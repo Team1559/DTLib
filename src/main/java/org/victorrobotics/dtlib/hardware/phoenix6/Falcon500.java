@@ -1,6 +1,5 @@
 package org.victorrobotics.dtlib.hardware.phoenix6;
 
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.hardware.Motor;
 import org.victorrobotics.dtlib.hardware.MotorFaults;
 
@@ -168,7 +167,7 @@ public class Falcon500 implements Motor {
       internal.getConfigurator()
               .apply(configs);
     } else {
-      throw new DTIllegalArgumentException(slot, "slot must be in range 0-2");
+      throw new IllegalArgumentException("slot must be in range 0-2");
     }
   }
 
@@ -227,7 +226,7 @@ public class Falcon500 implements Motor {
       result[3] = configs.kV;
       result[4] = configs.kS;
     } else {
-      throw new DTIllegalArgumentException(slot, "slot must be in range 0-2");
+      throw new IllegalArgumentException("slot must be in range 0-2");
     }
     return result;
   }

@@ -1,7 +1,5 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +39,7 @@ public class SequentialCommandGroup extends CommandBase {
    *
    * @throws IllegalStateException
    *         if the composition is currently scheduled
-   * @throws DTIllegalArgumentException
+   * @throws IllegalArgumentException
    *         if a given command is already part of another composition
    */
   public void addCommands(Command... commands) {

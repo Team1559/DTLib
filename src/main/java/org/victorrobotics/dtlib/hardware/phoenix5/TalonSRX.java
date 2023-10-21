@@ -1,6 +1,5 @@
 package org.victorrobotics.dtlib.hardware.phoenix5;
 
-import org.victorrobotics.dtlib.exception.DTIllegalArgumentException;
 import org.victorrobotics.dtlib.hardware.Motor;
 import org.victorrobotics.dtlib.hardware.MotorFaults;
 
@@ -57,7 +56,7 @@ public class TalonSRX implements Motor {
   public void configPID(int slot, double proportional, double integral, double derivative,
                         double velocityFF, double staticFF, double integralZone) {
     if (slot < 0 || slot > 3) {
-      throw new DTIllegalArgumentException(slot, "slot must be in range 0-3");
+      throw new IllegalArgumentException("slot must be in range 0-3");
     }
 
     // No velocityFF
