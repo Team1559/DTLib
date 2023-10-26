@@ -36,7 +36,7 @@ public final class LogWriter implements Closeable, Flushable {
       DateTimeFormatter.ofPattern("uuuu-MM-dd_HH-mm-ss")
                        .withZone(ZoneId.of("Z"));
 
-  private static final String LOG_DIRECTORY      = "/dev/sda/logs";
+  private static final String LOG_DIRECTORY      = "/U/dtlog";
   private static final byte[] HEADER_MAGIC_BYTES = "DTLib Logger".getBytes(StandardCharsets.UTF_8);
 
   @SuppressWarnings("java:S1764") // XOR identical elements
