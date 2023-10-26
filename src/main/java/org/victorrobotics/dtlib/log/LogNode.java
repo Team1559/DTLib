@@ -168,6 +168,7 @@ public class LogNode {
       return;
     }
 
+    if (children == null) return;
     for (LogNode child : children) {
       child.log(value);
     }
