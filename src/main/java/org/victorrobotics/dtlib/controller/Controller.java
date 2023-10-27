@@ -81,7 +81,7 @@ public class Controller {
       return;
     }
 
-    buttons = DriverStation.getStickButtons(port) >> 1;
+    buttons = DriverStation.getStickButtons(port);
 
     if (axes != null) {
       for (int i = 0; i < axes.length; i++) {
