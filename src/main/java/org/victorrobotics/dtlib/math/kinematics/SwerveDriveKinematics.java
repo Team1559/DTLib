@@ -142,6 +142,7 @@ public class SwerveDriveKinematics {
     CommonOps_DDRM.mult(inverseMatrix, chassisSpeedsMatrix, moduleStatesMatrix);
 
     double maxSpeed = 0;
+    double minCosine = 1;
     for (int i = 0; i < moduleCount; i++) {
       double x = moduleStatesMatrix.get(i * 2, 0);
       double y = moduleStatesMatrix.get(i * 2 + 1, 0);
@@ -157,10 +158,23 @@ public class SwerveDriveKinematics {
       if (Math.abs(delta.getDegrees()) >= 90) {
         speed = -speed;
         angle = angle.rotateBy(DEGREES_180);
+        delta = angle.minus(moduleHeadings[i]);
+      }
+
+      double cosine = delta.getCos();
+      if (cosine < minCosine) {
+        minCosine = cosine;
       }
 
       moduleStates[i] = new SwerveModuleState(speed, angle);
       moduleHeadings[i] = moduleStates[i].angle;
+    }
+
+    // Cosine scaling (3rd degree)
+    double cosineScale = minCosine * minCosine * minCosine;
+    maxSpeed *= Math.abs(cosineScale);
+    for (SwerveModuleState moduleState : moduleStates) {
+      moduleState.speed *= cosineScale;
     }
 
     // Scale down speeds if needed
