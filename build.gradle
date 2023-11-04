@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
   // Current GradleRIO versions at https://github.com/wpilibsuite/GradleRIO/blob/main/src/main/java/edu/wpi/first/gradlerio/wpi/WPIVersionsExtension.java
-  String wpilibVersion = '2024.1.1-beta-2'
+  String wpilibVersion = '2024.1.1-beta-3'
   String jacksonVersion = '2.12.4'
   String ejmlVersion = '0.43.1'
 
