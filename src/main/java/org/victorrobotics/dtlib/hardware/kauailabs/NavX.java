@@ -15,11 +15,6 @@ public class NavX implements IMU {
   }
 
   @Override
-  public void close() {
-    internal.close();
-  }
-
-  @Override
   public AHRS getImuImpl() {
     return internal;
   }

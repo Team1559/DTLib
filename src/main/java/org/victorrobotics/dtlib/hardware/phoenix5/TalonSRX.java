@@ -23,11 +23,6 @@ public class TalonSRX implements Motor {
   }
 
   @Override
-  public void close() {
-    internal.close();
-  }
-
-  @Override
   public WPI_TalonSRX getMotorImpl() {
     return internal;
   }
