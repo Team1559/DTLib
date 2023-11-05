@@ -12,18 +12,19 @@ repositories {
   maven { url 'https://frcmaven.wpi.edu/artifactory/release/' }
   maven { url 'https://maven.ctr-electronics.com/release/' }
   maven { url 'https://maven.revrobotics.com/' }
+  maven { url 'https://dev.studica.com/maven/release/2024/' }
 }
 
 dependencies {
   // Current GradleRIO versions at https://github.com/wpilibsuite/GradleRIO/blob/main/src/main/java/edu/wpi/first/gradlerio/wpi/WPIVersionsExtension.java
-  String wpilibVersion = '2024.1.1-beta-2'
+  String wpilibVersion = '2024.1.1-beta-3'
   String jacksonVersion = '2.12.4'
   String ejmlVersion = '0.43.1'
 
-  String navxVersion = '4.0.447'
-  String phoenix5Version = '5.31.0'
-  String phoenix6Version = '23.10.0-alpha-8'
-  String revlibVersion = '2024.0.0'
+  String navxVersion = '2024.0.1-beta-3' // https://dev.studica.com/releases/2024/NavX.json
+  String phoenix5Version = '5.32.0-beta-1' // https://maven.ctr-electronics.com/release/com/ctre/phoenix/Phoenix5-frc2024-beta-latest.json
+  String phoenix6Version = '24.0.0-beta-1' // https://maven.ctr-electronics.com/release/com/ctre/phoenix6/latest/Phoenix6-frc2024-beta-latest.json
+  String revlibVersion = '2024.0.0' // https://software-metadata.revrobotics.com/REVLib-2024.json
 
   implementation 'edu.wpi.first.wpilibj:wpilibj-java:' + wpilibVersion
   implementation 'edu.wpi.first.ntcore:ntcore-java:' + wpilibVersion
@@ -35,7 +36,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
   implementation 'org.ejml:ejml-ddense:' + ejmlVersion
 
-  implementation 'com.kauailabs.navx.frc:navx-java:' + navxVersion
+  implementation 'com.kauailabs.navx.frc:navx-frc-java:' + navxVersion
   implementation 'com.ctre.phoenix:api-java:' + phoenix5Version
   implementation 'com.ctre.phoenix:wpiapi-java:' + phoenix5Version
   implementation 'com.ctre.phoenix6:wpiapi-java:' + phoenix6Version
