@@ -2,7 +2,6 @@ package org.victorrobotics.dtlib.hardware.phoenix5;
 
 import org.victorrobotics.dtlib.hardware.Motor;
 
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.ctre.phoenix.motorcontrol.Faults;
@@ -173,16 +172,6 @@ public class Falcon500 implements Motor {
                                     .toString();
     }
     return firmware;
-  }
-
-  @Override
-  public void close() {
-    internal.close();
-  }
-
-  @Override
-  public void customizeSendable(SendableBuilder builder) {
-    builder.addDoubleProperty("Current", this::getCurrentDraw, null);
   }
 
   @Override

@@ -2,26 +2,25 @@ package org.victorrobotics.dtlib.subsystem.swerve;
 
 import org.victorrobotics.dtlib.math.geometry.Vector2D;
 import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
+import org.victorrobotics.dtlib.math.kinematics.SwerveDriveKinematics;
+import org.victorrobotics.dtlib.math.kinematics.SwerveDriveOdometry;
+import org.victorrobotics.dtlib.math.kinematics.SwerveModulePosition;
+import org.victorrobotics.dtlib.math.kinematics.SwerveModuleState;
 import org.victorrobotics.dtlib.math.trajectory.AccelerationLimit;
 import org.victorrobotics.dtlib.math.trajectory.VelocityLimit;
 import org.victorrobotics.dtlib.subsystem.Subsystem;
 
 import java.util.Objects;
 
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 public abstract class SwerveDrive extends Subsystem {
-  private final SwerveModule[]           modules;
-  private final SwerveDriveKinematics    kinematics;
-  private final SwerveDrivePoseEstimator poseEstimator;
+  private final SwerveModule[]        modules;
+  private final SwerveDriveKinematics kinematics;
+  private final SwerveDriveOdometry   poseEstimator;
 
   private final SwerveModulePosition[] positions;
 
@@ -43,16 +42,16 @@ public abstract class SwerveDrive extends Subsystem {
       this.modules[i] = Objects.requireNonNull(modules[i]);
     }
 
-    Translation2d[] wheelLocations = new Translation2d[modules.length];
+    Vector2D[] wheelLocations = new Vector2D[modules.length];
     positions = new SwerveModulePosition[modules.length];
     for (int i = 0; i < wheelLocations.length; i++) {
       wheelLocations[i] = modules[i].getLocation();
       positions[i] = modules[i].getPosition();
     }
 
-    kinematics = new SwerveDriveKinematics(wheelLocations);
-    poseEstimator =
-        new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), positions, new Pose2d());
+    kinematics = new SwerveDriveKinematics(5, wheelLocations);
+    poseEstimator = new SwerveDriveOdometry(kinematics, new Pose2d(), getGyroAngle(), positions,
+                                            new double[] { 0.1, 0.1, 0.1 });
 
     centerOfRotation = new Vector2D();
     accelerationLimit = new AccelerationLimit();
@@ -102,9 +101,8 @@ public abstract class SwerveDrive extends Subsystem {
     velocityLimit.apply(currentSpeeds);
     accelerationLimit.apply(currentSpeeds, previousSpeeds);
 
-    SwerveModuleState[] newStates =
-        kinematics.toSwerveModuleStates(currentSpeeds.toChassisSpeeds(),
-                                        centerOfRotation.toTranslation2d());
+    kinematics.setCenterOfRotation(centerOfRotation);
+    SwerveModuleState[] newStates = kinematics.computeModuleStates(currentSpeeds);
     setStates(newStates);
   }
 
@@ -114,19 +112,7 @@ public abstract class SwerveDrive extends Subsystem {
           + modules.length + " modules");
     }
 
-    double minCosine = 1;
     for (int i = 0; i < modules.length; i++) {
-      states[i] = SwerveModuleState.optimize(states[i], modules[i].getSteerAngle());
-      double cosine = modules[i].getSteerAngle()
-                                .minus(states[i].angle)
-                                .getCos();
-      if (cosine < minCosine) {
-        minCosine = cosine;
-      }
-    }
-    minCosine *= minCosine * minCosine; // minCosine to the 3rd power
-    for (int i = 0; i < modules.length; i++) {
-      states[i].speedMetersPerSecond *= minCosine;
       modules[i].setState(states[i]);
     }
   }
@@ -134,9 +120,9 @@ public abstract class SwerveDrive extends Subsystem {
   public void holdPosition() {
     for (SwerveModule module : modules) {
       // Orient wheels towards center of robot so they all collide
-      module.holdPosition(module.getLocation()
-                                .getAngle()
-                                .unaryMinus());
+      module.holdPosition(Rotation2d.fromRadians(module.getLocation()
+                                                       .theta())
+                                    .unaryMinus());
     }
   }
 

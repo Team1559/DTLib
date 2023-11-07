@@ -3,8 +3,6 @@ package org.victorrobotics.dtlib.hardware.phoenix6;
 import org.victorrobotics.dtlib.hardware.Motor;
 import org.victorrobotics.dtlib.hardware.MotorFaults;
 
-import edu.wpi.first.util.sendable.SendableBuilder;
-
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.ClosedLoopRampsConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -332,16 +330,6 @@ public class Falcon500 implements Motor {
                                     .toString();
     }
     return firmware;
-  }
-
-  @Override
-  public void close() {
-    internal.close();
-  }
-
-  @Override
-  public void customizeSendable(SendableBuilder builder) {
-    builder.addDoubleProperty("Current", this::getCurrentDraw, null);
   }
 
   @Override

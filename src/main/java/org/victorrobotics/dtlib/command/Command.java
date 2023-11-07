@@ -44,7 +44,7 @@ public interface Command {
    * @return whether the command has finished
    */
   default boolean isFinished() {
-    return true;
+    return false;
   }
 
   /**

@@ -1,15 +1,12 @@
 package org.victorrobotics.dtlib.hardware;
 
-import org.victorrobotics.dtlib.network.DTSendable;
-
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.util.sendable.SendableBuilder;
 
 /**
  * An interface denoting hardware that supplies an absolutely-referenced
  * rotational position.
  */
-public interface AbsoluteEncoder extends DTSendable {
+public interface AbsoluteEncoder {
   /**
    * @return the underlying vendor implementation of this hardware, used to send
    *           and receive data.
@@ -91,22 +88,4 @@ public interface AbsoluteEncoder extends DTSendable {
    * @see #setZeroPosition(Rotation2d)
    */
   void zeroPosition();
-
-  @Override
-  void close();
-
-  @Override
-  default void initSendable(SendableBuilder builder) {
-    builder.addDoubleProperty("Position",
-                              limitRate(() -> getPosition().getDegrees(), UPDATE_RATE_FAST_HZ),
-                              d -> setPosition(Rotation2d.fromDegrees(d)));
-    builder.addDoubleProperty("Absolute", limitRate(() -> getAbsolutePosition().getDegrees(),
-                                                    UPDATE_RATE_FAST_HZ),
-                              null);
-
-    builder.addBooleanProperty("Inverted", limitRate(this::isInverted, UPDATE_RATE_SLOW_HZ),
-                               this::setInverted);
-    builder.addStringProperty("Firmware", limitRate(this::getFirmwareVersion, UPDATE_RATE_FAST_HZ),
-                              null);
-  }
 }

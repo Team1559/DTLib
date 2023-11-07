@@ -5,7 +5,7 @@ DTLib is an extension of [WPILib](https://github.com/wpilibsuite/allwpilib) desi
 
 ## License
 
-This library is licensed under the [GNU Public License V3](https://github.com/Team1559/DTLib/blob/master/LICENSE). However, not all dependencies are licensed in the same way. Notably, WPILib uses their own custom license (which can be found [here](https://github.com/wpilibsuite/allwpilib/blob/main/LICENSE.md)).
+This library is licensed under the [MIT License](https://github.com/Team1559/DTLib/blob/master/LICENSE). However, not all dependencies are licensed in the same way. See their individual documentation pages for more information.
 
 ## Languages
 

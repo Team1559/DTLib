@@ -1,12 +1,13 @@
 package org.victorrobotics.dtlib.subsystem.swerve;
 
+import org.victorrobotics.dtlib.math.geometry.Vector2D;
+import org.victorrobotics.dtlib.math.kinematics.SwerveModulePosition;
+import org.victorrobotics.dtlib.math.kinematics.SwerveModuleState;
+
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public interface SwerveModule {
-  Translation2d getLocation();
+  Vector2D getLocation();
 
   void setState(SwerveModuleState state);
 

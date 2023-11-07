@@ -20,11 +20,6 @@ public class Pigeon2 implements IMU {
   }
 
   @Override
-  public void close() throws Exception {
-    internal.DestroyObject();
-  }
-
-  @Override
   public double getYaw() {
     return internal.getYaw();
   }
