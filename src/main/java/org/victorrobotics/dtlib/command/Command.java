@@ -143,7 +143,7 @@ public abstract class Command {
    * scheduled, so this method should normally be called from the subclass
    * constructor.
    *
-   * @param requirements the subsystems to add
+   * @param requirement the subsystems to add
    * @see Command#getRequirements()
    */
   public final void addRequirements(Subsystem requirement) {
