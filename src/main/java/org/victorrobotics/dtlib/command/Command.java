@@ -3,88 +3,99 @@ package org.victorrobotics.dtlib.command;
 import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.subsystem.Subsystem;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 
 /**
- * A state machine representing a complete action to be performed. Commands are
- * run by the {@link CommandScheduler}, and can be composed into groups to
- * allow users to build complicated multistep actions without the need to write
- * complicated state machine logic themselves. By default, commands are run
- * sequentially from the main robot loop.
+ * A state machine representing an action to be performed by the robot. Commands
+ * are run by the {@link CommandScheduler}, and can be composed into groups to
+ * allow users to build multistep actions without the need to write complex
+ * state-handling logic themselves.
  */
-public interface Command {
+public abstract class Command {
+  private final Set<Subsystem> requirements;
+  private final Set<Subsystem> unmodifiableReqs;
+
   /**
-   * Specifies the subsystems used by the command. Two commands cannot use the
-   * same subsystem at the same time. If another command is scheduled that
-   * shares a requirement, {@link #isInterruptible()} will be checked,
-   * unscheduling one of them.
-   *
-   * @return the set of required subsystems (may be empty)
+   * Constructs a new CommandBase
    */
-  default Set<Subsystem> getRequirements() {
-    return Set.of();
+  protected Command() {
+    requirements = new LinkedHashSet<>();
+    unmodifiableReqs = Collections.unmodifiableSet(requirements);
   }
 
   /**
-   * The initialization of a command. Called once each time a command is
-   * started.
+   * The initial subroutine of the command. Called once each time a command is
+   * scheduled.
    */
-  default void initialize() {}
+  public abstract void initialize();
 
   /**
-   * The main body of a command. Called every loop iteration while scheduled.
+   * The main body of the command. Called repeatedly while a command is
+   * scheduled.
    */
-  default void execute() {}
+  public abstract void execute();
+
+  /**
+   * The action to take when the command ends normally. Called once
+   * {@link #isFinished()} returns true.
+   * <p>
+   * Do not schedule commands here. Use {@link #andThen(Command...)} instead.
+   */
+  public abstract void end();
 
   /**
    * Whether the command has finished. Once a command finishes, the scheduler
-   * will call its {@link #end()} method and un-schedule it.
+   * will call its {@link #end()} method and unschedule it.
+   * <p>
+   * Unless overriden, commands will never finish.
    *
    * @return whether the command has finished
    */
-  default boolean isFinished() {
-    return false;
-  }
+  public abstract boolean isFinished();
 
   /**
-   * The action to take when the command ends. Called once {@link #isFinished()}
-   * returns true.
+   * The action to take when the scheduler interrupts the command (by canceling
+   * it, throwing an exception, or scheduling a conflicting command).
+   * <p>
+   * Unless overriden, this delegates to the command's {@link #end()} method.
+   *
+   * @see #end
+   * @see CommandScheduler#cancel(Command)
    */
-  default void end() {}
-
-  /**
-   * The action to take when the scheduler interrupts the command. By default,
-   * this simply redirects to {@link #end()}.
-   */
-  default void interrupt() {
+  public void interrupt() {
     end();
   }
 
   /**
    * Whether the command completed successfully. Used to determine pass/fail of
    * a robot self test.
+   * <p>
+   * Unless overriden, commands are always successful.
    *
    * @return whether the command completed without issue
    * @see DTRobot#getSelfTestCommand()
    */
-  default boolean wasSuccessful() {
+  public boolean wasSuccessful() {
     return true;
   }
 
   /**
    * Whether the command is permitted to be interrupted by the scheduler. If
-   * true (default), scheduling another command that requires one or more of the
-   * command's requirements will result in interruption. Regardless of
-   * interruption behavior, commands may still be canceled explicitly.
+   * true (the default), scheduling another command that requires one or more of
+   * the command's requirements will result in interruption.
    * <p>
-   * By default, commands are interruptible unless overriden.
+   * Regardless of the result of this method, commands may still be canceled
+   * explicitly.
    *
    * @return whether the command can be interrupted
    * @see #interrupt()
    * @see CommandScheduler#cancel(Command)
    */
-  default boolean isInterruptible() {
+  public boolean isInterruptible() {
     return true;
   }
 
@@ -98,25 +109,82 @@ public interface Command {
    * @return whether the command runs when the robot is disabled
    * @see DTRobot#getCurrentMode()
    */
-  default boolean runsWhenDisabled() {
+  public boolean runsWhenDisabled() {
     return false;
   }
 
   /**
-   * The name of the command. Useful for epoch prints. Defaults to the command
-   * class name.
+   * The name of the command. Defaults to the command class name.
    *
    * @return the name of the command
    */
-  default String getName() {
+  public String getName() {
     return getClass().getSimpleName();
+  }
+
+  /**
+   * The set of subsystems used by this command. Two commands may not use the
+   * same subsystem simultaneously. If another command is scheduled that shares
+   * a requirement, {@link #isInterruptible()} will be checked and followed. If
+   * no subsystems are required, return an empty set (using {@link Set#of()}).
+   *
+   * @return the set of required subsystems
+   */
+  public final Set<Subsystem> getRequirements() {
+    return unmodifiableReqs;
+  }
+
+  /**
+   * Adds subsystems to the requirements of the command. The
+   * {@link CommandScheduler} will prevent two commands that require the same
+   * subsystem from being scheduled simultaneously.
+   * <p>
+   * Note that the scheduler determines the requirements of a command when it is
+   * scheduled, so this method should normally be called from the subclass
+   * constructor.
+   *
+   * @param requirements the subsystems to add
+   * @see Command#getRequirements()
+   */
+  public final void addRequirements(Subsystem requirement) {
+    this.requirements.add(requirement);
+  }
+
+  /**
+   * Adds subsystems to the requirements of the command. The
+   * {@link CommandScheduler} will prevent two commands that require the same
+   * subsystem from being scheduled simultaneously.
+   * <p>
+   * Note that the scheduler determines the requirements of a command when it is
+   * scheduled, so this method should normally be called from the subclass
+   * constructor.
+   *
+   * @param requirements the subsystems to add
+   * @see Command#getRequirements()
+   */
+  public final void addRequirements(Subsystem... requirements) {
+    for (Subsystem subsystem : requirements) {
+      addRequirements(subsystem);
+    }
+  }
+
+  /**
+   * Mark subsystems as requirements for this command. Commands are given
+   * exclusive access to their requirements while they are scheduled: if another
+   * command tries to schedule at the same time, one of them will be canceled.
+   *
+   * @param requirements the set of subsystems to add
+   * @see Command#getRequirements()
+   */
+  public final void addRequirements(Collection<Subsystem> requirements) {
+    this.requirements.addAll(requirements);
   }
 
   /**
    * @param requirement the subsystem to check
    * @return whether the command requires the subsystem
    */
-  default boolean hasRequirement(Subsystem requirement) {
+  public boolean hasRequirement(Subsystem requirement) {
     return getRequirements().contains(requirement);
   }
 
@@ -125,12 +193,12 @@ public interface Command {
    * equivalent to
    *
    * <pre>
-   * DTCommandScheduler.schedule(this)
+   * CommandScheduler.schedule(this)
    * </pre>
    *
    * @see CommandScheduler#schedule(Command)
    */
-  default void schedule() {
+  public void schedule() {
     CommandScheduler.schedule(this);
   }
 
@@ -139,12 +207,12 @@ public interface Command {
    * equivalent to
    *
    * <pre>
-   * DTCommandScheduler.cancel(this)
+   * CommandScheduler.cancel(this)
    * </pre>
    *
    * @see CommandScheduler#cancel(Command)
    */
-  default void cancel() {
+  public void cancel() {
     CommandScheduler.cancel(this);
   }
 
@@ -153,12 +221,12 @@ public interface Command {
    * convenience method equivalent to
    *
    * <pre>
-   * DTCommandScheduler.isScheduled(this)
+   * CommandScheduler.isScheduled(this)
    * </pre>
    *
    * @return whether the command is scheduled
    */
-  default boolean isScheduled() {
+  public boolean isScheduled() {
     return CommandScheduler.isScheduled(this);
   }
 
@@ -170,7 +238,7 @@ public interface Command {
    * @return the decorated command
    * @see RaceCommandGroup
    */
-  default RaceCommandGroup withTimeout(double seconds) {
+  public RaceCommandGroup withTimeout(double seconds) {
     return raceWith(new WaitCommand(seconds));
   }
 
@@ -182,7 +250,7 @@ public interface Command {
    * @return the decorated command
    * @see RaceCommandGroup
    */
-  default RaceCommandGroup until(BooleanSupplier condition) {
+  public RaceCommandGroup until(BooleanSupplier condition) {
     return raceWith(new WaitUntilCommand(condition));
   }
 
@@ -194,7 +262,7 @@ public interface Command {
    * @return the decorated command
    * @see ConditionalCommand
    */
-  default ConditionalCommand unless(BooleanSupplier condition) {
+  public ConditionalCommand unless(BooleanSupplier condition) {
     return new ConditionalCommand(new NullCommand(), this, condition);
   }
 
@@ -206,7 +274,7 @@ public interface Command {
    * @return the decorated command
    * @see ConditionalCommand
    */
-  default ConditionalCommand onlyIf(BooleanSupplier condition) {
+  public ConditionalCommand onlyIf(BooleanSupplier condition) {
     return new ConditionalCommand(this, new NullCommand(), condition);
   }
 
@@ -217,7 +285,7 @@ public interface Command {
    * @return the decorated command
    * @see SequentialCommandGroup
    */
-  default SequentialCommandGroup beforeStarting(Command... before) {
+  public SequentialCommandGroup beforeStarting(Command... before) {
     return new SequentialCommandGroup(before).andThen(this);
   }
 
@@ -228,7 +296,7 @@ public interface Command {
    * @return the decorated command
    * @see SequentialCommandGroup
    */
-  default SequentialCommandGroup andThen(Command... next) {
+  public SequentialCommandGroup andThen(Command... next) {
     return new SequentialCommandGroup(this).andThen(next);
   }
 
@@ -240,7 +308,7 @@ public interface Command {
    * @return the decorated command
    * @see ParallelCommandGroup
    */
-  default ParallelCommandGroup alongWith(Command... parallel) {
+  public ParallelCommandGroup alongWith(Command... parallel) {
     return new ParallelCommandGroup(this).alongWith(parallel);
   }
 
@@ -252,7 +320,7 @@ public interface Command {
    * @return the decorated command
    * @see RaceCommandGroup
    */
-  default RaceCommandGroup raceWith(Command... parallel) {
+  public RaceCommandGroup raceWith(Command... parallel) {
     return new RaceCommandGroup(this).raceWith(parallel);
   }
 
@@ -263,7 +331,7 @@ public interface Command {
    * @return the decorated command
    * @see RepeatCommand
    */
-  default RepeatCommand repeatedly() {
+  public RepeatCommand repeatedly() {
     return new RepeatCommand(this);
   }
 
@@ -277,7 +345,7 @@ public interface Command {
    * @see RepeatCommand
    * @see RaceCommandGroup
    */
-  default RaceCommandGroup repeatUntil(BooleanSupplier condition) {
+  public RaceCommandGroup repeatUntil(BooleanSupplier condition) {
     return repeatedly().until(condition);
   }
 
@@ -288,7 +356,7 @@ public interface Command {
    * @return the decorated command
    * @see RecoveryCommand
    */
-  default RecoveryCommand catchExceptions() {
+  public RecoveryCommand catchExceptions() {
     return new RecoveryCommand(this);
   }
 
@@ -299,7 +367,7 @@ public interface Command {
    * @return the decorated command
    * @see ProxyCommand
    */
-  default ProxyCommand proxy() {
+  public ProxyCommand proxy() {
     return new ProxyCommand(this);
   }
 
@@ -310,7 +378,7 @@ public interface Command {
    * @return the decorated command
    * @see #runsWhenDisabled()
    */
-  default TargetCommand overrideDisable(boolean runsWhenDisabled) {
+  public TargetCommand overrideDisable(boolean runsWhenDisabled) {
     return new TargetCommand(this) {
       @Override
       public boolean runsWhenDisabled() {
@@ -326,7 +394,7 @@ public interface Command {
    * @return the decorated command
    * @see #isInterruptible()
    */
-  default TargetCommand overrideInterrupt(boolean isInterruptible) {
+  public TargetCommand overrideInterrupt(boolean isInterruptible) {
     return new TargetCommand(this) {
       @Override
       public boolean isInterruptible() {
@@ -343,7 +411,7 @@ public interface Command {
    * @return the decorated command
    * @see #getName()
    */
-  default TargetCommand withName(String name) {
+  public TargetCommand withName(String name) {
     return new TargetCommand(this) {
       @Override
       public String getName() {
