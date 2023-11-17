@@ -6,7 +6,7 @@ package org.victorrobotics.dtlib.command;
  */
 public class NullCommand extends InstantCommand {
   /**
-   * Constructs a new DTNullCommand.
+   * Constructs a new NullCommand.
    */
   public NullCommand() {
     super(() -> {});

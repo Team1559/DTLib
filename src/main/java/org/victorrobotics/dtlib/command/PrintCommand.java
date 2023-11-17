@@ -8,7 +8,7 @@ import org.victorrobotics.dtlib.log.LogWriter;
  */
 public class PrintCommand extends InstantCommand {
   /**
-   * Constructs a new DTPrintCommand.
+   * Constructs a new PrintCommand.
    *
    * @param message the text to be printed
    */

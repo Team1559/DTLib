@@ -1,20 +1,17 @@
 package org.victorrobotics.dtlib.command;
 
-import org.victorrobotics.dtlib.subsystem.Subsystem;
-
-import java.util.Set;
-
 /**
  * <p>
  * The rules for command compositions apply: command instances that are passed
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class TargetCommand implements Command {
+public class TargetCommand extends Command {
   protected final Command target;
 
   public TargetCommand(Command target) {
     this.target = target;
+    addRequirements(target.getRequirements());
     CommandScheduler.registerComposed(target);
   }
 
@@ -46,11 +43,6 @@ public class TargetCommand implements Command {
   @Override
   public boolean wasSuccessful() {
     return target.wasSuccessful();
-  }
-
-  @Override
-  public Set<Subsystem> getRequirements() {
-    return target.getRequirements();
   }
 
   @Override

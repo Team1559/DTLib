@@ -16,7 +16,7 @@ import java.util.Set;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class ParallelCommandGroup extends CommandBase {
+public class ParallelCommandGroup extends Command {
   private final Map<Command, Boolean> parallelCommands;
 
   private boolean runsWhenDisabled = true;
@@ -25,7 +25,7 @@ public class ParallelCommandGroup extends CommandBase {
   private boolean success;
 
   /**
-   * Constructs a DTParallelCommandGroup
+   * Constructs a ParallelCommandGroup
    *
    * @param commands the commands to run in parallel
    */

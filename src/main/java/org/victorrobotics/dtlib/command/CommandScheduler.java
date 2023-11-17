@@ -338,7 +338,7 @@ public final class CommandScheduler {
    *
    * @param subsystem the subsystem to be inquired about
    * @return the command currently requiring the subsystem, or null if no
-   *           command is currently scheduled
+   *         command is currently scheduled
    */
   public static Command getRequiringCommand(Subsystem subsystem) {
     return REQUIRING_COMMANDS.get(subsystem);

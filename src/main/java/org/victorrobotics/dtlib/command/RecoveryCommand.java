@@ -16,7 +16,7 @@ public class RecoveryCommand extends TargetCommand {
   private boolean threwException;
 
   /**
-   * Constructs a new DTRecoveryCommand.
+   * Constructs a new RecoveryCommand.
    *
    * @param target the command to call
    */
