@@ -17,6 +17,7 @@ public class HolonomicTrajectory implements Iterable<HolonomicTrajectory.Point> 
     JOLT;
   }
 
+  @SuppressWarnings("java:S1104") // public non-final members
   public static class Point {
     public Vector2D_R position;
     public Vector2D_R velocity;
@@ -61,7 +62,7 @@ public class HolonomicTrajectory implements Iterable<HolonomicTrajectory.Point> 
 
   @Override
   public String toString() {
-    StringBuilder builder = new StringBuilder("DTSwerveTrajectory([\n");
+    StringBuilder builder = new StringBuilder("HolonomicTrajectory([\n");
     int maxNumLen = (int) Math.ceil(Math.log10(points.length - 1));
     String indexFormat = "%" + maxNumLen + "d";
     for (int i = 0; i < points.length; i++) {

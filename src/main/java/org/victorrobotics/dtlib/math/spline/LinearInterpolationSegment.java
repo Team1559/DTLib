@@ -11,7 +11,7 @@ public class LinearInterpolationSegment extends SplineSegment {
   private final LinearInterpolationControl endControl;
 
   /**
-   * Constructs a DTLinearInterpolationCurve with the specified start and end
+   * Constructs a LinearInterpolationCurve with the specified start and end
    * points.
    *
    * @param start the start point
@@ -22,7 +22,7 @@ public class LinearInterpolationSegment extends SplineSegment {
   }
 
   /**
-   * Constructs a DTlinearInterpolationCurve using the specified coontrol points
+   * Constructs a linearInterpolationCurve using the specified coontrol points
    * at the start and end.
    *
    * @param startControl the start point

@@ -4,6 +4,12 @@ import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
 import org.ejml.data.DMatrixRMaj;
 
+/**
+ * A single fifth-order Bézier curve segment, which has continuous jolt
+ * and constant snap. Comprised of two {@link QuinticBezierControl}s, start and
+ * end, which can connect this segment to others and handle symmetric
+ * modifications.
+ */
 public class QuinticBezierSegment extends SplineSegment {
   private static final double[][] POSITION_COEFFICIENTS = {
       // @format:off
@@ -59,12 +65,30 @@ public class QuinticBezierSegment extends SplineSegment {
   private int                          startModCount;
   private int                          endModCount;
 
+  /**
+   * Constructs a QuinticBezierSegment from the given points, with new controls at
+   * the start and end.
+   *
+   * @param p0 Bézier control point 0
+   * @param p1 Bézier control point 1
+   * @param p2 Bézier control point 2
+   * @param p3 Bézier control point 3
+   * @param p3 Bézier control point 4
+   * @param p3 Bézier control point 5
+   */
   protected QuinticBezierSegment(Vector2D_R p0, Vector2D_R p1, Vector2D_R p2, Vector2D_R p3,
                                  Vector2D_R p4, Vector2D_R p5) {
     this(QuinticBezierControl.createStart(p0, p1, p2),
          QuinticBezierControl.createEnd(p3, p4, p5));
   }
 
+  /**
+   * Constructs a QuinticBezierCurve backed by the specified start and end
+   * controls.
+   *
+   * @param startControl the first three control points
+   * @param endControl the last three control points
+   */
   protected QuinticBezierSegment(QuinticBezierControl startControl,
                                  QuinticBezierControl endControl) {
     super(5);

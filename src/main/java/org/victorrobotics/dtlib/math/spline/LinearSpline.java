@@ -7,14 +7,14 @@ import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
  */
 public class LinearSpline extends Spline<LinearInterpolationSegment> {
   /**
-   * Constructs a DTLinearSpline with no segments.
+   * Constructs a LinearSpline with no segments.
    */
   public LinearSpline() {
     super();
   }
 
   /**
-   * Constructs a DTLinearSpline starting and ending at the specified points.
+   * Constructs a LinearSpline starting and ending at the specified points.
    *
    * @param start the start point
    * @param end the end point
@@ -24,7 +24,7 @@ public class LinearSpline extends Spline<LinearInterpolationSegment> {
   }
 
   /**
-   * Constructs a DTLinearSpline consisting of the given line segment.
+   * Constructs a LinearSpline consisting of the given line segment.
    *
    * @param segment the original line segment
    */

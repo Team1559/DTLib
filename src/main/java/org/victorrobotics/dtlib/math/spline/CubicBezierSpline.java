@@ -9,7 +9,7 @@ import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
  *
  * @see Spline
  * @see <a href=
- *        "https://en.wikipedia.org/wiki/Bézier_curve#Cubic_Bézier_curves">Wikipedia</a>
+ *      "https://en.wikipedia.org/wiki/Bézier_curve#Cubic_Bézier_curves">Wikipedia</a>
  */
 public class CubicBezierSpline extends Spline<CubicBezierSegment> {
   /**
@@ -94,7 +94,7 @@ public class CubicBezierSpline extends Spline<CubicBezierSegment> {
     CubicBezierSegment toSplit = segments.get(index);
     Vector2D_R p0 = toSplit.getPosition(t);
     Vector2D_R p1 = toSplit.getVelocity(t)
-                            .multiply(1 / 3D);
+                           .multiply(1 / 3D);
     CubicBezierControl splitControl = CubicBezierControl.createStart(p0, p1);
 
     CubicBezierSegment before = new CubicBezierSegment(toSplit.getStartControl(), splitControl);

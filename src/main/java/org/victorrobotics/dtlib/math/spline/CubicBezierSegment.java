@@ -71,7 +71,7 @@ public class CubicBezierSegment extends SplineSegment {
   }
 
   /**
-   * Constructs a DTCubicBezierCurve backed by the specified start and end
+   * Constructs a CubicBezierCurve backed by the specified start and end
    * controls.
    *
    * @param startControl the first two control points
