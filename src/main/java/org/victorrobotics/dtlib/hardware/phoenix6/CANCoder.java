@@ -18,7 +18,7 @@ public class CANCoder implements AbsoluteEncoder {
   private StatusSignal<Double> absolutePosition;
   private StatusSignal<Double> velocity;
 
-  private DTCANCoderFaults faults;
+  private Faults faults;
   private String           firmware;
 
   public CANCoder(CANcoder cancoder) {
@@ -137,14 +137,14 @@ public class CANCoder implements AbsoluteEncoder {
   }
 
   @Override
-  public DTCANCoderFaults getFaults() {
+  public Faults getFaults() {
     if (faults == null) {
-      faults = new DTCANCoderFaults(internal);
+      faults = new Faults(internal);
     }
     return faults;
   }
 
-  public static class DTCANCoderFaults implements AbsoluteEncoderFaults {
+  public static class Faults implements AbsoluteEncoderFaults {
     private final StatusSignal<Integer> allFaults;
     private final StatusSignal<Boolean> badMagnet;
     private final StatusSignal<Boolean> bootDuringEnable;
@@ -152,7 +152,7 @@ public class CANCoder implements AbsoluteEncoder {
     private final StatusSignal<Boolean> lowVoltage;
     private final StatusSignal<Boolean> unlicensedFeature;
 
-    DTCANCoderFaults(CANcoder internal) {
+    Faults(CANcoder internal) {
       allFaults = internal.getFaultField();
       badMagnet = internal.getFault_BadMagnet();
       bootDuringEnable = internal.getFault_BootDuringEnable();
