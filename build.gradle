@@ -4,7 +4,7 @@ plugins {
   id 'signing'
 }
 
-version = '0.1'
+version = '2024.0.0-beta-1'
 
 repositories {
   mavenCentral()
@@ -26,21 +26,21 @@ dependencies {
   String phoenix6Version = '24.0.0-beta-1' // https://maven.ctr-electronics.com/release/com/ctre/phoenix6/latest/Phoenix6-frc2024-beta-latest.json
   String revlibVersion = '2024.0.0' // https://software-metadata.revrobotics.com/REVLib-2024.json
 
-  implementation 'edu.wpi.first.wpilibj:wpilibj-java:' + wpilibVersion
-  implementation 'edu.wpi.first.ntcore:ntcore-java:' + wpilibVersion
-  implementation 'edu.wpi.first.hal:hal-java:' + wpilibVersion
-  implementation 'edu.wpi.first.wpinet:wpinet-java:' + wpilibVersion
-  implementation 'edu.wpi.first.wpiutil:wpiutil-java:' + wpilibVersion
-  implementation 'edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:' + wpilibVersion
-  implementation 'edu.wpi.first.wpimath:wpimath-java:' + wpilibVersion
-  implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
-  implementation 'org.ejml:ejml-ddense:' + ejmlVersion
+  compileOnly 'edu.wpi.first.wpilibj:wpilibj-java:' + wpilibVersion
+  compileOnly 'edu.wpi.first.ntcore:ntcore-java:' + wpilibVersion
+  compileOnly 'edu.wpi.first.hal:hal-java:' + wpilibVersion
+  compileOnly 'edu.wpi.first.wpinet:wpinet-java:' + wpilibVersion
+  compileOnly 'edu.wpi.first.wpiutil:wpiutil-java:' + wpilibVersion
+  compileOnly 'edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:' + wpilibVersion
+  compileOnly 'edu.wpi.first.wpimath:wpimath-java:' + wpilibVersion
+  compileOnly 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
+  compileOnly 'org.ejml:ejml-ddense:' + ejmlVersion
 
-  implementation 'com.kauailabs.navx.frc:navx-frc-java:' + navxVersion
-  implementation 'com.ctre.phoenix:api-java:' + phoenix5Version
-  implementation 'com.ctre.phoenix:wpiapi-java:' + phoenix5Version
-  implementation 'com.ctre.phoenix6:wpiapi-java:' + phoenix6Version
-  implementation 'com.revrobotics.frc:REVLib-java:' + revlibVersion
+  compileOnly 'com.kauailabs.navx.frc:navx-frc-java:' + navxVersion
+  compileOnly 'com.ctre.phoenix:api-java:' + phoenix5Version
+  compileOnly 'com.ctre.phoenix:wpiapi-java:' + phoenix5Version
+  compileOnly 'com.ctre.phoenix6:wpiapi-java:' + phoenix6Version
+  compileOnly 'com.revrobotics.frc:REVLib-java:' + revlibVersion
 
   testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
 }
@@ -81,20 +81,11 @@ publishing {
     mavenCentral(MavenPublication) {
       groupId = 'org.victorrobotics.dtlib'
       artifactId = 'dtlib-java'
-      version = '0.1'
+      version = project.version
 
       from components.java
       artifact sourcesJar
       artifact javadocJar
-
-      versionMapping {
-        usage('java-api') {
-          fromResolutionOf('runtimeClasspath')
-        }
-        usage('java-runtime') {
-          fromResolutionResult()
-        }
-      }
 
       pom {
         name = 'DTLib'
@@ -104,8 +95,8 @@ publishing {
 
         licenses {
           license {
-            name = 'GNU General Public License, Version 3'
-            url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+            name = 'MIT License'
+            url = 'https://opensource.org/license/mit/'
           }
         }
 
