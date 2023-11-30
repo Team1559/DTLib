@@ -11,7 +11,7 @@ import java.util.function.BooleanSupplier;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class ConditionalCommand extends CommandBase {
+public class ConditionalCommand extends Command {
   private final Command         trueCommand;
   private final Command         falseCommand;
   private final BooleanSupplier condition;
@@ -19,19 +19,14 @@ public class ConditionalCommand extends CommandBase {
   private Command activeCommand;
 
   /**
-   * Creates a new DTConditionalCommand
+   * Creates a new ConditionalCommand
    *
-   * @param onTrue
-   *        the command to run if the condition is true
-   * @param onFalse
-   *        the command to run if the condition is false
-   * @param condition
-   *        the condition to determine which command to run
-   *
-   * @throws IllegalArgumentException
-   *         if either command is part of another composition
-   * @throws NullPointerException
-   *         if the condition is null
+   * @param onTrue the command to run if the condition is true
+   * @param onFalse the command to run if the condition is false
+   * @param condition the condition to determine which command to run
+   * @throws IllegalArgumentException if either command is part of another
+   *         composition
+   * @throws NullPointerException if the condition is null
    */
   public ConditionalCommand(Command onTrue, Command onFalse, BooleanSupplier condition) {
     trueCommand = onTrue != null ? onTrue : new NullCommand();

@@ -118,7 +118,7 @@ public abstract class DTRobot {
 
   /**
    * @return the user-supplied command to be executed when autonomous mode is
-   *         enabled
+   *           enabled
    */
   protected abstract Command getAutoCommand();
 

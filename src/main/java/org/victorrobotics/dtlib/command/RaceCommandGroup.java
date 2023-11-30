@@ -16,7 +16,7 @@ import java.util.Set;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class RaceCommandGroup extends CommandBase {
+public class RaceCommandGroup extends Command {
   private final Map<Command, Boolean> raceCommands;
 
   private boolean runsWhenDisabled = true;
@@ -26,10 +26,9 @@ public class RaceCommandGroup extends CommandBase {
   private boolean success;
 
   /**
-   * Constructs a DTRaceCommandGroup
+   * Constructs a RaceCommandGroup
    *
-   * @param commands
-   *        the commands to race in parallel
+   * @param commands the commands to race in parallel
    */
   public RaceCommandGroup(Command... commands) {
     raceCommands = new HashMap<>(commands.length);
@@ -41,14 +40,10 @@ public class RaceCommandGroup extends CommandBase {
    * Adds additional commands to the composition, which will run parallel to
    * current commands.
    *
-   * @param commands
-   *        the commands to add
-   *
-   * @throws IllegalStateException
-   *         if the composition is currently scheduled
-   * @throws IllegalArgumentException
-   *         if a given command is already part of another composition, or if
-   *         commands share requirements
+   * @param commands the commands to add
+   * @throws IllegalStateException if the composition is currently scheduled
+   * @throws IllegalArgumentException if a given command is already part of
+   *         another composition, or if commands share requirements
    */
   public void addCommands(Command... commands) {
     if (isScheduled()) {

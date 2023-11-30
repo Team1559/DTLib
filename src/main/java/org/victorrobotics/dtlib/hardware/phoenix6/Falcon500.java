@@ -31,7 +31,7 @@ public class Falcon500 implements Motor {
   private StatusSignal<Double> voltage;
   private StatusSignal<Double> temperature;
 
-  private DTTalonFXFaults faults;
+  private Faults faults;
   private String          firmware;
   private int             pidSlot;
 
@@ -307,9 +307,9 @@ public class Falcon500 implements Motor {
                    .doubleValue();
   }
 
-  public DTTalonFXFaults getFaults() {
+  public Faults getFaults() {
     if (faults == null) {
-      faults = new DTTalonFXFaults(internal);
+      faults = new Faults(internal);
     }
     return faults;
   }
@@ -343,7 +343,7 @@ public class Falcon500 implements Motor {
                   .doubleValue();
   }
 
-  public static class DTTalonFXFaults implements MotorFaults {
+  public static class Faults implements MotorFaults {
     private final StatusSignal<Integer> allFaults;
     private final StatusSignal<Boolean> bootDuringEnable;
     private final StatusSignal<Boolean> deviceTemp;
@@ -363,7 +363,7 @@ public class Falcon500 implements Motor {
     private final StatusSignal<Boolean> usingFusedCANcoderWhileUnlicensed;
     private final StatusSignal<Boolean> bridgeBrownout;
 
-    DTTalonFXFaults(TalonFX internal) {
+    Faults(TalonFX internal) {
       allFaults = internal.getFaultField();
       bootDuringEnable = internal.getFault_BootDuringEnable();
       deviceTemp = internal.getFault_DeviceTemp();

@@ -17,7 +17,7 @@ import java.util.Set;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class DeadlineCommandGroup extends CommandBase {
+public class DeadlineCommandGroup extends Command {
   private final Map<Command, Boolean> commands;
   private final Command               deadline;
 
@@ -27,16 +27,14 @@ public class DeadlineCommandGroup extends CommandBase {
   private boolean isFinished;
 
   /**
-   * Creates a new DTDeadlineCommandGroup. The given commands (including the
+   * Creates a new DeadlineCommandGroup. The given commands (including the
    * deadline) will be executed in parallel. The composition will finish when
    * the deadline finishes, interrupting all other still-running commands. If
    * the composition is interrupted, only the commands still running will be
    * interrupted.
    *
-   * @param deadline
-   *        the command that determines when the composition ends
-   * @param commands
-   *        the additional command(s) to be executed
+   * @param deadline the command that determines when the composition ends
+   * @param commands the additional command(s) to be executed
    */
   public DeadlineCommandGroup(Command deadline, Command... commands) {
     this.deadline = Objects.requireNonNull(deadline);
@@ -54,14 +52,10 @@ public class DeadlineCommandGroup extends CommandBase {
    * Adds additional commands to the composition, which will run parallel to
    * existing commands.
    *
-   * @param commands
-   *        the commands to add
-   *
-   * @throws IllegalStateException
-   *         if the composition is currently scheduled
-   * @throws IllegalArgumentException
-   *         if a given command is already part of another composition, or if
-   *         commands share requirements
+   * @param commands the commands to add
+   * @throws IllegalStateException if the composition is currently scheduled
+   * @throws IllegalArgumentException if a given command is already part of
+   *         another composition, or if commands share requirements
    */
   public void addCommands(Command... commands) {
     if (isScheduled()) {

@@ -125,7 +125,4 @@ public abstract class SwerveDrive extends Subsystem {
                                     .unaryMinus());
     }
   }
-
-  @Override
-  public void close() {}
 }

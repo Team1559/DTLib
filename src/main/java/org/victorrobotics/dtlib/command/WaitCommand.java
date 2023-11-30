@@ -8,15 +8,15 @@ import org.victorrobotics.dtlib.DTRobot;
  * it belongs to. Useful for delaying command execution or pausing between
  * actions.
  */
-public class WaitCommand extends CommandBase {
+public class WaitCommand extends Command {
   private final long duration;
-  private long       endTime;
+
+  private long endTime;
 
   /**
-   * Constructs a new DTWaitCommand.
+   * Constructs a new WaitCommand.
    *
-   * @param duration
-   *        the time to wait (in seconds)
+   * @param duration the time to wait (in seconds)
    */
   public WaitCommand(double duration) {
     this.duration = (long) (duration * 1e6);
@@ -40,5 +40,10 @@ public class WaitCommand extends CommandBase {
   @Override
   public boolean runsWhenDisabled() {
     return true;
+  }
+
+  @Override
+  public void execute() {
+    // Just wait and do nothing
   }
 }

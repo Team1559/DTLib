@@ -10,7 +10,7 @@ import java.util.function.BooleanSupplier;
  * is too complex, it is better practice to write a proper command class than to
  * inline it.
  */
-public class FunctionalCommand extends CommandBase {
+public class FunctionalCommand extends Command {
   private final Runnable        init;
   private final Runnable        execute;
   private final Runnable        end;
@@ -18,21 +18,14 @@ public class FunctionalCommand extends CommandBase {
   private final BooleanSupplier isFinished;
 
   /**
-   * Constructs a new DTFunctionalCommand.
+   * Constructs a new FunctionalCommand.
    *
-   * @param init
-   *        the initialization function
-   * @param execute
-   *        the execution function
-   * @param end
-   *        the end function
-   * @param interrupt
-   *        the interrupt handler
-   * @param isFinished
-   *        the condition to end this command
-   * @param requirements
-   *        the subsystems required by this command
-   *
+   * @param init the initialization function
+   * @param execute the execution function
+   * @param end the end function
+   * @param interrupt the interrupt handler
+   * @param isFinished the condition to end this command
+   * @param requirements the subsystems required by this command
    * @see Command#initialize()
    * @see Command#execute()
    * @see Command#end()
@@ -40,7 +33,7 @@ public class FunctionalCommand extends CommandBase {
    * @see Command#isFinished()
    */
   public FunctionalCommand(Runnable init, Runnable execute, Runnable end, Runnable interrupt,
-                             BooleanSupplier isFinished, Subsystem... requirements) {
+                           BooleanSupplier isFinished, Subsystem... requirements) {
     addRequirements(requirements);
     this.init = init;
     this.execute = execute;

@@ -6,10 +6,9 @@ package org.victorrobotics.dtlib.command;
  */
 public class InstantCommand extends FunctionalCommand {
   /**
-   * Constructs a new DTInstantCommand.
+   * Constructs a new InstantCommand.
    *
-   * @param toRun
-   *        the action to be run
+   * @param toRun the action to be run
    */
   public InstantCommand(Runnable toRun) {
     super(toRun, () -> {}, () -> {}, () -> {}, () -> true);

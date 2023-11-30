@@ -2,20 +2,43 @@ package org.victorrobotics.dtlib.math.spline;
 
 import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
+/**
+ * A spline made up of continuously interpolated line segments.
+ */
 public class LinearSpline extends Spline<LinearInterpolationSegment> {
+  /**
+   * Constructs a LinearSpline with no segments.
+   */
   public LinearSpline() {
     super();
   }
 
-  public LinearSpline(Vector2D_R p0, Vector2D_R p1) {
-    super(new LinearInterpolationSegment(p0, p1));
+  /**
+   * Constructs a LinearSpline starting and ending at the specified points.
+   *
+   * @param start the start point
+   * @param end the end point
+   */
+  public LinearSpline(Vector2D_R start, Vector2D_R end) {
+    super(new LinearInterpolationSegment(start, end));
   }
 
+  /**
+   * Constructs a LinearSpline consisting of the given line segment.
+   *
+   * @param segment the original line segment
+   */
   public LinearSpline(LinearInterpolationSegment segment) {
     super(segment);
   }
 
-  public LinearInterpolationSegment appendSegment(Vector2D_R p1) {
+  /**
+   * Appends a new line segment onto the end of this spline.
+   *
+   * @param point the point at which to end the segment
+   * @return the new line segment
+   */
+  public LinearInterpolationSegment appendSegment(Vector2D_R point) {
     LinearInterpolationControl prevControl;
     if (segments.isEmpty()) {
       prevControl = new LinearInterpolationControl();
@@ -24,13 +47,19 @@ public class LinearSpline extends Spline<LinearInterpolationSegment> {
       prevControl = prevCurve.getEndControl();
     }
 
-    LinearInterpolationControl endControl = new LinearInterpolationControl(p1);
+    LinearInterpolationControl endControl = new LinearInterpolationControl(point);
     LinearInterpolationSegment newSegment = new LinearInterpolationSegment(prevControl, endControl);
     segments.add(newSegment);
     return newSegment;
   }
 
-  public LinearInterpolationSegment prependSegment(Vector2D_R p0) {
+  /**
+   * Prepends a new line segment onto the beginning of this spline.
+   *
+   * @param point the point at which to start the segment
+   * @return the new line segment
+   */
+  public LinearInterpolationSegment prependSegment(Vector2D_R point) {
     LinearInterpolationControl nextControl;
     if (segments.isEmpty()) {
       nextControl = new LinearInterpolationControl();
@@ -39,7 +68,7 @@ public class LinearSpline extends Spline<LinearInterpolationSegment> {
       nextControl = nextCurve.getEndControl();
     }
 
-    LinearInterpolationControl startControl = new LinearInterpolationControl(p0);
+    LinearInterpolationControl startControl = new LinearInterpolationControl(point);
     LinearInterpolationSegment newSegment =
         new LinearInterpolationSegment(startControl, nextControl);
     segments.add(0, newSegment);
@@ -47,7 +76,7 @@ public class LinearSpline extends Spline<LinearInterpolationSegment> {
   }
 
   @Override
-  public LinearInterpolationSegment splitSegment(int index, double t) {
+  public LinearInterpolationControl splitSegment(int index, double t) {
     LinearInterpolationSegment toSplit = segments.get(index);
     Vector2D_R pos = toSplit.getPosition(t);
     LinearInterpolationControl splitControl = new LinearInterpolationControl(pos);
@@ -59,6 +88,6 @@ public class LinearSpline extends Spline<LinearInterpolationSegment> {
     segments.set(index, before);
     segments.add(index + 1, after);
 
-    return toSplit;
+    return splitControl;
   }
 }

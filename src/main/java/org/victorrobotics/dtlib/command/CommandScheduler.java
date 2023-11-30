@@ -163,9 +163,7 @@ public final class CommandScheduler {
    * commands that are directly scheduled by the scheduler; it will not work on
    * commands inside compositions, as the scheduler does not see them.
    *
-   * @param command
-   *        the command to query
-   *
+   * @param command the command to query
    * @return whether the command is currently scheduled
    */
   public static boolean isScheduled(Command command) {
@@ -175,9 +173,7 @@ public final class CommandScheduler {
   /**
    * Schedules multiple commands for execution.
    *
-   * @param commands
-   *        the commands to schedule. No-op on null.
-   *
+   * @param commands the commands to schedule. No-op on null.
    * @see #schedule(Command)
    */
   public static void schedule(Command... commands) {
@@ -198,10 +194,8 @@ public final class CommandScheduler {
    * commands can all be canceled</li>
    * </ul>
    *
-   * @param command
-   *        the command to schedule.
-   *
-   * @see CommandScheduler#isScheduled(Command)
+   * @param command the command to schedule.
+   * @see CommandScheduler#isScheduled(DTCommand)
    * @see Command#isInterruptible()
    * @see Command#runsWhenDisabled()
    * @see DTRobot#getCurrentMode()
@@ -257,9 +251,7 @@ public final class CommandScheduler {
   /**
    * Cancels commands.
    *
-   * @param commands
-   *        the commands to cancel
-   *
+   * @param commands the commands to cancel
    * @see #cancel(Command)
    */
   public static void cancel(Command... commands) {
@@ -275,9 +267,7 @@ public final class CommandScheduler {
    * <p>
    * Commands will be canceled regardless of interruption behavior.
    *
-   * @param command
-   *        the command to cancel
-   *
+   * @param command the command to cancel
    * @see Command#interrupt()
    */
   public static void cancel(Command command) {
@@ -330,10 +320,8 @@ public final class CommandScheduler {
    * Registers a subsystem with the scheduler. This is called automatically by
    * the {@link Subsystem} constructor.
    *
-   * @param subsystem
-   *        the subsystem to register
-   *
-   * @see Subsystem#Subsystem() the Subsystem constructor
+   * @param subsystem the subsystem to register
+   * @see Subsystem#Subsystem() Subsystem()
    */
   public static void registerSubsystem(Subsystem subsystem) {
     if (subsystem == null) {
@@ -348,9 +336,7 @@ public final class CommandScheduler {
    * Returns the command currently requiring a given subsystem. Null if no
    * command is currently requiring the subsystem
    *
-   * @param subsystem
-   *        the subsystem to be inquired about
-   *
+   * @param subsystem the subsystem to be inquired about
    * @return the command currently requiring the subsystem, or null if no
    *         command is currently scheduled
    */
@@ -372,11 +358,9 @@ public final class CommandScheduler {
    * Register a command as composed. An exception will be thrown if these
    * commands are scheduled directly or added to another composition.
    *
-   * @param command
-   *        the command to register
-   *
-   * @throws IllegalArgumentException
-   *         if the given command has already been composed
+   * @param command the command to register
+   * @throws IllegalArgumentException if the given command has already been
+   *         composed
    */
   public static void registerComposed(Command command) {
     requireNotComposed(command);
@@ -387,11 +371,9 @@ public final class CommandScheduler {
    * Register commands as composed. An exception will be thrown if these
    * commands are scheduled directly or added to a composition.
    *
-   * @param commands
-   *        the commands to register
-   *
-   * @throws IllegalArgumentException
-   *         if the given commands have already been composed
+   * @param commands the commands to register
+   * @throws IllegalArgumentException if the given commands have already been
+   *         composed
    */
   public static void registerComposed(Command... commands) {
     registerComposed(Set.of(commands));
@@ -401,11 +383,9 @@ public final class CommandScheduler {
    * Register commands as composed. An exception will be thrown if these
    * commands are scheduled directly or added to a composition.
    *
-   * @param commands
-   *        the commands to register
-   *
-   * @throws IllegalArgumentException
-   *         if the given commands have already been composed
+   * @param commands the commands to register
+   * @throws IllegalArgumentException if the given commands have already been
+   *         composed
    */
   public static void registerComposed(Collection<Command> commands) {
     requireNotComposed(commands);
@@ -428,8 +408,7 @@ public final class CommandScheduler {
   /**
    * Adds a callback to run automatically every cycle.
    *
-   * @param r
-   *        the task to run
+   * @param r the task to run
    */
   public static void bindCallback(Runnable r) {
     CALLBACKS.add(r);

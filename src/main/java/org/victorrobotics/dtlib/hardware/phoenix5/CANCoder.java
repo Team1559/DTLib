@@ -92,13 +92,13 @@ public class CANCoder implements AbsoluteEncoder {
   public AbsoluteEncoderFaults getFaults() {
     CANCoderFaults faults = new CANCoderFaults();
     internal.getFaults(faults);
-    return new DTCANCoderFaults(faults);
+    return new Faults(faults);
   }
 
-  public static class DTCANCoderFaults implements AbsoluteEncoderFaults {
+  public static class Faults implements AbsoluteEncoderFaults {
     private final CANCoderFaults internal;
 
-    DTCANCoderFaults(CANCoderFaults internal) {
+    Faults(CANCoderFaults internal) {
       this.internal = internal;
     }
 

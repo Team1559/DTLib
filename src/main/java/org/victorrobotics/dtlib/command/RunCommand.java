@@ -8,12 +8,10 @@ import org.victorrobotics.dtlib.subsystem.Subsystem;
  */
 public class RunCommand extends FunctionalCommand {
   /**
-   * Constructs a new DTRunCommand.
+   * Constructs a new RunCommand.
    *
-   * @param toRun
-   *        the function to run on loop
-   * @param requirements
-   *        the required subsystems
+   * @param toRun the function to run on loop
+   * @param requirements the required subsystems
    */
   public RunCommand(Runnable toRun, Subsystem... requirements) {
     super(() -> {}, toRun, () -> {}, () -> {}, () -> false, requirements);

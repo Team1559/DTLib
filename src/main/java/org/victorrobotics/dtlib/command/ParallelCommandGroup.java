@@ -16,7 +16,7 @@ import java.util.Set;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class ParallelCommandGroup extends CommandBase {
+public class ParallelCommandGroup extends Command {
   private final Map<Command, Boolean> parallelCommands;
 
   private boolean runsWhenDisabled = true;
@@ -25,10 +25,9 @@ public class ParallelCommandGroup extends CommandBase {
   private boolean success;
 
   /**
-   * Constructs a DTParallelCommandGroup
+   * Constructs a ParallelCommandGroup
    *
-   * @param commands
-   *        the commands to run in parallel
+   * @param commands the commands to run in parallel
    */
   public ParallelCommandGroup(Command... commands) {
     parallelCommands = new LinkedHashMap<>();
@@ -40,14 +39,10 @@ public class ParallelCommandGroup extends CommandBase {
    * Adds additional commands to the composition, which will run parallel to
    * current commands.
    *
-   * @param commands
-   *        the commands to add
-   *
-   * @throws IllegalStateException
-   *         if the composition is currently scheduled
-   * @throws IllegalArgumentException
-   *         if a given command is already part of another composition, or if
-   *         commands share requirements
+   * @param commands the commands to add
+   * @throws IllegalStateException if the composition is currently scheduled
+   * @throws IllegalArgumentException if a given command is already part of
+   *         another composition, or if commands share requirements
    */
   public void addCommands(Command... commands) {
     if (isScheduled()) {

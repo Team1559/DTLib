@@ -156,8 +156,8 @@ public class Neo implements Motor {
   }
 
   @Override
-  public DTNeoFaults getFaults() {
-    return new DTNeoFaults(internal.getFaults());
+  public Faults getFaults() {
+    return new Faults(internal.getFaults());
   }
 
   @Override
@@ -165,12 +165,12 @@ public class Neo implements Motor {
     return internal.getFirmwareString();
   }
 
-  public static class DTNeoFaults implements MotorFaults {
+  public static class Faults implements MotorFaults {
     private static final short OTHER_FAULTS_MASK = 0b00001101_11110110;
 
     private final short internal;
 
-    DTNeoFaults(short internal) {
+    Faults(short internal) {
       this.internal = internal;
     }
 

@@ -10,7 +10,7 @@ import java.util.List;
  * to it cannot be added to any other composition or scheduled individually, and
  * the composition requires all subsystems its components require.
  */
-public class SequentialCommandGroup extends CommandBase {
+public class SequentialCommandGroup extends Command {
   private final List<Command> sequentialCommands;
 
   private boolean runsWhenDisabled = true;
@@ -19,10 +19,9 @@ public class SequentialCommandGroup extends CommandBase {
   private boolean success;
 
   /**
-   * Constructs a DTSequentialCommandGroup
+   * Constructs a SequentialCommandGroup
    *
-   * @param commands
-   *        the commands to run, in sequence
+   * @param commands the commands to run, in sequence
    */
   public SequentialCommandGroup(Command... commands) {
     sequentialCommands = new ArrayList<>();
@@ -34,13 +33,10 @@ public class SequentialCommandGroup extends CommandBase {
    * Adds additional commands to the composition, which will run after existing
    * commands.
    *
-   * @param commands
-   *        the commands to add
-   *
-   * @throws IllegalStateException
-   *         if the composition is currently scheduled
-   * @throws IllegalArgumentException
-   *         if a given command is already part of another composition
+   * @param commands the commands to add
+   * @throws IllegalStateException if the composition is currently scheduled
+   * @throws IllegalArgumentException if a given command is already part of
+   *         another composition
    */
   public void addCommands(Command... commands) {
     if (isScheduled()) {

@@ -8,14 +8,13 @@ package org.victorrobotics.dtlib.command;
  * The rules for command compositions do NOT apply, which must be taken into
  * consideration.
  */
-public class ProxyCommand extends CommandBase {
+public class ProxyCommand extends Command {
   private final Command target;
 
   /**
-   * Constructs a new DTProxyCommand.
+   * Constructs a new ProxyCommand.
    *
-   * @param target
-   *        the command to schedule upon execution
+   * @param target the command to schedule upon execution
    */
   public ProxyCommand(Command target) {
     this.target = target;
@@ -24,6 +23,16 @@ public class ProxyCommand extends CommandBase {
   @Override
   public void initialize() {
     target.schedule();
+  }
+
+  @Override
+  public void execute() {
+    // Target is already scheduled
+  }
+
+  @Override
+  public void end() {
+    // If called, target must be finished, and end() will be called naturally
   }
 
   @Override

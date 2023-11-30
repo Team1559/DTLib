@@ -8,18 +8,26 @@ import java.util.function.BooleanSupplier;
  * composition it belongs to. Useful for delaying command execution or pausing
  * between actions.
  */
-public class WaitUntilCommand extends CommandBase {
+public class WaitUntilCommand extends Command {
   private final BooleanSupplier condition;
 
   /**
-   * Constructs a new DTWaitUntilCommand.
+   * Constructs a new WaitUntilCommand.
    *
-   * @param condition
-   *        the condition to wait for
+   * @param condition the condition to wait for
    */
   public WaitUntilCommand(BooleanSupplier condition) {
     this.condition = condition;
   }
+
+  @Override
+  public void initialize() {}
+
+  @Override
+  public void execute() {}
+
+  @Override
+  public void end() {}
 
   @Override
   public boolean isFinished() {
