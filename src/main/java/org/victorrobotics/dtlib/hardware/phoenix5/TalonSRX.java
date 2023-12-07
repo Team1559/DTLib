@@ -28,6 +28,11 @@ public class TalonSRX implements Motor {
   }
 
   @Override
+  public void configFactoryDefault() {
+    internal.configFactoryDefault();
+  }
+
+  @Override
   public void configBrakeMode(boolean enable) {
     internal.setNeutralMode(enable ? NeutralMode.Brake : NeutralMode.Coast);
   }

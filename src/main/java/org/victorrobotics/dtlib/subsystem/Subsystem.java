@@ -29,7 +29,7 @@ public abstract class Subsystem {
 
   public abstract void periodic();
 
-  public abstract void simulationPeriodic();
+  public void simulationPeriodic() {}
 
   public final NetworkTable getDashboardTable() {
     return dashboardTable;

@@ -3,6 +3,8 @@ package org.victorrobotics.dtlib.hardware;
 public interface Motor {
   Object getMotorImpl();
 
+  void configFactoryDefault();
+
   void configBrakeMode(boolean enable);
 
   void configOutputInverted(boolean invert);

@@ -1,5 +1,7 @@
 package org.victorrobotics.dtlib.math.kinematics;
 
+import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -69,10 +71,10 @@ public class SwerveDriveOdometry {
 
   private final int moduleCount;
 
-  private Pose2d     estimatedPose;
+  private Vector2D_R estimatedPose;
   private Rotation2d gyroOffset;
 
-  public SwerveDriveOdometry(SwerveDriveKinematics kinematics, Pose2d initialPose,
+  public SwerveDriveOdometry(SwerveDriveKinematics kinematics, Vector2D_R initialPose,
                              Rotation2d gyroAngle, SwerveModulePosition[] modulePositions,
                              double[] encoderStdDevs) {
     this.kinematics = kinematics;
@@ -80,8 +82,8 @@ public class SwerveDriveOdometry {
     this.modulePositions = deepCopy(modulePositions, null);
 
     estimatedPose = initialPose;
-    gyroOffset = estimatedPose.getRotation()
-                              .minus(gyroAngle);
+    gyroOffset = initialPose.toRotation2d()
+                            .minus(gyroAngle);
 
     visionKalmanFilter = new double[3];
     encoderStdDevsSquared = new double[3];
@@ -93,19 +95,19 @@ public class SwerveDriveOdometry {
   /**
    * @return The estimated robot position.
    */
-  public Pose2d getEstimatedPosition() {
-    return estimatedPose;
+  public Vector2D_R getEstimatedPosition() {
+    return estimatedPose.clone();
   }
 
-  public void resetPosition(Pose2d newPose, Rotation2d gyroAngle,
+  public void resetPosition(Vector2D_R newPose, Rotation2d gyroAngle,
                             SwerveModulePosition... modulePositions) {
     if (modulePositions.length != moduleCount) {
       throwInconsistentModuleCount();
     }
 
     estimatedPose = newPose;
-    gyroOffset = estimatedPose.getRotation()
-                              .minus(gyroAngle);
+    gyroOffset = newPose.toRotation2d()
+                        .minus(gyroAngle);
     deepCopy(modulePositions, this.modulePositions);
     poseBuffer.clear();
   }
@@ -140,11 +142,12 @@ public class SwerveDriveOdometry {
                     visionKalmanFilter[2] * twist.dtheta);
 
     // Reset state to time of sample, with the new vision adjustment
-    resetPosition(sample.pose.exp(scaledTwist), sample.gyroAngle, sample.wheelPositions);
+    resetPosition(new Vector2D_R(sample.pose.exp(scaledTwist)), sample.gyroAngle,
+                  sample.wheelPositions);
 
     // Inject new pose at given timestamp
     InterpolationRecord newSample =
-        new InterpolationRecord(estimatedPose, sample.gyroAngle, sample.wheelPositions);
+        new InterpolationRecord(estimatedPose.toPose2d(), sample.gyroAngle, sample.wheelPositions);
     poseBuffer.addSample(timeSeconds, newSample);
 
     // Replay all odometry inputs since the vision measurement
@@ -161,18 +164,25 @@ public class SwerveDriveOdometry {
       throwInconsistentModuleCount();
     }
 
+    Rotation2d[] moduleHeadings = new Rotation2d[moduleCount];
+    for (int i = 0; i < moduleCount; i++) {
+      moduleHeadings[i] = modulePositions[i].angle;
+    }
+    kinematics.updateModuleHeadings(moduleHeadings);
+
     Rotation2d angle = gyroAngle.plus(gyroOffset);
     Twist2d twist = kinematics.computeDeltaPose(this.modulePositions, modulePositions);
-    twist.dtheta = angle.minus(estimatedPose.getRotation())
+    twist.dtheta = angle.minus(estimatedPose.toRotation2d())
                         .getRadians();
 
     deepCopy(modulePositions, this.modulePositions);
-    estimatedPose = new Pose2d(estimatedPose.exp(twist)
-                                            .getTranslation(),
-                               angle);
+    estimatedPose = new Vector2D_R(estimatedPose.toPose2d()
+                                                .exp(twist)
+                                                .getTranslation(),
+                                   angle);
 
-    poseBuffer.addSample(timeSeconds,
-                         new InterpolationRecord(estimatedPose, gyroAngle, modulePositions));
+    poseBuffer.addSample(timeSeconds, new InterpolationRecord(estimatedPose.toPose2d(), gyroAngle,
+                                                              modulePositions));
   }
 
   private static SwerveModulePosition[] deepCopy(SwerveModulePosition[] src,

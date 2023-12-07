@@ -1,5 +1,7 @@
 package org.victorrobotics.dtlib.math.trajectory;
 
+import static java.lang.Double.NaN;
+
 import org.victorrobotics.dtlib.DTRobot;
 import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 
@@ -13,15 +15,12 @@ public final class AccelerationLimit {
   private final double maxRotationPerCycle;
 
   public AccelerationLimit() {
-    maxTranslation = Double.NaN;
-    maxRotation = Double.NaN;
-    maxTranslationPerCycle = Double.NaN;
-    maxRotationPerCycle = Double.NaN;
+    this(NaN, NaN);
   }
 
   public AccelerationLimit(double translation, double rotation) {
-    maxTranslation = Double.isFinite(translation) ? Math.abs(translation) : Double.NaN;
-    maxRotation = Double.isFinite(rotation) ? Math.abs(rotation) : Double.NaN;
+    maxTranslation = Double.isFinite(translation) ? Math.abs(translation) : NaN;
+    maxRotation = Double.isFinite(rotation) ? Math.abs(rotation) : NaN;
     maxTranslationPerCycle = maxTranslation * DTRobot.PERIOD_SECONDS;
     maxRotationPerCycle = maxRotation * DTRobot.PERIOD_SECONDS;
   }

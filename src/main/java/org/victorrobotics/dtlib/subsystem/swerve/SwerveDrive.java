@@ -1,5 +1,9 @@
 package org.victorrobotics.dtlib.subsystem.swerve;
 
+import static java.util.Objects.requireNonNull;
+
+import org.victorrobotics.dtlib.DTRobot;
+import org.victorrobotics.dtlib.hardware.IMU;
 import org.victorrobotics.dtlib.math.geometry.Vector2D;
 import org.victorrobotics.dtlib.math.geometry.Vector2D_R;
 import org.victorrobotics.dtlib.math.kinematics.SwerveDriveKinematics;
@@ -10,119 +14,173 @@ import org.victorrobotics.dtlib.math.trajectory.AccelerationLimit;
 import org.victorrobotics.dtlib.math.trajectory.VelocityLimit;
 import org.victorrobotics.dtlib.subsystem.Subsystem;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.IntFunction;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
-public abstract class SwerveDrive extends Subsystem {
-  private final SwerveModule[]        modules;
+public class SwerveDrive extends Subsystem {
+  public static class Builder {
+    private List<SwerveModule> modules;
+    private IMU                imu;
+
+    private AccelerationLimit accelLimit    = new AccelerationLimit();
+    private VelocityLimit     velocityLimit = new VelocityLimit();
+
+    Builder() {
+      modules = new ArrayList<>();
+    }
+
+    public SwerveDrive build() {
+      return new SwerveDrive(modules.toArray(SwerveModule[]::new), imu, velocityLimit, accelLimit);
+    }
+
+    public Builder addModule(SwerveModule module) {
+      modules.add(requireNonNull(module));
+      return this;
+    }
+
+    public Builder addModules(int count, IntFunction<SwerveModule> generator) {
+      for (int i = 0; i < count; i++) {
+        modules.add(requireNonNull(generator.apply(i)));
+      }
+      return this;
+    }
+
+    public Builder withIMU(IMU imu) {
+      this.imu = imu;
+      return this;
+    }
+
+    public Builder withAccelLimit(AccelerationLimit accelLimit) {
+      this.accelLimit = accelLimit;
+      return this;
+    }
+
+    public Builder withVelocityLimit(VelocityLimit velocityLimit) {
+      this.velocityLimit = velocityLimit;
+      return this;
+    }
+  }
+
+  private static final double HALF_PI = Math.PI / 2;
+
+  private final IMU            imu;
+  private final SwerveModule[] modules;
+
   private final SwerveDriveKinematics kinematics;
-  private final SwerveDriveOdometry   poseEstimator;
+  private final SwerveDriveOdometry   odometry;
 
   private final SwerveModulePosition[] positions;
 
-  private Vector2D          centerOfRotation;
-  private AccelerationLimit accelerationLimit;
+  private AccelerationLimit accelLimit;
   private VelocityLimit     velocityLimit;
   private boolean           isFieldRelative;
 
-  private Field2d    virtualField;
   private Vector2D_R currentSpeeds;
 
-  protected SwerveDrive(SwerveModule... modules) {
-    if (modules == null || modules.length < 2) {
-      throw new IllegalArgumentException("Swerve drive requires at least 2 wheels");
-    }
+  public SwerveDrive(SwerveModule[] modules, IMU imu, VelocityLimit velocityLimit,
+                     AccelerationLimit accelLimit) {
+    requireNonNull(modules);
 
+    this.imu = requireNonNull(imu);
     this.modules = new SwerveModule[modules.length];
-    for (int i = 0; i < modules.length; i++) {
-      this.modules[i] = Objects.requireNonNull(modules[i]);
-    }
+    this.accelLimit = accelLimit;
+    this.velocityLimit = velocityLimit;
+
+    positions = new SwerveModulePosition[modules.length];
 
     Vector2D[] wheelLocations = new Vector2D[modules.length];
-    positions = new SwerveModulePosition[modules.length];
-    for (int i = 0; i < wheelLocations.length; i++) {
+    double maxModuleSpeed = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < modules.length; i++) {
+      this.modules[i] = requireNonNull(modules[i]);
+      positions[i] = new SwerveModulePosition(modules[i].getDistance(), modules[i].getAngle());
       wheelLocations[i] = modules[i].getLocation();
-      positions[i] = modules[i].getPosition();
+      maxModuleSpeed = Math.min(maxModuleSpeed, modules[i].maxSpeed());
     }
 
-    kinematics = new SwerveDriveKinematics(5, wheelLocations);
-    poseEstimator = new SwerveDriveOdometry(kinematics, new Pose2d(), getGyroAngle(), positions,
-                                            new double[] { 0.1, 0.1, 0.1 });
+    kinematics = new SwerveDriveKinematics(maxModuleSpeed, wheelLocations);
+    odometry = new SwerveDriveOdometry(kinematics, new Vector2D_R(), getGyroAngle(), positions,
+                                       new double[] { 0.1, 0.1, 0.1 });
 
-    centerOfRotation = new Vector2D();
-    accelerationLimit = new AccelerationLimit();
     currentSpeeds = new Vector2D_R();
   }
 
-  public void initializeHardware() {}
-
-  public final void setCenterOfRotation(Vector2D newCenterOfRotation) {
-    centerOfRotation = newCenterOfRotation;
+  public void setCenterOfRotation(Vector2D newCenterOfRotation) {
+    kinematics.setCenterOfRotation(newCenterOfRotation);
   }
 
-  public void setAccelerationLimit(AccelerationLimit limit) {
-    accelerationLimit = limit;
+  public void configFieldRelative(boolean isFieldRelative) {
+    this.isFieldRelative = isFieldRelative;
   }
 
-  public void setVelocityLimit(VelocityLimit limit) {
-    velocityLimit = limit;
+  public Rotation2d getGyroAngle() {
+    return Rotation2d.fromDegrees(imu.getYaw());
   }
 
-  public void setFieldRelative() {
-    isFieldRelative = true;
-  }
-
-  public void setRobotRelative() {
-    isFieldRelative = false;
-  }
-
-  protected abstract Rotation2d getGyroAngle();
-
-  public final void driveVelocity(double vx, double vy, double vr) {
-    driveVelocity(vx, vy, vr, centerOfRotation);
-  }
-
-  public void driveVelocity(double vx, double vy, double vr, Vector2D centerOfRotation) {
-    Vector2D_R previousSpeeds = currentSpeeds;
-
+  public void driveVelocity(double vx, double vy, double vr) {
     if (isFieldRelative) {
-      ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, getGyroAngle());
-      currentSpeeds = new Vector2D_R(speeds);
-    } else {
-      currentSpeeds.setX(vx);
-      currentSpeeds.setY(vy);
-      currentSpeeds.setR(vr);
+      double vxField = vx;
+      double vyField = vy;
+
+      Rotation2d invGyro = getGyroAngle().unaryMinus();
+      vx = vxField * invGyro.getCos() - vyField * invGyro.getSin();
+      vy = vxField * invGyro.getSin() + vyField * invGyro.getCos();
     }
+
+    Vector2D_R previousSpeeds = currentSpeeds;
+    currentSpeeds.setX(vx);
+    currentSpeeds.setY(vy);
+    currentSpeeds.setR(vr);
 
     velocityLimit.apply(currentSpeeds);
-    accelerationLimit.apply(currentSpeeds, previousSpeeds);
+    accelLimit.apply(currentSpeeds, previousSpeeds);
 
-    kinematics.setCenterOfRotation(centerOfRotation);
-    SwerveModuleState[] newStates = kinematics.computeModuleStates(currentSpeeds);
-    setStates(newStates);
-  }
-
-  public final void setStates(SwerveModuleState... states) {
-    if (states.length != modules.length) {
-      throw new IllegalArgumentException("received " + states.length + " module states for "
-          + modules.length + " modules");
-    }
-
+    SwerveModuleState[] moduleStates = kinematics.computeModuleStates(currentSpeeds);
     for (int i = 0; i < modules.length; i++) {
-      modules[i].setState(states[i]);
+      modules[i].setSpeed(moduleStates[i].speed);
+      modules[i].setAngle(moduleStates[i].heading);
     }
   }
 
   public void holdPosition() {
     for (SwerveModule module : modules) {
-      // Orient wheels towards center of robot so they all collide
-      module.holdPosition(Rotation2d.fromRadians(module.getLocation()
-                                                       .theta())
-                                    .unaryMinus());
+      double angle = module.getLocation()
+                           .theta();
+
+      double currentAngle = module.getAngle()
+                                  .getRadians();
+      while (angle - currentAngle > HALF_PI) {
+        angle -= Math.PI;
+      }
+      while (currentAngle - angle > HALF_PI) {
+        angle += Math.PI;
+      }
+
+      module.setAngle(Rotation2d.fromRadians(angle));
+      module.setSpeed(0);
     }
+  }
+
+  public Vector2D_R getEstimatedPose() {
+    return odometry.getEstimatedPosition();
+  }
+
+  public SwerveDriveOdometry getOdometry() {
+    return odometry;
+  }
+
+  @Override
+  public void periodic() {
+    for (int i = 0; i < modules.length; i++) {
+      positions[i].angle = modules[i].getAngle();
+      positions[i].distance = modules[i].getDistance();
+    }
+    odometry.update(DTRobot.currentTime(), getGyroAngle(), positions);
+  }
+
+  public static Builder builder() {
+    return new Builder();
   }
 }

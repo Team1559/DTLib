@@ -56,9 +56,8 @@ public class SwerveDriveKinematics {
    * you pass in the module states in the same order when calling the forward
    * kinematics methods.
    *
-   * @param moduleLocations
-   *        The locations of the modules relative to the physical center of the
-   *        robot.
+   * @param moduleLocations The locations of the modules relative to the
+   *        physical center of the robot.
    */
   public SwerveDriveKinematics(double maxModuleSpeed, Vector2D... moduleLocations) {
     if (moduleLocations.length < 2) {
@@ -94,9 +93,9 @@ public class SwerveDriveKinematics {
   /**
    * Reset the internal swerve module headings.
    *
-   * @param moduleHeadings
-   *        The swerve module headings. The order of the module headings should
-   *        be same as passed into the constructor of this class.
+   * @param moduleHeadings The swerve module headings. The order of the module
+   *        headings should be same as passed into the constructor of this
+   *        class.
    */
   public void updateModuleHeadings(Rotation2d... moduleHeadings) {
     if (moduleHeadings.length != moduleCount) {
@@ -119,9 +118,7 @@ public class SwerveDriveKinematics {
    * In the case that the desired chassis speeds are zero (i.e. the robot will
    * be stationary), the previously calculated module angle will be maintained.
    *
-   * @param robotVelocity
-   *        The desired chassis speed.
-   *
+   * @param robotVelocity The desired chassis speed.
    * @return An array containing the module states.
    */
   @SuppressWarnings("java:S3518") // "possible" divide by zero
@@ -146,28 +143,22 @@ public class SwerveDriveKinematics {
     for (int i = 0; i < moduleCount; i++) {
       double x = moduleStatesMatrix.get(i * 2, 0);
       double y = moduleStatesMatrix.get(i * 2 + 1, 0);
-      double speed = Math.hypot(x, y);
-      Rotation2d angle = new Rotation2d(x, y);
 
+      double speed = Math.hypot(x, y);
       if (speed > maxSpeed) {
         maxSpeed = speed;
       }
 
-      // Optimize heading
-      Rotation2d delta = angle.minus(moduleHeadings[i]);
-      if (Math.abs(delta.getDegrees()) >= 90) {
-        speed = -speed;
-        angle = angle.rotateBy(DEGREES_180);
-        delta = angle.minus(moduleHeadings[i]);
-      }
+      moduleStates[i] = new SwerveModuleState(speed, new Rotation2d(x, y));
+      moduleStates[i].optimize(moduleHeadings[i]);
 
-      double cosine = delta.getCos();
+      double cosine = moduleStates[i].heading.minus(moduleHeadings[i])
+                                             .getCos();
       if (cosine < minCosine) {
         minCosine = cosine;
       }
 
-      moduleStates[i] = new SwerveModuleState(speed, angle);
-      moduleHeadings[i] = moduleStates[i].angle;
+      moduleHeadings[i] = moduleStates[i].heading;
     }
 
     // Cosine scaling (3rd degree)
@@ -194,11 +185,10 @@ public class SwerveDriveKinematics {
    * the robot's position on the field using data from the real-world speed and
    * angle of each module on the robot.
    *
-   * @param moduleStates
-   *        The state of the modules (as a SwerveModuleState type) as measured
-   *        from respective encoders and gyros. The order of the swerve module
-   *        states should be same as passed into the constructor of this class.
-   *
+   * @param moduleStates The state of the modules (as a SwerveModuleState type)
+   *        as measured from respective encoders and gyros. The order of the
+   *        swerve module states should be same as passed into the constructor
+   *        of this class.
    * @return The resulting chassis speed.
    */
   public Vector2D_R computeRobotVelocity(SwerveModuleState... moduleStates) {
@@ -208,8 +198,8 @@ public class SwerveDriveKinematics {
 
     for (int i = 0; i < moduleCount; i++) {
       SwerveModuleState module = moduleStates[i];
-      moduleStatesMatrix.set(i * 2, 0, module.speed * module.angle.getCos());
-      moduleStatesMatrix.set(i * 2 + 1, module.speed * module.angle.getSin());
+      moduleStatesMatrix.set(i * 2, 0, module.speed * module.heading.getCos());
+      moduleStatesMatrix.set(i * 2 + 1, module.speed * module.heading.getSin());
     }
 
     CommonOps_DDRM.mult(forwardMatrix, moduleStatesMatrix, chassisSpeedsMatrix);
@@ -223,11 +213,8 @@ public class SwerveDriveKinematics {
    * determining the robot's position on the field using changes in the distance
    * driven by each wheel on the robot.
    *
-   * @param start
-   *        The starting distances driven by the wheels.
-   * @param end
-   *        The ending distances driven by the wheels.
-   *
+   * @param start The starting distances driven by the wheels.
+   * @param end The ending distances driven by the wheels.
    * @return The resulting Twist2d in the robot's movement.
    */
   public Twist2d computeDeltaPose(SwerveModulePosition[] start, SwerveModulePosition[] end) {
@@ -249,11 +236,11 @@ public class SwerveDriveKinematics {
 
   public void setCenterOfRotation(Vector2D centerOfRotation) {
     for (int i = 0; i < moduleCount; i++) {
-      inverseMatrix.set(i * 2, 0, 1);
-      inverseMatrix.set(i * 2, 1, 0);
+      // inverseMatrix.set(i * 2, 0, 1);
+      // inverseMatrix.set(i * 2, 1, 0);
       inverseMatrix.set(i * 2, 2, -moduleLocations[i].getY() + centerOfRotation.getY());
-      inverseMatrix.set(i * 2 + 1, 0, 0);
-      inverseMatrix.set(i * 2 + 1, 1, 1);
+      // inverseMatrix.set(i * 2 + 1, 0, 0);
+      // inverseMatrix.set(i * 2 + 1, 1, 1);
       inverseMatrix.set(i * 2 + 1, 2, moduleLocations[i].getX() - centerOfRotation.getX());
     }
   }

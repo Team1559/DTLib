@@ -15,8 +15,9 @@ public class Vector2D_R extends Vector2D {
     this.r = r;
   }
 
-  public Vector2D_R(Translation2d translation) {
+  public Vector2D_R(Translation2d translation, Rotation2d rotation) {
     super(translation);
+    r = rotation.getRadians();
   }
 
   public Vector2D_R(Pose2d pose) {
@@ -38,9 +39,13 @@ public class Vector2D_R extends Vector2D {
     this.r = r;
   }
 
+  public final Rotation2d toRotation2d() {
+    return Rotation2d.fromRadians(r);
+  }
+
   @Override
   public final Pose2d toPose2d() {
-    return new Pose2d(x, y, Rotation2d.fromRadians(r));
+    return new Pose2d(x, y, toRotation2d());
   }
 
   @Override

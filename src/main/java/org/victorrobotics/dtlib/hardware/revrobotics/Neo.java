@@ -31,6 +31,11 @@ public class Neo implements Motor {
   }
 
   @Override
+  public void configFactoryDefault() {
+    internal.restoreFactoryDefaults();
+  }
+
+  @Override
   public void configBrakeMode(boolean enable) {
     internal.setIdleMode(enable ? CANSparkMax.IdleMode.kBrake : CANSparkMax.IdleMode.kCoast);
   }
